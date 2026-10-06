@@ -1,0 +1,6 @@
+{
+  "name": "AI Heaven",
+  "description": "Universal resource discovery, knowledge graph, verification, and interoperability platform for AI agents and humans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
