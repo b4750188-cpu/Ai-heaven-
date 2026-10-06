@@ -170,7 +170,8 @@ export class GoogleAISourceConnector extends BaseSourceConnector {
         is_demo_data: false
       },
       external_identifiers: {
-        source: 'ai.google.dev'
+        google_resource_id: slug,
+        docs_source: 'ai.google.dev'
       },
       agent_contract: {
         what_is_it: String(raw.name),

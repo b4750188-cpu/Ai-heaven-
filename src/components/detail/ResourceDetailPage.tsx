@@ -403,7 +403,51 @@ export const ResourceDetailPage: React.FC<ResourceDetailPageProps> = ({
             )}
           </section>
 
-          {/* Section 6: Provenance & Verification Audit Trail */}
+          {/* Section 6: Dependencies & Documented Alternatives */}
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold tracking-wider text-neutral-400 uppercase font-mono">
+              Dependencies & Frontier Alternatives
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-lg border border-neutral-800 bg-neutral-900/40 space-y-2">
+                <span className="text-xs font-mono text-neutral-500">DEPENDENCIES</span>
+                {resource.dependencies && resource.dependencies.length > 0 ? (
+                  <ul className="text-xs text-neutral-300 space-y-1.5 font-mono list-disc list-inside">
+                    {resource.dependencies.map((dep, idx) => (
+                      <li key={idx} className="leading-relaxed">{dep}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-neutral-500 font-mono italic">
+                    No verified dependencies required.
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 rounded-lg border border-neutral-800 bg-neutral-900/40 space-y-2">
+                <span className="text-xs font-mono text-neutral-500">DOCUMENTED ALTERNATIVES</span>
+                {resource.agent_contract.alternatives && resource.agent_contract.alternatives.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {resource.agent_contract.alternatives.map((alt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => onNavigateToResource(alt)}
+                        className="px-2.5 py-1 rounded bg-neutral-800/80 hover:bg-neutral-800 text-neutral-200 text-xs font-mono border border-neutral-700/60 hover:border-neutral-600 transition-colors"
+                      >
+                        {alt} →
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-neutral-500 font-mono italic">
+                    No verified alternatives documented.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Section 7: Provenance & Verification Audit Trail */}
           <section className="space-y-3">
             <h2 className="text-sm font-semibold tracking-wider text-neutral-400 uppercase font-mono">
               Provenance & Server Verification Audit

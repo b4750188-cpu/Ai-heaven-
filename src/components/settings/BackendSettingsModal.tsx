@@ -45,9 +45,12 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-sm cursor-pointer"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-xl rounded-xl border border-neutral-800 bg-neutral-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 space-y-6 p-6"
+        className="w-full max-w-xl rounded-xl border border-neutral-800 bg-neutral-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 space-y-6 p-6 cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-neutral-800 pb-4">

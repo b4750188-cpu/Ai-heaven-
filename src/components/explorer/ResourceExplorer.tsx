@@ -6,19 +6,23 @@ import { ResourceCard } from './ResourceCard';
 interface ResourceExplorerProps {
   resources: Resource[];
   providers: Provider[];
+  isLoading?: boolean;
   onSelectResource: (resource: Resource) => void;
   onOpenAgentSpec: (resource: Resource) => void;
   onNavigateGoogleAIStudio: () => void;
   onNavigateKnowledgeGraph: () => void;
+  onNavigateAgents?: () => void;
 }
 
 export const ResourceExplorer: React.FC<ResourceExplorerProps> = ({
   resources,
   providers,
+  isLoading = false,
   onSelectResource,
   onOpenAgentSpec,
   onNavigateGoogleAIStudio,
-  onNavigateKnowledgeGraph
+  onNavigateKnowledgeGraph,
+  onNavigateAgents
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ResourceType | 'all'>('all');
@@ -99,7 +103,7 @@ export const ResourceExplorer: React.FC<ResourceExplorerProps> = ({
                 Deep architectural integration with Gemini 1.5 Pro (2M ctx), Gemini 2.0 Flash, Gemini API, and @google/genai SDK.
               </p>
             </div>
-            <div className="pt-2 flex items-center gap-2">
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
               <button
                 onClick={onNavigateGoogleAIStudio}
                 className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded bg-neutral-100 text-neutral-950 hover:bg-neutral-200 text-xs font-medium transition-colors"
@@ -109,11 +113,20 @@ export const ResourceExplorer: React.FC<ResourceExplorerProps> = ({
               </button>
               <button
                 onClick={onNavigateKnowledgeGraph}
-                className="flex items-center justify-center py-1.5 px-3 rounded border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800 text-xs font-medium transition-colors whitespace-nowrap"
+                className="w-full sm:w-auto flex items-center justify-center py-1.5 px-3 rounded border border-neutral-700 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800 text-xs font-medium transition-colors whitespace-nowrap"
                 title="View in Knowledge Graph"
               >
                 <span>View Graph</span>
               </button>
+              {onNavigateAgents && (
+                <button
+                  onClick={onNavigateAgents}
+                  className="w-full sm:w-auto flex items-center justify-center py-1.5 px-3 rounded border border-emerald-700/80 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 text-xs font-medium transition-colors whitespace-nowrap"
+                  title="Open Agent Runtime Console"
+                >
+                  <span>Agent Console</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -241,7 +254,26 @@ export const ResourceExplorer: React.FC<ResourceExplorerProps> = ({
           )}
         </div>
 
-        {filteredResources.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
+              <div
+                key={idx}
+                className="flex flex-col justify-between border border-neutral-850 bg-neutral-900/30 p-5 rounded-lg h-44 animate-pulse space-y-3"
+              >
+                <div className="space-y-2">
+                  <div className="h-3 bg-neutral-800 rounded w-1/3" />
+                  <div className="h-4 bg-neutral-800 rounded w-2/3" />
+                  <div className="h-3 bg-neutral-800/60 rounded w-full" />
+                </div>
+                <div className="pt-3 border-t border-neutral-850 flex justify-between">
+                  <div className="h-3 bg-neutral-800/60 rounded w-1/4" />
+                  <div className="h-3 bg-neutral-800/60 rounded w-1/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredResources.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredResources.map((resource) => (
               <ResourceCard

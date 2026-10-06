@@ -211,18 +211,32 @@ export const ProviderHub: React.FC<ProviderHubProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800/60">
-              {comparisonData.map((row) => (
-                <tr key={row.provider} className="hover:bg-neutral-800/20 transition-colors">
-                  <td className="py-3 px-4 font-bold text-neutral-200">{row.provider}</td>
-                  <td className="py-3 px-4 text-emerald-400">{row.primaryPlatform}</td>
-                  <td className="py-3 px-4 text-neutral-200">{row.flagshipModel}</td>
-                  <td className="py-3 px-4 tabular-nums text-neutral-300 font-semibold">{row.maxContext}</td>
-                  <td className="py-3 px-4 text-neutral-400 text-[11px]">{row.modalities}</td>
-                  <td className="py-3 px-4 text-neutral-300 text-[11px]">{row.codeExecution}</td>
-                  <td className="py-3 px-4 text-neutral-300 text-[11px]">{row.structuredOutput}</td>
-                  <td className="py-3 px-4 text-neutral-400 text-[11px]">{row.pricingBase}</td>
-                </tr>
-              ))}
+              {comparisonData.map((row) => {
+                const targetResource = resources.find(r => r.slug === row.slug);
+                return (
+                  <tr key={row.provider} className="hover:bg-neutral-800/20 transition-colors">
+                    <td className="py-3 px-4 font-bold text-neutral-200">{row.provider}</td>
+                    <td className="py-3 px-4">
+                      {targetResource ? (
+                        <button
+                          onClick={() => onSelectResource(targetResource)}
+                          className="text-emerald-400 hover:underline text-left font-medium"
+                        >
+                          {row.primaryPlatform} →
+                        </button>
+                      ) : (
+                        <span className="text-emerald-400">{row.primaryPlatform}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-neutral-200">{row.flagshipModel}</td>
+                    <td className="py-3 px-4 tabular-nums text-neutral-300 font-semibold">{row.maxContext}</td>
+                    <td className="py-3 px-4 text-neutral-400 text-[11px]">{row.modalities}</td>
+                    <td className="py-3 px-4 text-neutral-300 text-[11px]">{row.codeExecution}</td>
+                    <td className="py-3 px-4 text-neutral-300 text-[11px]">{row.structuredOutput}</td>
+                    <td className="py-3 px-4 text-neutral-400 text-[11px]">{row.pricingBase}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

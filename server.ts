@@ -11,6 +11,17 @@ import { RESOURCES, PROVIDERS, RELATIONSHIPS } from './src/data/database.ts';
 import { googleAISourceConnector } from './src/services/connectors/googleAIConnector.ts';
 import { gitHubSourceConnector } from './src/services/connectors/githubConnector.ts';
 import { mcpSourceConnector } from './src/services/connectors/mcpConnector.ts';
+import {
+  User,
+  Project,
+  Workspace,
+  AgentDefinition,
+  ToolDefinition,
+  AuditEvent
+} from './src/types/foundation.ts';
+import { workspaceFilesystem } from './src/services/sandbox/workspaceFs.ts';
+import { executionManager } from './src/services/sandbox/executionManager.ts';
+import { agentRuntimeService } from './src/services/sandbox/agentRuntimeService.ts';
 
 dotenv.config();
 
@@ -21,9 +32,182 @@ const HOST = '0.0.0.0';
 let currentResources = [...RESOURCES];
 let currentRelationships = [...RELATIONSHIPS];
 
+// Phase 1A Foundation State
+const currentUser: User = {
+  id: 'usr_dev_default_01',
+  email: 'developer@aiheaven.local',
+  role: 'admin',
+  is_active: true,
+  profile: {
+    full_name: 'AI Heaven Platform Engineer',
+    organization: 'AI Heaven Core',
+    preferences: { theme: 'dark', terminal_font: 'JetBrains Mono' }
+  },
+  identities: [
+    {
+      provider: 'local',
+      provider_user_id: 'usr_dev_default_01',
+      email: 'developer@aiheaven.local',
+      last_authenticated_at: new Date().toISOString()
+    }
+  ],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+const defaultProject: Project = {
+  id: 'proj_ai_heaven_core',
+  owner_id: currentUser.id,
+  name: 'AI Heaven Core Platform',
+  description: 'Primary platform engineering workspace for autonomous agent workflows and sandboxed execution.',
+  status: 'active',
+  metadata: { environment: 'sandbox', isolation_level: 'strict' },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+const defaultWorkspace: Workspace = {
+  id: 'ws_default_sandbox',
+  project_id: defaultProject.id,
+  owner_id: currentUser.id,
+  name: 'Sandbox Runtime Alpha',
+  filesystem_ref: '/var/aiheaven/workspaces/ws_default_sandbox',
+  status: 'ready',
+  environment_variables: { NODE_ENV: 'sandbox', AI_ISOLATION: 'active' },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+const defaultAgent: AgentDefinition = {
+  id: 'agent_droid_prime',
+  owner_id: currentUser.id,
+  project_id: defaultProject.id,
+  workspace_id: defaultWorkspace.id,
+  name: 'AI Heaven Droid Prime',
+  description: 'Autonomous platform engineering worker equipped with sandboxed terminal, scoped filesystem, and MCP inspection capabilities.',
+  status: 'idle',
+  permissions: {
+    allowed_tools: ['tool_terminal_sandbox', 'tool_fs_scoped', 'tool_mcp_client', 'tool_github_sync'],
+    network_access: true,
+    filesystem_scope: 'workspace_only',
+    requires_approval_for_destructive: true
+  },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+let projects: Project[] = [defaultProject];
+let workspaces: Workspace[] = [defaultWorkspace];
+let agents: AgentDefinition[] = [defaultAgent];
+
+workspaceFilesystem.ensureWorkspaceInitialized(defaultWorkspace.id);
+agentRuntimeService.registerWorker(defaultAgent);
+const registeredTools: ToolDefinition[] = [
+  {
+    id: 'tool_terminal_sandbox',
+    name: 'Sandboxed Terminal Execution',
+    description: 'Executes shell commands strictly inside isolated container environment.',
+    capability: 'terminal',
+    permission_requirements: ['sandbox:exec'],
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 60,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_fs_scoped',
+    name: 'Scoped Filesystem Access',
+    description: 'Read/write operations restricted strictly to workspace root path.',
+    capability: 'filesystem',
+    permission_requirements: ['fs:workspace_write'],
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 15,
+      requires_confirmation: false,
+      max_output_bytes: 10485760
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_mcp_client',
+    name: 'MCP Server Connector',
+    description: 'JSON-RPC client for interacting with verified Model Context Protocol tools.',
+    capability: 'mcp',
+    permission_requirements: ['mcp:call'],
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 30,
+      requires_confirmation: false,
+      max_output_bytes: 2097152
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_github_sync',
+    name: 'GitHub Repository Sync',
+    description: 'Syncs metadata and code trees from verified GitHub repositories.',
+    capability: 'github',
+    permission_requirements: ['git:read'],
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 45,
+      requires_confirmation: false,
+      max_output_bytes: 2097152
+    },
+    is_enabled: true
+  }
+];
+
+let auditEvents: AuditEvent[] = [];
+
+function logAuditEvent(event: Omit<AuditEvent, 'id' | 'timestamp'>): AuditEvent {
+  const newEvent: AuditEvent = {
+    ...event,
+    id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    timestamp: new Date().toISOString()
+  };
+  auditEvents.unshift(newEvent);
+  return newEvent;
+}
+
+// Connect execution state machine to immutable audit log stream
+executionManager.setAuditLogger((event) => {
+  logAuditEvent(event);
+});
+agentRuntimeService.setAuditLogger((event) => {
+  logAuditEvent(event);
+});
+
 async function startServer() {
   const app = express();
   app.use(express.json());
+
+  // Security headers middleware
+  app.use((req: Request, res: Response, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Controlled CORS for API routes
+    const origin = req.headers.origin;
+    if (origin) {
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+        : [origin]; // in dev allow requesting origin
+      if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+      }
+    }
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  });
 
   // 1. Health check endpoint
   app.get('/api/health', (req: Request, res: Response) => {
@@ -184,6 +368,602 @@ async function startServer() {
     }
   });
 
+  // 8. Connectors metadata list
+  app.get('/api/connectors', (req: Request, res: Response) => {
+    res.json([
+      googleAISourceConnector.config,
+      gitHubSourceConnector.config,
+      mcpSourceConnector.config
+    ]);
+  });
+
+  // ==========================================
+  // PHASE 1A: FOUNDATION REST ENDPOINTS
+  // ==========================================
+
+  // 9. Current User Identity & Profile
+  app.get('/api/users/current', (req: Request, res: Response) => {
+    res.json(currentUser);
+  });
+
+  // 10. Projects (Isolated by User Owner)
+  app.get('/api/projects', (req: Request, res: Response) => {
+    const userProjects = projects.filter(p => p.owner_id === currentUser.id);
+    res.json(userProjects);
+  });
+
+  app.post('/api/projects', (req: Request, res: Response) => {
+    const { name, description = '', metadata = {} } = req.body;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Project name is required' });
+    }
+
+    const newProject: Project = {
+      id: `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      owner_id: currentUser.id,
+      name: name.trim(),
+      description: description.trim(),
+      status: 'active',
+      metadata,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    projects.push(newProject);
+
+    logAuditEvent({
+      event_type: 'project_action',
+      actor_id: currentUser.id,
+      actor_type: 'user',
+      project_id: newProject.id,
+      action: 'create_project',
+      status: 'success',
+      metadata: { name: newProject.name }
+    });
+
+    res.status(201).json(newProject);
+  });
+
+  // 11. Workspaces (Isolated by Project and User)
+  app.get('/api/workspaces', (req: Request, res: Response) => {
+    const { project_id } = req.query;
+    let filtered = workspaces.filter(w => w.owner_id === currentUser.id);
+    if (typeof project_id === 'string' && project_id) {
+      filtered = filtered.filter(w => w.project_id === project_id);
+    }
+    res.json(filtered);
+  });
+
+  app.post('/api/workspaces', (req: Request, res: Response) => {
+    const { project_id, name, environment_variables = {} } = req.body;
+    if (!project_id || !name) {
+      return res.status(400).json({ error: 'project_id and name are required' });
+    }
+
+    // Security boundary: verify project exists and belongs to current user
+    const project = projects.find(p => p.id === project_id && p.owner_id === currentUser.id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found or unauthorized' });
+    }
+
+    const wsId = `ws_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const newWorkspace: Workspace = {
+      id: wsId,
+      project_id,
+      owner_id: currentUser.id,
+      name: String(name).trim(),
+      filesystem_ref: `/var/aiheaven/workspaces/${wsId}`,
+      status: 'ready',
+      environment_variables,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    workspaces.push(newWorkspace);
+
+    logAuditEvent({
+      event_type: 'workspace_action',
+      actor_id: currentUser.id,
+      actor_type: 'user',
+      project_id,
+      workspace_id: wsId,
+      action: 'create_workspace',
+      status: 'success',
+      metadata: { name: newWorkspace.name }
+    });
+
+    res.status(201).json(newWorkspace);
+  });
+
+  // 12. Agent Foundation (Droids definition and explicit permissions)
+  app.get('/api/agents', (req: Request, res: Response) => {
+    const { project_id } = req.query;
+    let filtered = agents.filter(a => a.owner_id === currentUser.id);
+    if (typeof project_id === 'string' && project_id) {
+      filtered = filtered.filter(a => a.project_id === project_id);
+    }
+    res.json(filtered);
+  });
+
+  app.post('/api/agents', (req: Request, res: Response) => {
+    const { project_id, workspace_id, name, description = '', permissions = {} } = req.body;
+    if (!project_id || !name) {
+      return res.status(400).json({ error: 'project_id and name are required' });
+    }
+
+    const project = projects.find(p => p.id === project_id && p.owner_id === currentUser.id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found or unauthorized' });
+    }
+
+    const newAgent: AgentDefinition = {
+      id: `agent_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      owner_id: currentUser.id,
+      project_id,
+      workspace_id,
+      name: String(name).trim(),
+      description: String(description).trim(),
+      status: 'idle',
+      permissions: {
+        allowed_tools: Array.isArray(permissions.allowed_tools) ? permissions.allowed_tools : [],
+        network_access: Boolean(permissions.network_access),
+        filesystem_scope: permissions.filesystem_scope || 'workspace_only',
+        requires_approval_for_destructive: permissions.requires_approval_for_destructive !== false
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    agents.push(newAgent);
+
+    logAuditEvent({
+      event_type: 'agent_action',
+      actor_id: currentUser.id,
+      actor_type: 'user',
+      project_id,
+      workspace_id,
+      action: 'create_agent',
+      status: 'success',
+      metadata: { name: newAgent.name }
+    });
+
+    res.status(201).json(newAgent);
+  });
+
+  // 13. Tools Registry Foundation
+  app.get('/api/tools', (req: Request, res: Response) => {
+    res.json(registeredTools);
+  });
+
+  // 14. Audit System Foundation
+  app.get('/api/audit-events', (req: Request, res: Response) => {
+    const { event_type, project_id, limit = '50' } = req.query;
+    let filtered = [...auditEvents];
+
+    if (typeof event_type === 'string' && event_type) {
+      filtered = filtered.filter(e => e.event_type === event_type);
+    }
+    if (typeof project_id === 'string' && project_id) {
+      filtered = filtered.filter(e => e.project_id === project_id);
+    }
+
+    const numLimit = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 50));
+    res.json(filtered.slice(0, numLimit));
+  });
+
+  app.post('/api/audit-events', (req: Request, res: Response) => {
+    const { event_type, action, project_id, workspace_id, status = 'success', metadata = {}, error_message } = req.body;
+    if (!event_type || !action) {
+      return res.status(400).json({ error: 'event_type and action are required' });
+    }
+
+    const recorded = logAuditEvent({
+      event_type,
+      actor_id: currentUser.id,
+      actor_type: 'user',
+      project_id,
+      workspace_id,
+      action,
+      status,
+      metadata,
+      error_message
+    });
+
+    res.status(201).json(recorded);
+  });
+
+  // ==========================================
+  // PHASE 1B: WORKSPACE FS & SANDBOX EXECUTION
+  // ==========================================
+
+  // Helper middleware/check for workspace ownership
+  const verifyWorkspaceAccess = (workspaceId: string) => {
+    return workspaces.some(w => w.id === workspaceId && w.owner_id === currentUser.id);
+  };
+
+  // 15. Workspace Virtual Filesystem: Read
+  app.post('/api/workspaces/:workspaceId/fs/read', async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const { path: filePath } = req.body;
+    if (!verifyWorkspaceAccess(workspaceId)) {
+      return res.status(403).json({ error: 'Unauthorized or workspace not found' });
+    }
+    try {
+      const file = await workspaceFilesystem.readFile(workspaceId, filePath);
+      res.json(file);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 16. Workspace Virtual Filesystem: Write
+  app.post('/api/workspaces/:workspaceId/fs/write', async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const { path: filePath, content = '' } = req.body;
+    if (!verifyWorkspaceAccess(workspaceId)) {
+      return res.status(403).json({ error: 'Unauthorized or workspace not found' });
+    }
+    try {
+      const file = await workspaceFilesystem.writeFile(workspaceId, filePath, content);
+      logAuditEvent({
+        event_type: 'workspace_action',
+        actor_id: currentUser.id,
+        actor_type: 'user',
+        workspace_id: workspaceId,
+        action: 'fs_write_file',
+        status: 'success',
+        metadata: { path: file.path, size_bytes: file.size_bytes }
+      });
+      res.json(file);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 17. Workspace Virtual Filesystem: List
+  app.post('/api/workspaces/:workspaceId/fs/list', async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const { directoryPath } = req.body;
+    if (!verifyWorkspaceAccess(workspaceId)) {
+      return res.status(403).json({ error: 'Unauthorized or workspace not found' });
+    }
+    try {
+      const files = await workspaceFilesystem.listFiles(workspaceId, directoryPath);
+      res.json(files);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 18. Workspace Virtual Filesystem: Delete
+  app.post('/api/workspaces/:workspaceId/fs/delete', async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const { path: filePath } = req.body;
+    if (!verifyWorkspaceAccess(workspaceId)) {
+      return res.status(403).json({ error: 'Unauthorized or workspace not found' });
+    }
+    try {
+      await workspaceFilesystem.deleteFile(workspaceId, filePath);
+      logAuditEvent({
+        event_type: 'workspace_action',
+        actor_id: currentUser.id,
+        actor_type: 'user',
+        workspace_id: workspaceId,
+        action: 'fs_delete_file',
+        status: 'success',
+        metadata: { path: filePath }
+      });
+      res.json({ success: true, path: filePath });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 19. Workspace Virtual Filesystem: Move
+  app.post('/api/workspaces/:workspaceId/fs/move', async (req: Request, res: Response) => {
+    const { workspaceId } = req.params;
+    const { sourcePath, targetPath } = req.body;
+    if (!verifyWorkspaceAccess(workspaceId)) {
+      return res.status(403).json({ error: 'Unauthorized or workspace not found' });
+    }
+    try {
+      await workspaceFilesystem.moveFile(workspaceId, sourcePath, targetPath);
+      logAuditEvent({
+        event_type: 'workspace_action',
+        actor_id: currentUser.id,
+        actor_type: 'user',
+        workspace_id: workspaceId,
+        action: 'fs_move_file',
+        status: 'success',
+        metadata: { sourcePath, targetPath }
+      });
+      res.json({ success: true, sourcePath, targetPath });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 20. Execution State Machine: Submit / Plan Execution
+  app.post('/api/executions', async (req: Request, res: Response) => {
+    const { agent_id, project_id, workspace_id, tool_id, command } = req.body;
+
+    if (!agent_id || !project_id || !workspace_id || !tool_id || !command) {
+      return res.status(400).json({
+        error: 'agent_id, project_id, workspace_id, tool_id, and command are required'
+      });
+    }
+
+    const agent = agents.find(a => a.id === agent_id && a.owner_id === currentUser.id);
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found or unauthorized' });
+    }
+
+    const tool = registeredTools.find(t => t.id === tool_id);
+    if (!tool) {
+      return res.status(404).json({ error: 'Tool not found in registry' });
+    }
+
+    if (!verifyWorkspaceAccess(workspace_id)) {
+      return res.status(403).json({ error: 'Unauthorized workspace access' });
+    }
+
+    try {
+      const job = await executionManager.submitJob(
+        { agent_id, project_id, workspace_id, tool_id, command },
+        agent,
+        tool
+      );
+      res.status(201).json(job);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 21. Execution State Machine: List Jobs
+  app.get('/api/executions', (req: Request, res: Response) => {
+    const { project_id, workspace_id } = req.query;
+    const jobs = executionManager.listJobs(
+      typeof project_id === 'string' ? project_id : undefined,
+      typeof workspace_id === 'string' ? workspace_id : undefined
+    );
+    res.json(jobs);
+  });
+
+  // 22. Execution State Machine: Get Job Details
+  app.get('/api/executions/:executionId', (req: Request, res: Response) => {
+    const { executionId } = req.params;
+    const job = executionManager.getJob(executionId);
+    if (!job) {
+      return res.status(404).json({ error: 'Execution job not found' });
+    }
+    res.json(job);
+  });
+
+  // 23. Execution State Machine: Cancel Job
+  app.post('/api/executions/:executionId/cancel', (req: Request, res: Response) => {
+    const { executionId } = req.params;
+    try {
+      const cancelled = executionManager.cancelJob(executionId, currentUser.id);
+      res.json(cancelled);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 24. Human Approval: List Pending Approvals
+  app.get('/api/approvals', (req: Request, res: Response) => {
+    const { project_id, status } = req.query;
+    const approvals = executionManager.listApprovals(
+      typeof project_id === 'string' ? project_id : undefined,
+      typeof status === 'string' ? (status as any) : undefined
+    );
+    res.json(approvals);
+  });
+
+  // 25. Human Approval: Decide Approval (Approve / Reject)
+  app.post('/api/approvals/:approvalId/decide', async (req: Request, res: Response) => {
+    const { approvalId } = req.params;
+    const { decision, rejection_reason } = req.body;
+
+    if (decision !== 'approved' && decision !== 'rejected') {
+      return res.status(400).json({ error: 'decision must be "approved" or "rejected"' });
+    }
+
+    const approval = executionManager.getApproval(approvalId);
+    if (!approval) {
+      return res.status(404).json({ error: 'Approval record not found' });
+    }
+
+    const job = executionManager.getJob(approval.execution_id);
+    const agent = job ? agents.find(a => a.id === job.agent_id) : undefined;
+    const tool = job ? registeredTools.find(t => t.id === job.tool_id) : undefined;
+
+    try {
+      const result = await executionManager.decideApproval(
+        approvalId,
+        decision,
+        currentUser.id,
+        rejection_reason,
+        agent,
+        tool
+      );
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // ==========================================
+  // PHASE 1C: AGENT RUNTIME & TASK PLANNER
+  // ==========================================
+
+  // 26. Workers List & Details
+  app.get('/api/workers', (req: Request, res: Response) => {
+    const { project_id } = req.query;
+    res.json(agentRuntimeService.listWorkers(typeof project_id === 'string' ? project_id : undefined));
+  });
+
+  app.get('/api/workers/:agentId', (req: Request, res: Response) => {
+    const { agentId } = req.params;
+    const worker = agentRuntimeService.getWorker(agentId);
+    if (!worker) {
+      // Auto-register worker if agent exists
+      const agent = agents.find(a => a.id === agentId);
+      if (agent) {
+        return res.json(agentRuntimeService.registerWorker(agent));
+      }
+      return res.status(404).json({ error: 'Worker not found' });
+    }
+    res.json(worker);
+  });
+
+  app.post('/api/workers/:agentId/heartbeat', (req: Request, res: Response) => {
+    const { agentId } = req.params;
+    try {
+      const worker = agentRuntimeService.updateHeartbeat(agentId);
+      res.json(worker);
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
+  });
+
+  // 27. Task Creation with Planner
+  app.post('/api/tasks', (req: Request, res: Response) => {
+    const { agent_id, project_id, workspace_id, goal, priority = 'medium' } = req.body;
+    if (!agent_id || !project_id || !workspace_id || !goal) {
+      return res.status(400).json({ error: 'agent_id, project_id, workspace_id, and goal are required' });
+    }
+
+    const agent = agents.find(a => a.id === agent_id);
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+
+    try {
+      const task = agentRuntimeService.createTask(
+        currentUser.id,
+        project_id,
+        workspace_id,
+        agent,
+        goal,
+        priority,
+        registeredTools
+      );
+      res.status(201).json(task);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 28. Task Listing & Detail
+  app.get('/api/tasks', (req: Request, res: Response) => {
+    const { project_id, agent_id } = req.query;
+    res.json(
+      agentRuntimeService.listTasks(
+        typeof project_id === 'string' ? project_id : undefined,
+        typeof agent_id === 'string' ? agent_id : undefined
+      )
+    );
+  });
+
+  app.get('/api/tasks/:taskId', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const task = agentRuntimeService.getTask(taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.json(task);
+  });
+
+  // 29. Task Action Advancement
+  app.post('/api/tasks/:taskId/execute-next', async (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const task = agentRuntimeService.getTask(taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const agent = agents.find(a => a.id === task.agent_id);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+
+    try {
+      const updated = await agentRuntimeService.executeNextAction(taskId, agent, registeredTools);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 30. Task Lifecycle: Pause / Resume / Cancel
+  app.post('/api/tasks/:taskId/pause', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    try {
+      const updated = agentRuntimeService.pauseTask(taskId, currentUser.id);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/tasks/:taskId/resume', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    try {
+      const updated = agentRuntimeService.resumeTask(taskId, currentUser.id);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/tasks/:taskId/cancel', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    try {
+      const updated = agentRuntimeService.cancelTask(taskId, currentUser.id);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 31. Working Memory Inspection
+  app.get('/api/tasks/:taskId/memory', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const task = agentRuntimeService.getTask(taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const memory = agentRuntimeService.getWorkingMemory(
+      task.project_id,
+      task.workspace_id,
+      task.agent_id,
+      task.id
+    );
+    res.json(memory || null);
+  });
+
+  // 32. Emergency Kill Switch
+  app.get('/api/kill-switch', (req: Request, res: Response) => {
+    res.json(agentRuntimeService.getKillSwitchStatus());
+  });
+
+  app.post('/api/kill-switch', (req: Request, res: Response) => {
+    const { scope = 'global', target_id, reason = 'Operator triggered emergency kill switch' } = req.body;
+    const status = agentRuntimeService.triggerKillSwitch(scope, target_id, currentUser.id, reason);
+    res.json(status);
+  });
+
+  app.post('/api/kill-switch/reset', (req: Request, res: Response) => {
+    const status = agentRuntimeService.resetKillSwitch(currentUser.id);
+    res.json(status);
+  });
+
+  // 33. Runtime Event Stream (Polling fallback)
+  app.get('/api/events', (req: Request, res: Response) => {
+    const { since, task_id, agent_id, limit = '50' } = req.query;
+    const events = agentRuntimeService.getEvents({
+      since: typeof since === 'string' ? since : undefined,
+      task_id: typeof task_id === 'string' ? task_id : undefined,
+      agent_id: typeof agent_id === 'string' ? agent_id : undefined,
+      limit: parseInt(String(limit), 10) || 50
+    });
+    res.json(events);
+  });
+
   // Mount Vite development middlewares for SPA hot-reloading
   const isProd = process.env.NODE_ENV === 'production';
   if (!isProd) {
@@ -193,7 +973,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
+    const distPath = path.resolve(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));

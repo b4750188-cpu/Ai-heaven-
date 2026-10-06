@@ -53,10 +53,15 @@ export abstract class BaseSourceConnector implements ISourceConnector {
     // Check official external identifier
     if (resource.external_identifiers) {
       for (const [key, val] of Object.entries(resource.external_identifiers)) {
-        const byIdentifier = existingResources.find(
-          r => r.external_identifiers && r.external_identifiers[key] === val
-        );
-        if (byIdentifier) return { isDuplicate: true, matchedId: byIdentifier.id };
+        if (!val) continue;
+        // Only treat specific identifying keys as uniqueness identifiers (avoid matching generic publisher/source domains)
+        const isUniqueKey = key.includes('id') || key.includes('full_name') || key.includes('canonical') || key.includes('spec_url');
+        if (isUniqueKey) {
+          const byIdentifier = existingResources.find(
+            r => r.external_identifiers && r.external_identifiers[key] === val
+          );
+          if (byIdentifier) return { isDuplicate: true, matchedId: byIdentifier.id };
+        }
       }
     }
 

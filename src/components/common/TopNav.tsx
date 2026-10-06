@@ -1,7 +1,7 @@
 import { Database, Search } from 'lucide-react';
 import React from 'react';
 
-export type NavView = 'explore' | 'google-ai-studio' | 'providers' | 'graph' | 'connectors' | 'detail';
+export type NavView = 'explore' | 'google-ai-studio' | 'providers' | 'graph' | 'connectors' | 'agents' | 'detail';
 
 interface TopNavProps {
   currentView: NavView;
@@ -9,6 +9,7 @@ interface TopNavProps {
   onOpenSearch: () => void;
   onOpenBackendSettings: () => void;
   isBackendConnected: boolean;
+  pendingApprovalsCount?: number;
 }
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -16,7 +17,8 @@ export const TopNav: React.FC<TopNavProps> = ({
   onNavigate,
   onOpenSearch,
   onOpenBackendSettings,
-  isBackendConnected
+  isBackendConnected,
+  pendingApprovalsCount
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-800 bg-neutral-950/90 backdrop-blur-md">
@@ -73,6 +75,19 @@ export const TopNav: React.FC<TopNavProps> = ({
             }`}
           >
             Connectors
+          </button>
+          <button
+            onClick={() => onNavigate('agents')}
+            className={`relative flex items-center gap-1.5 transition-colors hover:text-neutral-100 ${
+              currentView === 'agents' ? 'text-neutral-100 font-semibold' : ''
+            }`}
+          >
+            <span>Agents</span>
+            {pendingApprovalsCount && pendingApprovalsCount > 0 ? (
+              <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 text-[10px] font-bold rounded-full bg-amber-500 text-neutral-950 animate-pulse">
+                {pendingApprovalsCount}
+              </span>
+            ) : null}
           </button>
         </nav>
 
@@ -133,6 +148,17 @@ export const TopNav: React.FC<TopNavProps> = ({
           className={`shrink-0 transition-colors ${currentView === 'connectors' ? 'text-neutral-100 font-semibold' : ''}`}
         >
           Connectors
+        </button>
+        <button
+          onClick={() => onNavigate('agents')}
+          className={`shrink-0 flex items-center gap-1 transition-colors ${currentView === 'agents' ? 'text-neutral-100 font-semibold' : ''}`}
+        >
+          <span>Agents</span>
+          {pendingApprovalsCount && pendingApprovalsCount > 0 ? (
+            <span className="inline-flex items-center justify-center h-3.5 min-w-3.5 px-0.5 text-[9px] font-bold rounded-full bg-amber-500 text-neutral-950">
+              {pendingApprovalsCount}
+            </span>
+          ) : null}
         </button>
       </div>
     </header>

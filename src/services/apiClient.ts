@@ -5,6 +5,29 @@
  */
 
 import { PROVIDERS, RELATIONSHIPS, RESOURCES } from '../data/database';
+import {
+  AgentDefinition,
+  AuditEvent,
+  Project,
+  ToolDefinition,
+  User,
+  Workspace
+} from '../types/foundation';
+import {
+  ExecutionApproval,
+  ExecutionJob,
+  FsFileContent,
+  FsNodeMetadata
+} from '../types/execution';
+import {
+  AgentTask,
+  AgentWorker,
+  AgentWorkingMemory,
+  KillSwitchScope,
+  KillSwitchStatus,
+  RuntimeEvent,
+  TaskPriority
+} from '../types/agentRuntime';
 import { GraphEdge, GraphNode, KnowledgeGraphData } from '../types/graph';
 import { Provider, RelationshipType, Resource, ResourceRelationship, ResourceType } from '../types/resource';
 
@@ -255,6 +278,537 @@ class AIHeavenApiClient {
     }));
 
     return { nodes, edges };
+  }
+
+  // ==========================================
+  // PHASE 1A: FOUNDATION CLIENT METHODS
+  // ==========================================
+
+  public async getCurrentUser(): Promise<User | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/users/current`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getProjects(): Promise<Project[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async createProject(data: { name: string; description?: string; metadata?: Record<string, unknown> }): Promise<Project | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getWorkspaces(projectId?: string): Promise<Workspace[]> {
+    try {
+      const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+      const res = await fetch(`${this.baseUrl}/workspaces${query}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async createWorkspace(data: { project_id: string; name: string; environment_variables?: Record<string, string> }): Promise<Workspace | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getAgents(projectId?: string): Promise<AgentDefinition[]> {
+    try {
+      const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+      const res = await fetch(`${this.baseUrl}/agents${query}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async createAgent(data: {
+    project_id: string;
+    workspace_id?: string;
+    name: string;
+    description?: string;
+    permissions?: Record<string, unknown>;
+  }): Promise<AgentDefinition | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/agents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getTools(): Promise<ToolDefinition[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tools`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async getAuditEvents(options?: { event_type?: string; project_id?: string; limit?: number }): Promise<AuditEvent[]> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (options?.event_type) queryParams.set('event_type', options.event_type);
+      if (options?.project_id) queryParams.set('project_id', options.project_id);
+      if (options?.limit) queryParams.set('limit', String(options.limit));
+
+      const res = await fetch(`${this.baseUrl}/audit-events?${queryParams.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async logAuditEvent(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<AuditEvent | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/audit-events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(event)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  // ==========================================
+  // PHASE 1B: WORKSPACE FS & SANDBOX METHODS
+  // ==========================================
+
+  public async readWorkspaceFile(workspaceId: string, path: string): Promise<FsFileContent | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces/${encodeURIComponent(workspaceId)}/fs/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ path })
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async writeWorkspaceFile(workspaceId: string, path: string, content: string): Promise<FsFileContent | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces/${encodeURIComponent(workspaceId)}/fs/write`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ path, content })
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async listWorkspaceFiles(workspaceId: string, directoryPath?: string): Promise<FsNodeMetadata[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces/${encodeURIComponent(workspaceId)}/fs/list`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ directoryPath })
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async deleteWorkspaceFile(workspaceId: string, path: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces/${encodeURIComponent(workspaceId)}/fs/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ path })
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  public async moveWorkspaceFile(workspaceId: string, sourcePath: string, targetPath: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workspaces/${encodeURIComponent(workspaceId)}/fs/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ sourcePath, targetPath })
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  public async submitExecution(data: {
+    agent_id: string;
+    project_id: string;
+    workspace_id: string;
+    tool_id: string;
+    command: string;
+  }): Promise<ExecutionJob | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/executions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getExecutions(options?: { project_id?: string; workspace_id?: string }): Promise<ExecutionJob[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.project_id) params.set('project_id', options.project_id);
+      if (options?.workspace_id) params.set('workspace_id', options.workspace_id);
+      const res = await fetch(`${this.baseUrl}/executions?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async getExecution(executionId: string): Promise<ExecutionJob | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/executions/${encodeURIComponent(executionId)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async cancelExecution(executionId: string): Promise<ExecutionJob | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/executions/${encodeURIComponent(executionId)}/cancel`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getApprovals(options?: { project_id?: string; status?: string }): Promise<ExecutionApproval[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.project_id) params.set('project_id', options.project_id);
+      if (options?.status) params.set('status', options.status);
+      const res = await fetch(`${this.baseUrl}/approvals?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async decideApproval(
+    approvalId: string,
+    decision: 'approved' | 'rejected',
+    rejection_reason?: string
+  ): Promise<{ approval: ExecutionApproval; job: ExecutionJob } | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/approvals/${encodeURIComponent(approvalId)}/decide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ decision, rejection_reason })
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  // ==========================================
+  // PHASE 1C: AGENT WORKER & TASK METHODS
+  // ==========================================
+
+  public async getWorkers(projectId?: string): Promise<AgentWorker[]> {
+    try {
+      const q = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+      const res = await fetch(`${this.baseUrl}/workers${q}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async getWorker(agentId: string): Promise<AgentWorker | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workers/${encodeURIComponent(agentId)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async sendWorkerHeartbeat(agentId: string): Promise<AgentWorker | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/workers/${encodeURIComponent(agentId)}/heartbeat`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async createTask(data: {
+    agent_id: string;
+    project_id: string;
+    workspace_id: string;
+    goal: string;
+    priority?: TaskPriority;
+  }): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getTasks(options?: { project_id?: string; agent_id?: string }): Promise<AgentTask[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.project_id) params.set('project_id', options.project_id);
+      if (options?.agent_id) params.set('agent_id', options.agent_id);
+      const res = await fetch(`${this.baseUrl}/tasks?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async getTask(taskId: string): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async executeNextAction(taskId: string): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/execute-next`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async pauseTask(taskId: string): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/pause`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async resumeTask(taskId: string): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/resume`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async cancelTask(taskId: string): Promise<AgentTask | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/cancel`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getTaskMemory(taskId: string): Promise<AgentWorkingMemory | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/memory`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getKillSwitch(): Promise<KillSwitchStatus> {
+    try {
+      const res = await fetch(`${this.baseUrl}/kill-switch`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return { is_active: false, triggered_by: '', triggered_at: '', reason: '' };
+  }
+
+  public async triggerKillSwitch(scope: KillSwitchScope, targetId?: string, reason?: string): Promise<KillSwitchStatus> {
+    try {
+      const res = await fetch(`${this.baseUrl}/kill-switch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ scope, target_id: targetId, reason })
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return { is_active: true, scope, target_id: targetId, triggered_by: 'local', triggered_at: new Date().toISOString(), reason: reason || '' };
+  }
+
+  public async resetKillSwitch(): Promise<KillSwitchStatus> {
+    try {
+      const res = await fetch(`${this.baseUrl}/kill-switch/reset`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return { is_active: false, triggered_by: '', triggered_at: '', reason: '' };
+  }
+
+  public async getEvents(options?: { since?: string; task_id?: string; agent_id?: string; limit?: number }): Promise<RuntimeEvent[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.since) params.set('since', options.since);
+      if (options?.task_id) params.set('task_id', options.task_id);
+      if (options?.agent_id) params.set('agent_id', options.agent_id);
+      if (options?.limit) params.set('limit', String(options.limit));
+      const res = await fetch(`${this.baseUrl}/events?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
   }
 }
 

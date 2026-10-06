@@ -150,6 +150,12 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
   const handleTouchEnd = () => setIsDragging(false);
 
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    setZoom(z => Math.min(2.5, Math.max(0.4, Number((z + delta).toFixed(2)))));
+  };
+
   // Zoom controls
   const handleZoomIn = () => setZoom(z => Math.min(2.5, z + 0.2));
   const handleZoomOut = () => setZoom(z => Math.max(0.5, z - 0.2));
@@ -266,7 +272,8 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className={`h-full w-full ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onWheel={handleWheel}
+          className={`h-full w-full touch-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           <svg className="h-full w-full">
             <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
