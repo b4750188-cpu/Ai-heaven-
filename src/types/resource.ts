@@ -15,7 +15,9 @@ export type ResourceType =
   | 'documentation'
   | 'repository'
   | 'provider'
-  | 'compute';
+  | 'compute'
+  | 'agent'
+  | 'droid';
 
 export type VerificationStatus =
   | 'verified'           // Server-verified against official documentation or API
@@ -27,6 +29,7 @@ export type RelationshipType =
   | 'provides'
   | 'accesses'
   | 'uses'
+  | 'uses_tool'
   | 'depends_on'
   | 'publishes'
   | 'documents'
@@ -35,6 +38,8 @@ export type RelationshipType =
   | 'alternative_to'
   | 'built_with'
   | 'supports'
+  | 'hosts'
+  | 'orchestrates'
   | 'part_of';
 
 export type SourceType =

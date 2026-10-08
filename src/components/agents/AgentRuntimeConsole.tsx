@@ -1,21 +1,15 @@
-/**
- * AI HEAVEN - Phase 1C: Personal AI Agent Runtime & Adaptive GUI
- * Complete control console for persistent agent workers, multi-step task planner,
- * human approval boundary, working memory inspector, real-time activity feed,
- * and emergency kill switch.
- */
-
-import React, { useState, useEffect, useCallback } from 'react';
 import {
   Activity,
   AlertOctagon,
   AlertTriangle,
+  ArrowRight,
   Bot,
   Brain,
   CheckCircle2,
   Clock,
   ExternalLink,
   Flame,
+  HardDrive,
   HelpCircle,
   Layers,
   ListTodo,
@@ -34,6 +28,7 @@ import {
   XCircle,
   Zap
 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../../services/apiClient';
 import {
   AgentTask,
@@ -47,22 +42,32 @@ import {
 } from '../../types/agentRuntime';
 import { AgentDefinition, Project, ToolDefinition, Workspace } from '../../types/foundation';
 import { ExecutionApproval, ExecutionJob } from '../../types/execution';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
-type ConsoleTab = 'fleet' | 'planner' | 'approvals' | 'memory' | 'events';
+type AgentSubTab = 'fleet' | 'workspace' | 'approvals' | 'memory' | 'logs';
 
 interface AgentRuntimeConsoleProps {
+  initialTab?: AgentSubTab;
   onNavigateDetail?: (slug: string) => void;
   onNavigateKnowledgeGraph?: () => void;
   onApprovalsCountChange?: (count: number) => void;
 }
 
 export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
+  initialTab,
   onNavigateDetail,
   onNavigateKnowledgeGraph,
   onApprovalsCountChange
 }) => {
   // Navigation & View State
-  const [activeTab, setActiveTab] = useState<ConsoleTab>('planner');
+  const [activeTab, setActiveTab] = useState<AgentSubTab>(initialTab || 'workspace');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Core Entity State
   const [agents, setAgents] = useState<AgentDefinition[]>([]);
@@ -107,7 +112,8 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
   const [newAgentWorkspaceId, setNewAgentWorkspaceId] = useState<string>('');
   const [newAgentTools, setNewAgentTools] = useState<string[]>([
     'tool_terminal_sandbox',
-    'tool_fs_scoped'
+    'tool_fs_scoped',
+    'tool_mcp_client'
   ]);
   const [newAgentNetwork, setNewAgentNetwork] = useState<boolean>(true);
   const [newAgentRequiresApproval, setNewAgentRequiresApproval] = useState<boolean>(true);
@@ -161,18 +167,16 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         const fresh = tasksData.find(t => t.id === selectedTask.id);
         if (fresh) {
           setSelectedTask(fresh);
-          // Also refresh memory
           const mem = await apiClient.getTaskMemory(fresh.id);
           setSelectedMemory(mem);
         }
       } else if (tasksData.length > 0) {
-        // Select latest task
         setSelectedTask(tasksData[0]);
         const mem = await apiClient.getTaskMemory(tasksData[0].id);
         setSelectedMemory(mem);
       }
 
-      // Pre-select defaults for forms if empty
+      // Defaults
       if (!newTaskAgentId && agentsData.length > 0) {
         setNewTaskAgentId(agentsData[0].id);
       }
@@ -199,7 +203,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     return () => clearInterval(interval);
   }, [refreshAll]);
 
-  // Handle task selection
   const handleSelectTask = async (task: AgentTask) => {
     setSelectedTask(task);
     setActionError(null);
@@ -211,7 +214,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Execute next action in selected task
   const handleExecuteNextAction = async () => {
     if (!selectedTask) return;
     setIsExecutingStep(true);
@@ -220,7 +222,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       const updated = await apiClient.executeNextAction(selectedTask.id);
       if (updated) {
         setSelectedTask(updated);
-        // Refresh memory and approvals
         const [mem, apprs] = await Promise.all([
           apiClient.getTaskMemory(updated.id),
           apiClient.getApprovals()
@@ -236,7 +237,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Task lifecycle actions
   const handlePauseTask = async (taskId: string) => {
     try {
       await apiClient.pauseTask(taskId);
@@ -264,7 +264,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Heartbeat ping
   const handlePingHeartbeat = async (agentId: string) => {
     try {
       await apiClient.sendWorkerHeartbeat(agentId);
@@ -274,7 +273,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Approval decision
   const handleDecideApproval = async (approvalId: string, decision: 'approved' | 'rejected', reason?: string) => {
     try {
       await apiClient.decideApproval(approvalId, decision, reason);
@@ -286,7 +284,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Kill Switch
   const handleTriggerKillSwitch = async () => {
     try {
       await apiClient.triggerKillSwitch(killScope, undefined, killReason);
@@ -306,7 +303,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Create Task
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskGoal.trim() || !newTaskAgentId || !newTaskWorkspaceId) {
@@ -331,7 +327,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         setIsNewTaskModalOpen(false);
         setNewTaskGoal('');
         setSelectedTask(task);
-        setActiveTab('planner');
+        setActiveTab('workspace');
         await refreshAll();
       }
     } catch (err: any) {
@@ -339,7 +335,6 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Create Agent
   const handleCreateAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAgentName.trim() || !newAgentProjectId) {
@@ -371,54 +366,39 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     }
   };
 
-  // Helper template goals
-  const goalTemplates = [
-    {
-      title: 'Audit Repository & Run Diagnostics',
-      goal: 'Audit sandbox filesystem files, check dependency tree, and execute diagnostics'
-    },
-    {
-      title: 'Inspect MCP Server Protocol',
-      goal: 'Explore Model Context Protocol registered tool endpoints and verify schema validity'
-    },
-    {
-      title: 'Purge Stale Build Artifacts [Destructive]',
-      goal: 'Clean temporary workspace cache and delete old build directories requiring human authorization'
-    }
-  ];
-
   const pendingApprovals = approvals.filter(a => a.status === 'pending');
 
   return (
-    <div className="space-y-6">
-      {/* EMERGENCY KILL SWITCH ACTIVE BANNER */}
+    <div className="space-y-6 animate-in fade-in-50 duration-150">
+      {/* 1. EMERGENCY KILL SWITCH ACTIVE WARNING BANNER */}
       {killSwitch.is_active && (
-        <div className="rounded-lg border-2 border-rose-600 bg-rose-950/80 p-4 text-rose-100 shadow-lg shadow-rose-950/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-pulse">
+        <div className="rounded-lg border border-rose-600 bg-rose-950/70 p-4 text-rose-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-mono">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded bg-rose-600 text-white">
-              <AlertOctagon className="h-6 w-6" />
+            <div className="p-2 rounded bg-rose-600 text-white shrink-0">
+              <AlertOctagon className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-bold text-sm uppercase tracking-wider text-rose-200">
-                Emergency Kill Switch Active ({killSwitch.scope?.toUpperCase()} SCOPE)
+              <div className="font-bold text-xs uppercase tracking-wider text-rose-200">
+                EMERGENCY KILL SWITCH ENGAGED ({killSwitch.scope?.toUpperCase()} SCOPE)
               </div>
-              <p className="text-xs text-rose-300 font-mono mt-0.5">
-                Reason: {killSwitch.reason || 'Manual operator emergency stop'} • Triggered at:{' '}
+              <p className="text-[11px] text-rose-300 mt-0.5">
+                Reason: {killSwitch.reason || 'Operator manual emergency stop'} • Triggered at:{' '}
                 {new Date(killSwitch.triggered_at).toLocaleTimeString()}
               </p>
             </div>
           </div>
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={handleResetKillSwitch}
-            className="px-4 py-2 rounded border border-rose-400 bg-rose-700 hover:bg-rose-600 text-white font-medium text-xs flex items-center gap-2 transition-colors shrink-0 shadow"
+            icon={<RotateCcw className="h-3.5 w-3.5" />}
           >
-            <RotateCcw className="h-4 w-4" />
             Disarm & Reset System
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* Action Error Banner */}
+      {/* 2. Action Error Banner */}
       {actionError && (
         <div className="p-3 rounded-lg border border-rose-900/60 bg-rose-950/30 text-rose-300 text-xs flex items-center justify-between font-mono">
           <span>{actionError}</span>
@@ -428,89 +408,69 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         </div>
       )}
 
-      {/* Main Console Header Bar */}
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-5 backdrop-blur-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <Bot className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight text-neutral-100 flex items-center gap-2">
-                  Personal AI Agent Runtime
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
-                    Phase 1C
-                  </span>
-                </h1>
-                <p className="text-xs text-neutral-400">
-                  Sandboxed execution boundary, multi-step planner, and human authorization control.
-                </p>
-              </div>
+      {/* 3. Header & Controls */}
+      <div className="border-b border-slate-800/80 pb-5">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span>RUNTIME</span>
+              <span className="text-slate-600">/</span>
+              <span>AGENT CONSOLE</span>
             </div>
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 font-mono tracking-tight">
+              Personal AI Agent Runtime
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 max-w-xl">
+              Persistent worker lifecycle management, multi-step task planner, short-term memory layer, and emergency halt protocol.
+            </p>
           </div>
 
-          {/* Quick Metrics & Kill Switch Controls */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-950/60 text-xs text-neutral-400 font-mono">
-              <span className="flex items-center gap-1.5">
-                <Bot className="h-3.5 w-3.5 text-neutral-400" />
-                <strong className="text-neutral-200">{workers.length}</strong> Workers
-              </span>
-              <span className="text-neutral-700">|</span>
-              <span className="flex items-center gap-1.5">
-                <ListTodo className="h-3.5 w-3.5 text-neutral-400" />
-                <strong className="text-neutral-200">{tasks.length}</strong> Tasks
-              </span>
-              <span className="text-neutral-700">|</span>
-              <span className="flex items-center gap-1.5">
-                <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
-                <strong className="text-amber-300">{pendingApprovals.length}</strong> Approvals
-              </span>
-            </div>
-
-            <button
+          {/* Quick Actions & Kill Switch */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => setIsNewTaskModalOpen(true)}
-              className="px-3 py-1.5 rounded-md border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-xs font-medium flex items-center gap-1.5 transition-colors"
             >
-              <Plus className="h-3.5 w-3.5" />
               New Task
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => setIsNewAgentModalOpen(true)}
-              className="px-3 py-1.5 rounded-md border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 text-xs font-medium flex items-center gap-1.5 transition-colors"
             >
-              <Plus className="h-3.5 w-3.5" />
-              Register Agent
-            </button>
+              Register Droid
+            </Button>
 
-            {/* Emergency Kill Switch Button */}
-            <button
+            <Button
+              variant="destructive"
+              size="sm"
+              icon={<AlertOctagon className="h-3.5 w-3.5" />}
               onClick={() => setIsKillSwitchModalOpen(true)}
-              className="px-3 py-1.5 rounded-md border border-rose-600 bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shadow-rose-950/50"
-              title="Trigger emergency halt across agent workers"
             >
-              <AlertOctagon className="h-3.5 w-3.5 text-rose-400" />
               Kill Switch
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Console Tab Navigation */}
-        <div className="flex border-b border-neutral-800 mt-6 gap-2 text-xs font-medium">
+        {/* 4. Sub-Tab Navigation Bar */}
+        <div className="flex border-b border-slate-800 mt-6 gap-2 text-xs font-mono">
           <button
-            onClick={() => setActiveTab('planner')}
-            className={`pb-3 px-3 border-b-2 flex items-center gap-2 transition-colors ${
-              activeTab === 'planner'
-                ? 'border-emerald-500 text-neutral-100 font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            onClick={() => setActiveTab('workspace')}
+            className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
+              activeTab === 'workspace'
+                ? 'border-blue-500 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <ListTodo className="h-4 w-4" />
-            <span>Task Planner & Execution</span>
+            <span>Task Execution</span>
             {tasks.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-neutral-800 text-neutral-400 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px]">
                 {tasks.length}
               </span>
             )}
@@ -518,31 +478,31 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
           <button
             onClick={() => setActiveTab('fleet')}
-            className={`pb-3 px-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'fleet'
-                ? 'border-emerald-500 text-neutral-100 font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+                ? 'border-blue-500 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <Bot className="h-4 w-4" />
             <span>Agent Fleet</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-neutral-800 text-neutral-400 text-[10px]">
+            <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px]">
               {workers.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('approvals')}
-            className={`pb-3 px-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'approvals'
-                ? 'border-emerald-500 text-neutral-100 font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+                ? 'border-blue-500 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <ShieldAlert className="h-4 w-4" />
-            <span>Human Approval Queue</span>
+            <span>Approval Queue</span>
             {pendingApprovals.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-neutral-950 font-bold text-[10px] animate-pulse">
+              <span className="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 font-bold text-[10px]">
                 {pendingApprovals.length}
               </span>
             )}
@@ -550,248 +510,216 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
           <button
             onClick={() => setActiveTab('memory')}
-            className={`pb-3 px-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'memory'
-                ? 'border-emerald-500 text-neutral-100 font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+                ? 'border-blue-500 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <Brain className="h-4 w-4" />
-            <span>Working Memory Inspector</span>
+            <span>Working Memory</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('events')}
-            className={`pb-3 px-3 border-b-2 flex items-center gap-2 transition-colors ${
-              activeTab === 'events'
-                ? 'border-emerald-500 text-neutral-100 font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            onClick={() => setActiveTab('logs')}
+            className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
+              activeTab === 'logs'
+                ? 'border-blue-500 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <Activity className="h-4 w-4" />
-            <span>Real-Time Activity Feed</span>
+            <span>Runtime Logs</span>
           </button>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* TAB 1: TASK PLANNER & EXECUTION CONSOLE                                    */}
-      {/* ========================================================================= */}
-      {activeTab === 'planner' && (
+      {/* ===================================================================== */}
+      {/* TAB: AGENT WORKSPACE & TASK EXECUTION                                  */}
+      {/* ===================================================================== */}
+      {activeTab === 'workspace' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Task Selector & Recent Tasks (4 cols) */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                  Agent Tasks ({tasks.length})
-                </h3>
-                <button
-                  onClick={() => setIsNewTaskModalOpen(true)}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1"
-                >
-                  <Plus className="h-3 w-3" />
-                  New
-                </button>
-              </div>
+          {/* Left Column: Task Selector (4 cols) */}
+          <div className="lg:col-span-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="font-semibold uppercase tracking-wider text-slate-400">
+                Active Tasks ({tasks.length})
+              </span>
+              <button
+                onClick={() => setIsNewTaskModalOpen(true)}
+                className="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                <span>New</span>
+              </button>
+            </div>
 
-              {tasks.length === 0 ? (
-                <div className="py-8 text-center text-xs text-neutral-500 font-mono">
-                  No tasks created yet.
-                  <div className="mt-2">
-                    <button
-                      onClick={() => setIsNewTaskModalOpen(true)}
-                      className="px-3 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs"
+            {tasks.length === 0 ? (
+              <div className="p-6 rounded-lg border border-slate-800 bg-slate-900/30 text-center text-xs font-mono text-slate-500">
+                No tasks queued.
+                <div className="mt-2">
+                  <Button variant="secondary" size="xs" onClick={() => setIsNewTaskModalOpen(true)}>
+                    Create First Goal
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[550px] overflow-y-auto pr-1">
+                {tasks.map(task => {
+                  const isSelected = selectedTask?.id === task.id;
+                  const assignedAgent = agents.find(a => a.id === task.agent_id);
+                  const completedSteps = task.plan.filter(p => p.status === 'completed').length;
+                  const totalSteps = task.plan.length;
+
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => handleSelectTask(task)}
+                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-blue-500/50 bg-blue-950/20 text-slate-100'
+                          : 'border-slate-800/80 bg-slate-900/40 text-slate-300 hover:border-slate-700'
+                      }`}
                     >
-                      Define First Goal
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                  {tasks.map(task => {
-                    const isSelected = selectedTask?.id === task.id;
-                    const assignedAgent = agents.find(a => a.id === task.agent_id);
-                    const completedSteps = task.plan.filter(p => p.status === 'completed').length;
-                    const totalSteps = task.plan.length;
-
-                    return (
-                      <button
-                        key={task.id}
-                        onClick={() => handleSelectTask(task)}
-                        className={`w-full text-left p-3 rounded-lg border transition-all ${
-                          isSelected
-                            ? 'border-emerald-500/50 bg-emerald-950/20 text-neutral-100'
-                            : 'border-neutral-800/80 bg-neutral-950/40 text-neutral-300 hover:border-neutral-700'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 mb-1">
-                          <span className="truncate max-w-[140px] text-neutral-300 font-medium">
-                            {assignedAgent?.name || task.agent_id}
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${
-                              task.status === 'completed'
-                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                : task.status === 'in_progress'
-                                ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
-                                : task.status === 'paused'
-                                ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                : task.status === 'cancelled'
-                                ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                                : 'bg-neutral-800 text-neutral-300'
-                            }`}
-                          >
-                            {task.status}
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-neutral-200 line-clamp-2">
-                          {task.goal}
-                        </p>
-                        <div className="mt-2 flex items-center justify-between text-[10px] text-neutral-500 font-mono">
-                          <span>
-                            Steps: {completedSteps} / {totalSteps}
-                          </span>
-                          <span>{new Date(task.created_at).toLocaleTimeString()}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Goal Launcher Presets */}
-            <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">
-                Quick Goal Presets
-              </h4>
-              <div className="space-y-2">
-                {goalTemplates.map((t, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setNewTaskGoal(t.goal);
-                      setIsNewTaskModalOpen(true);
-                    }}
-                    className="w-full text-left p-2.5 rounded-lg border border-neutral-800/80 bg-neutral-950/60 hover:bg-neutral-800/60 hover:border-neutral-700 transition-colors text-xs text-neutral-300 group"
-                  >
-                    <div className="font-medium text-neutral-200 group-hover:text-emerald-400">
-                      {t.title}
+                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+                        <span className="truncate max-w-[140px] text-slate-300 font-medium">
+                          {assignedAgent?.name || task.agent_id}
+                        </span>
+                        <Badge
+                          variant={
+                            task.status === 'completed'
+                              ? 'success'
+                              : task.status === 'in_progress'
+                              ? 'info'
+                              : task.status === 'paused'
+                              ? 'warning'
+                              : task.status === 'cancelled'
+                              ? 'danger'
+                              : 'neutral'
+                          }
+                          size="xs"
+                        >
+                          {task.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs font-medium text-slate-200 line-clamp-2">
+                        {task.goal}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1.5 border-t border-slate-800/40">
+                        <span>
+                          Step {completedSteps} / {totalSteps}
+                        </span>
+                        <span>{new Date(task.created_at).toLocaleTimeString()}</span>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-neutral-400 line-clamp-1 mt-0.5 font-mono">
-                      {t.goal}
-                    </div>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Right Column: Multi-Step Plan & Action Progress (8 cols) */}
+          {/* Right Column: Execution Console (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {selectedTask ? (
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-5 space-y-5">
-                {/* Task Header & Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-neutral-800">
-                  <div className="space-y-1">
+              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-5 space-y-5">
+                {/* Task Header & Execution Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-800">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-400">
-                        Task: {selectedTask.id}
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                        {selectedTask.id}
                       </span>
-                      <span
-                        className={`text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded ${
+                      <Badge
+                        variant={
                           selectedTask.status === 'completed'
-                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                            ? 'success'
                             : selectedTask.status === 'in_progress'
-                            ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                            ? 'info'
                             : selectedTask.status === 'paused'
-                            ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                            : 'bg-neutral-800 text-neutral-300'
-                        }`}
+                            ? 'warning'
+                            : 'neutral'
+                        }
+                        size="xs"
+                        dot
                       >
                         {selectedTask.status}
-                      </span>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-neutral-800 text-neutral-400">
-                        Priority: {selectedTask.priority}
+                      </Badge>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                        {selectedTask.priority} priority
                       </span>
                     </div>
-                    <h2 className="text-base font-semibold text-neutral-100 mt-1">
+                    <h2 className="text-sm sm:text-base font-semibold text-slate-100 font-mono">
                       {selectedTask.goal}
                     </h2>
-                    <div className="text-xs text-neutral-400 font-mono flex items-center gap-4">
+                    <div className="text-xs text-slate-400 font-mono flex items-center gap-4">
                       <span>Agent: {agents.find(a => a.id === selectedTask.agent_id)?.name || selectedTask.agent_id}</span>
                       <span>Workspace: {selectedTask.workspace_id}</span>
                     </div>
                   </div>
 
-                  {/* Execution Control Buttons */}
+                  {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
                     {selectedTask.status !== 'completed' && selectedTask.status !== 'cancelled' && (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        isLoading={isExecutingStep}
+                        disabled={selectedTask.status === 'paused'}
                         onClick={handleExecuteNextAction}
-                        disabled={isExecutingStep || selectedTask.status === 'paused'}
-                        className="px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                        icon={<Play className="h-3 w-3 fill-current" />}
                       >
-                        {isExecutingStep ? (
-                          <>
-                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                            Executing...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-3.5 w-3.5 fill-current" />
-                            Execute Next Step
-                          </>
-                        )}
-                      </button>
+                        Execute Step
+                      </Button>
                     )}
 
                     {selectedTask.status === 'in_progress' && (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handlePauseTask(selectedTask.id)}
-                        className="p-1.5 rounded-md border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs"
-                        title="Pause Task"
+                        icon={<Pause className="h-3 w-3" />}
                       >
-                        <Pause className="h-4 w-4" />
-                      </button>
+                        Pause
+                      </Button>
                     )}
 
                     {selectedTask.status === 'paused' && (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleResumeTask(selectedTask.id)}
-                        className="p-1.5 rounded-md border border-emerald-700 bg-emerald-950 text-emerald-300 text-xs"
-                        title="Resume Task"
+                        icon={<Play className="h-3 w-3" />}
                       >
-                        <Play className="h-4 w-4" />
-                      </button>
+                        Resume
+                      </Button>
                     )}
 
                     {selectedTask.status !== 'completed' && selectedTask.status !== 'cancelled' && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleCancelTask(selectedTask.id)}
-                        className="p-1.5 rounded-md border border-neutral-800 bg-neutral-900 hover:bg-rose-950 hover:text-rose-300 text-neutral-400 text-xs"
-                        title="Cancel Task"
+                        icon={<Trash2 className="h-3 w-3" />}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        Cancel
+                      </Button>
                     )}
                   </div>
                 </div>
 
-                {/* Step Progress Bar */}
+                {/* Progress Strip */}
                 <div>
-                  <div className="flex items-center justify-between text-xs text-neutral-400 font-mono mb-1.5">
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-1.5">
                     <span>
-                      Execution Progress: Step {selectedTask.current_action_index} of {selectedTask.plan.length}
+                      Progression: {selectedTask.current_action_index} of {selectedTask.plan.length} actions complete
                     </span>
-                    <span>
+                    <span className="tabular-nums">
                       {Math.round((selectedTask.current_action_index / Math.max(selectedTask.plan.length, 1)) * 100)}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-500 transition-all duration-300"
+                      className="h-full bg-blue-500 transition-all duration-300"
                       style={{
                         width: `${(selectedTask.current_action_index / Math.max(selectedTask.plan.length, 1)) * 100}%`
                       }}
@@ -799,391 +727,346 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                   </div>
                 </div>
 
-                {/* Plan Steps List */}
+                {/* Plan Steps Table */}
                 <div className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                    Generated Multi-Step Plan ({selectedTask.plan.length} Steps)
-                  </h3>
+                  <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+                    Plan Execution Sequence ({selectedTask.plan.length} Steps)
+                  </div>
 
-                  {selectedTask.plan.map((action, index) => {
-                    const isCurrent = index === selectedTask.current_action_index && selectedTask.status !== 'completed';
-                    const isCompleted = action.status === 'completed';
-                    const isExecuting = action.status === 'executing';
-                    const isFailed = action.status === 'failed';
-
-                    return (
-                      <div
-                        key={action.id}
-                        className={`rounded-lg border p-4 transition-all ${
-                          isExecuting
-                            ? 'border-cyan-500 bg-cyan-950/20'
-                            : isCurrent
-                            ? 'border-emerald-500/60 bg-emerald-950/10'
-                            : isCompleted
-                            ? 'border-neutral-800 bg-neutral-950/40 text-neutral-300'
-                            : isFailed
-                            ? 'border-rose-800/80 bg-rose-950/20'
-                            : 'border-neutral-800/60 bg-neutral-950/20 text-neutral-400'
-                        }`}
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="h-5 w-5 rounded-full bg-neutral-800 text-neutral-200 text-xs font-mono flex items-center justify-center font-bold">
-                              {action.step_number}
-                            </span>
-                            <span className="text-xs font-semibold text-neutral-200">
-                              {action.purpose}
-                            </span>
-                          </div>
-
-                          {/* Risk & Approval Badges */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {/* Risk Classification */}
-                            <span
-                              className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-medium ${
-                                action.risk_classification === 'destructive'
-                                  ? 'bg-rose-950 text-rose-300 border border-rose-700 font-bold'
-                                  : action.risk_classification === 'high'
-                                  ? 'bg-orange-950 text-orange-300 border border-orange-800'
-                                  : action.risk_classification === 'medium'
-                                  ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                  : 'bg-neutral-800 text-neutral-400'
-                              }`}
-                            >
-                              Risk: {action.risk_classification}
-                            </span>
-
-                            {/* Human Approval Required Badge */}
-                            {action.requires_approval ? (
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700/80 flex items-center gap-1 font-semibold">
-                                <Lock className="h-3 w-3" />
-                                Requires Human Approval
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-800/80 text-neutral-400 border border-neutral-700/50 flex items-center gap-1">
-                                <ShieldCheck className="h-3 w-3 text-emerald-400" />
-                                Auto-Authorized
-                              </span>
-                            )}
-
-                            {/* Step Status Badge */}
-                            <span
-                              className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                                isCompleted
-                                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                  : isExecuting
-                                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-800 animate-pulse'
-                                  : isFailed
-                                  ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                                  : 'bg-neutral-800 text-neutral-400'
-                              }`}
-                            >
-                              {action.status}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Command and Tool */}
-                        <div className="mt-3 bg-neutral-950 rounded p-2.5 font-mono text-xs text-neutral-300 border border-neutral-800/60 flex items-center justify-between">
-                          <div className="flex items-center gap-2 overflow-x-auto">
-                            <Terminal className="h-3.5 w-3.5 text-neutral-500 shrink-0" />
-                            <span className="text-emerald-400">$</span>
-                            <span className="text-neutral-200">{action.command}</span>
-                          </div>
-                          <span className="text-[10px] text-neutral-500 shrink-0 ml-2">
-                            Tool: {action.tool_id}
-                          </span>
-                        </div>
-
-                        {/* Expected vs Actual Result */}
-                        <div className="mt-2 text-xs space-y-1">
-                          <div className="text-neutral-400 font-mono text-[11px]">
-                            Expected: <span className="text-neutral-300">{action.expected_result}</span>
-                          </div>
-                          {action.result && (
-                            <div className="p-2 rounded bg-neutral-900/80 border border-neutral-800 text-[11px] font-mono text-emerald-300 whitespace-pre-wrap max-h-32 overflow-y-auto">
-                              Output: {action.result}
-                            </div>
-                          )}
-                          {action.error && (
-                            <div className="p-2 rounded bg-rose-950/30 border border-rose-900/60 text-[11px] font-mono text-rose-300 whitespace-pre-wrap">
-                              Error: {action.error}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div className="rounded-lg border border-slate-800/80 bg-slate-950/60 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs font-mono">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-500">
+                            <th className="py-2.5 px-3 font-medium">#</th>
+                            <th className="py-2.5 px-3 font-medium">Action Purpose</th>
+                            <th className="py-2.5 px-3 font-medium">Command</th>
+                            <th className="py-2.5 px-3 font-medium">Risk Level</th>
+                            <th className="py-2.5 px-3 font-medium">Authorization</th>
+                            <th className="py-2.5 px-3 font-medium text-right">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60">
+                          {selectedTask.plan.map((action, idx) => {
+                            const isCurrent = idx === selectedTask.current_action_index && selectedTask.status !== 'completed';
+                            return (
+                              <tr
+                                key={action.id}
+                                className={`transition-colors ${
+                                  isCurrent ? 'bg-blue-950/20' : 'hover:bg-slate-900/40'
+                                }`}
+                              >
+                                <td className="py-2.5 px-3 font-bold text-slate-400">
+                                  {action.step_number}
+                                </td>
+                                <td className="py-2.5 px-3 font-sans text-slate-200">
+                                  {action.purpose}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <div className="flex items-center gap-1.5 text-blue-400/90 font-mono text-[11px]">
+                                    <Terminal className="h-3 w-3 text-slate-500 shrink-0" />
+                                    <span>{action.command}</span>
+                                  </div>
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <Badge
+                                    variant={
+                                      action.risk_classification === 'destructive'
+                                        ? 'danger'
+                                        : action.risk_classification === 'high'
+                                        ? 'warning'
+                                        : 'neutral'
+                                    }
+                                    size="xs"
+                                  >
+                                    {action.risk_classification}
+                                  </Badge>
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  {action.requires_approval ? (
+                                    <span className="text-amber-400 flex items-center gap-1 text-[11px]">
+                                      <Lock className="h-3 w-3" /> Requires Approval
+                                    </span>
+                                  ) : (
+                                    <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
+                                      <ShieldCheck className="h-3 w-3" /> Auto-Authorized
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2.5 px-3 text-right">
+                                  <Badge
+                                    variant={
+                                      action.status === 'completed'
+                                        ? 'success'
+                                        : action.status === 'executing'
+                                        ? 'info'
+                                        : action.status === 'failed'
+                                        ? 'danger'
+                                        : 'neutral'
+                                    }
+                                    size="xs"
+                                    dot={action.status === 'executing'}
+                                  >
+                                    {action.status}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Output Inspection Box (if results exist) */}
+                {selectedTask.plan.some(p => p.result || p.error) && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+                      Step Outputs & Logs
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 max-h-48 overflow-y-auto font-mono text-xs text-slate-300 whitespace-pre-wrap space-y-2">
+                      {selectedTask.plan.map(p => {
+                        if (!p.result && !p.error) return null;
+                        return (
+                          <div key={p.id} className="border-b border-slate-900 pb-2 last:border-0 last:pb-0">
+                            <div className="text-slate-500 text-[10px] mb-0.5">
+                              Step {p.step_number}: {p.command}
+                            </div>
+                            {p.result && <div className="text-emerald-300/90">{p.result}</div>}
+                            {p.error && <div className="text-rose-400">{p.error}</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/20 p-12 text-center text-neutral-400">
-                <ListTodo className="h-10 w-10 mx-auto text-neutral-600 mb-3" />
-                <h3 className="text-sm font-semibold text-neutral-200">No Task Selected</h3>
-                <p className="text-xs text-neutral-400 max-w-sm mx-auto mt-1">
-                  Choose a task from the list on the left or create a new goal to see the generated planner execution tree.
-                </p>
-                <button
-                  onClick={() => setIsNewTaskModalOpen(true)}
-                  className="mt-4 px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium inline-flex items-center gap-1.5 transition-colors"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Define New Task Goal
-                </button>
+              <div className="rounded-lg border border-slate-800/80 bg-slate-900/30 p-12 text-center text-slate-500 font-mono text-xs">
+                Select a task on the left or create a new goal.
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 2: AGENT FLEET OVERVIEW                                               */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* TAB: AGENT FLEET (TABLE-FIRST)                                        */}
+      {/* ===================================================================== */}
       {activeTab === 'fleet' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-200">
-                Registered Agent Workers ({workers.length})
-              </h2>
-              <p className="text-xs text-neutral-400">
-                Live lifecycle states, heartbeat checks, and permissions bounds.
-              </p>
-            </div>
-            <button
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold uppercase tracking-wider text-slate-400">
+              Agent Fleet Directory ({workers.length} Droids)
+            </span>
+            <Button
+              variant="primary"
+              size="xs"
+              icon={<Plus className="h-3 w-3" />}
               onClick={() => setIsNewAgentModalOpen(true)}
-              className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
             >
-              <Plus className="h-3.5 w-3.5" />
-              Register Droid Agent
-            </button>
+              Register Droid
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {agents.map(agent => {
-              const worker = workers.find(w => w.agent_id === agent.id);
-              const isHealthy = worker?.health === 'healthy';
-              const isTerminated = worker?.state === 'TERMINATED';
-
-              return (
-                <div
-                  key={agent.id}
-                  className={`rounded-xl border p-4 transition-all flex flex-col justify-between ${
-                    isTerminated
-                      ? 'border-rose-900/60 bg-rose-950/20'
-                      : 'border-neutral-800 bg-neutral-900/40 hover:border-neutral-700'
-                  }`}
-                >
-                  <div className="space-y-3">
-                    {/* Agent Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300">
-                          <Bot className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <h3 className="text-xs font-semibold text-neutral-100">{agent.name}</h3>
-                          <span className="text-[10px] font-mono text-neutral-500">{agent.id}</span>
-                        </div>
-                      </div>
-
-                      {/* Health Indicator */}
-                      <div className="flex items-center gap-1.5 font-mono text-[10px]">
-                        <span
-                          className={`h-2 w-2 rounded-full ${
-                            isHealthy
-                              ? 'bg-emerald-400 animate-pulse'
-                              : worker?.health === 'unresponsive'
-                              ? 'bg-amber-400'
-                              : 'bg-rose-500'
-                          }`}
-                        />
-                        <span className="text-neutral-400">{worker?.health || 'unregistered'}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-neutral-400 line-clamp-2">
-                      {agent.description || 'Dedicated autonomous workspace worker.'}
-                    </p>
-
-                    {/* Worker State & Heartbeat */}
-                    <div className="rounded-lg bg-neutral-950 p-2.5 border border-neutral-800/80 space-y-1.5 text-xs font-mono">
-                      <div className="flex items-center justify-between text-neutral-400">
-                        <span>Lifecycle State:</span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded font-bold uppercase text-[10px] ${
-                            worker?.state === 'READY'
-                              ? 'bg-emerald-950 text-emerald-300'
-                              : worker?.state === 'EXECUTING'
-                              ? 'bg-cyan-950 text-cyan-300 animate-pulse'
-                              : worker?.state === 'WAITING_APPROVAL'
-                              ? 'bg-amber-950 text-amber-300'
-                              : worker?.state === 'TERMINATED'
-                              ? 'bg-rose-950 text-rose-300'
-                              : 'bg-neutral-800 text-neutral-300'
-                          }`}
-                        >
-                          {worker?.state || 'OFFLINE'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                        <span>Heartbeat:</span>
-                        <span className="text-neutral-300">
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-500">
+                    <th className="py-2.5 px-4 font-medium">Agent / Role</th>
+                    <th className="py-2.5 px-4 font-medium">State</th>
+                    <th className="py-2.5 px-4 font-medium">Health</th>
+                    <th className="py-2.5 px-4 font-medium">Active Task</th>
+                    <th className="py-2.5 px-4 font-medium">Heartbeat</th>
+                    <th className="py-2.5 px-4 font-medium">Allowed Tools</th>
+                    <th className="py-2.5 px-4 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {agents.map(agent => {
+                    const worker = workers.find(w => w.agent_id === agent.id);
+                    return (
+                      <tr key={agent.id} className="hover:bg-slate-850/40 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-slate-200 font-sans">{agent.name}</div>
+                          <div className="text-[11px] text-slate-500">{agent.id}</div>
+                          <div className="text-[11px] text-slate-400 font-sans mt-0.5 line-clamp-1">
+                            {agent.description}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            variant={
+                              worker?.state === 'READY'
+                                ? 'success'
+                                : worker?.state === 'EXECUTING'
+                                ? 'info'
+                                : worker?.state === 'WAITING_APPROVAL'
+                                ? 'warning'
+                                : worker?.state === 'TERMINATED'
+                                ? 'danger'
+                                : 'neutral'
+                            }
+                            size="xs"
+                            dot
+                          >
+                            {worker?.state || 'OFFLINE'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          {worker?.health || 'healthy'}
+                        </td>
+                        <td className="py-3 px-4 text-slate-400">
+                          {worker?.current_task_id ? (
+                            <span className="text-blue-400">{worker.current_task_id}</span>
+                          ) : (
+                            <span className="text-slate-600">None</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-slate-400 text-[11px]">
                           {worker?.heartbeat_at
                             ? new Date(worker.heartbeat_at).toLocaleTimeString()
-                            : 'None'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Permissions Summary */}
-                    <div className="space-y-1 text-xs font-mono">
-                      <div className="text-[10px] text-neutral-500 uppercase">Allowed Tools:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {agent.permissions.allowed_tools.map(t => (
-                          <span
-                            key={t}
-                            className="px-1.5 py-0.5 rounded bg-neutral-800 text-[10px] text-neutral-300"
-                          >
-                            {t.replace('tool_', '')}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Worker Action Buttons */}
-                  <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => handlePingHeartbeat(agent.id)}
-                      className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-mono flex items-center gap-1 transition-colors"
-                      title="Send ping to keep worker alive"
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                      Ping
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setNewTaskAgentId(agent.id);
-                        setIsNewTaskModalOpen(true);
-                      }}
-                      className="px-2.5 py-1 rounded bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-medium flex items-center gap-1 transition-colors"
-                    >
-                      <Plus className="h-3 w-3" />
-                      Assign Task
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                            : 'Recent'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {agent.permissions.allowed_tools.map(t => (
+                              <span
+                                key={t}
+                                className="px-1.5 py-0.5 rounded bg-slate-800/80 text-[10px] text-slate-300"
+                              >
+                                {t.replace('tool_', '')}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              variant="secondary"
+                              size="xs"
+                              icon={<RefreshCw className="h-3 w-3" />}
+                              onClick={() => handlePingHeartbeat(agent.id)}
+                            >
+                              Ping
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="xs"
+                              onClick={() => {
+                                setNewTaskAgentId(agent.id);
+                                setIsNewTaskModalOpen(true);
+                              }}
+                            >
+                              Assign
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 3: HUMAN APPROVAL QUEUE                                               */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* TAB: APPROVAL QUEUE                                                   */}
+      {/* ===================================================================== */}
       {activeTab === 'approvals' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between text-xs font-mono">
             <div>
-              <h2 className="text-sm font-semibold text-neutral-200 flex items-center gap-2">
-                Human Authorization Queue
-                {pendingApprovals.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500 text-neutral-950 font-bold text-xs">
-                    {pendingApprovals.length} Action{pendingApprovals.length > 1 ? 's' : ''} Pending
-                  </span>
-                )}
-              </h2>
-              <p className="text-xs text-neutral-400">
-                Destructive operations are held at the execution boundary until explicitly signed off.
+              <span className="font-semibold uppercase tracking-wider text-slate-400">
+                Human Authorization Queue ({pendingApprovals.length} Pending)
+              </span>
+              <p className="text-slate-500 mt-0.5 text-[11px]">
+                High-risk operations are quarantined at the sandbox boundary pending explicit operator sign-off.
               </p>
             </div>
           </div>
 
           {pendingApprovals.length === 0 ? (
-            <div className="rounded-xl border border-neutral-800 bg-neutral-900/30 p-12 text-center text-neutral-400">
-              <ShieldCheck className="h-10 w-10 mx-auto text-emerald-500 mb-2" />
-              <h3 className="text-sm font-semibold text-neutral-200">No Pending Approvals</h3>
-              <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1">
-                All scheduled agent operations comply with auto-authorization rules. Destructive commands will appear here for review.
-              </p>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-12 text-center text-xs font-mono text-slate-500">
+              <ShieldCheck className="h-8 w-8 mx-auto text-emerald-400 mb-2" />
+              <div className="text-slate-300 font-semibold">Queue is Clear</div>
+              <p className="mt-1">All agent operations comply with auto-authorization policies.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {pendingApprovals.map(approval => {
                 const isRejecting = rejectingApprovalId === approval.id;
-
                 return (
                   <div
                     key={approval.id}
-                    className="rounded-xl border border-amber-600/50 bg-amber-950/20 p-5 space-y-4"
+                    className="rounded-lg border border-amber-600/50 bg-amber-950/20 p-4 space-y-3 font-mono text-xs"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div className="space-y-1">
+                      <div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-700 text-[10px] font-mono font-bold uppercase">
-                            DESTRUCTIVE OPERATION
-                          </span>
-                          <span className="text-xs font-mono text-neutral-400">
-                            Approval ID: {approval.id}
-                          </span>
+                          <Badge variant="danger" size="xs">
+                            DESTRUCTIVE
+                          </Badge>
+                          <span className="text-slate-400 font-medium">Approval: {approval.id}</span>
                         </div>
-                        <h3 className="text-sm font-semibold text-neutral-100">
-                          Hold placed on: Execution {approval.execution_id}
-                        </h3>
-                        <p className="text-xs text-amber-300/90 font-mono">
-                          Requested at: {new Date(approval.created_at).toLocaleString()}
-                        </p>
+                        <div className="text-slate-200 mt-1 font-semibold">
+                          Target Execution: {approval.execution_id}
+                        </div>
+                        <div className="text-amber-400/90 text-[11px] mt-0.5">
+                          Command: <code className="bg-slate-950 px-1.5 py-0.5 rounded text-rose-300">{approval.command}</code>
+                        </div>
+                        <div className="text-slate-500 text-[10px] mt-1">
+                          Workspace: {approval.workspace_id} • Created: {new Date(approval.created_at).toLocaleTimeString()}
+                        </div>
                       </div>
 
-                      {/* Decision Buttons */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <button
+                        <Button
+                          variant="success"
+                          size="sm"
+                          icon={<CheckCircle2 className="h-3.5 w-3.5" />}
                           onClick={() => handleDecideApproval(approval.id, 'approved')}
-                          className="px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Approve Execution
-                        </button>
-                        <button
+                          Approve
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          icon={<XCircle className="h-3.5 w-3.5" />}
                           onClick={() => setRejectingApprovalId(isRejecting ? null : approval.id)}
-                          className="px-3.5 py-1.5 rounded-md border border-rose-700 bg-rose-950/80 hover:bg-rose-900 text-rose-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
                         >
-                          <XCircle className="h-3.5 w-3.5" />
                           Reject
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
-                    {/* Rejection Prompt */}
                     {isRejecting && (
-                      <div className="p-3 rounded-lg border border-rose-800 bg-rose-950/60 space-y-2 text-xs">
+                      <div className="p-3 rounded border border-rose-800 bg-rose-950/60 space-y-2 text-xs">
                         <label className="text-rose-200 font-medium block">
-                          Provide Rejection Reason (Operator Audit Record):
+                          Reason for rejection (audited in event log):
                         </label>
                         <input
                           type="text"
                           value={rejectionReason}
                           onChange={e => setRejectionReason(e.target.value)}
-                          placeholder="e.g. Unintended cache wipe during deployment"
-                          className="w-full rounded bg-neutral-950 border border-neutral-700 px-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-rose-500"
+                          placeholder="e.g., Command would purge production workspace assets"
+                          className="w-full rounded bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500"
                         />
                         <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => setRejectingApprovalId(null)}
-                            className="px-2.5 py-1 rounded bg-neutral-800 text-neutral-300 text-xs"
-                          >
+                          <Button variant="ghost" size="xs" onClick={() => setRejectingApprovalId(null)}>
                             Cancel
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="xs"
                             onClick={() => handleDecideApproval(approval.id, 'rejected', rejectionReason)}
-                            className="px-2.5 py-1 rounded bg-rose-600 text-white text-xs font-medium"
                           >
                             Confirm Rejection
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -1192,141 +1075,67 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               })}
             </div>
           )}
-
-          {/* Past Decisions History */}
-          <div className="mt-6 pt-4 border-t border-neutral-800">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-3">
-              Approval Audit Trail ({approvals.filter(a => a.status !== 'pending').length} Processed)
-            </h3>
-            <div className="space-y-2">
-              {approvals
-                .filter(a => a.status !== 'pending')
-                .slice(0, 10)
-                .map(a => (
-                  <div
-                    key={a.id}
-                    className="p-3 rounded-lg border border-neutral-800 bg-neutral-950/50 flex items-center justify-between text-xs font-mono"
-                  >
-                    <div>
-                      <span className="text-neutral-400">Approval {a.id}</span>
-                      <span className="mx-2 text-neutral-700">|</span>
-                      <span className="text-neutral-300">Decided by: {a.decided_by_user_id || 'operator'}</span>
-                      {a.rejection_reason && (
-                        <div className="text-[11px] text-rose-400 mt-0.5">
-                          Reason: {a.rejection_reason}
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
-                        a.status === 'approved'
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                          : 'bg-rose-950 text-rose-300 border border-rose-800'
-                      }`}
-                    >
-                      {a.status}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 4: WORKING MEMORY INSPECTOR                                           */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* TAB: WORKING MEMORY INSPECTOR                                         */}
+      {/* ===================================================================== */}
       {activeTab === 'memory' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between text-xs font-mono">
             <div>
-              <h2 className="text-sm font-semibold text-neutral-200">
-                Agent Short-Term Working Memory
-              </h2>
-              <p className="text-xs text-neutral-400">
-                Scoped strictly to: Owner → Project → Workspace → Agent → Task.
+              <span className="font-semibold uppercase tracking-wider text-slate-400">
+                Short-Term Working Memory
+              </span>
+              <p className="text-slate-500 mt-0.5 text-[11px]">
+                Strict tenant scoping: Owner → Project → Workspace → Agent → Task
               </p>
             </div>
             {selectedTask && (
-              <span className="text-xs font-mono text-emerald-400 bg-neutral-900 px-3 py-1 rounded border border-neutral-800">
-                Active Task: {selectedTask.id}
-              </span>
+              <Badge variant="info" size="sm">
+                Task: {selectedTask.id}
+              </Badge>
             )}
           </div>
 
           {selectedMemory ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Context & Goal */}
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-4 space-y-3 font-mono text-xs">
+                <div className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                   Memory Scope & Goal
-                </h3>
-                <div className="space-y-2 text-xs font-mono">
-                  <div className="p-2.5 rounded bg-neutral-950 border border-neutral-800 space-y-1">
-                    <div className="text-neutral-500">Current Goal:</div>
-                    <div className="text-neutral-200 font-medium">{selectedMemory.current_goal}</div>
+                </div>
+                <div className="p-3 rounded bg-slate-950 border border-slate-800/80 space-y-1">
+                  <div className="text-slate-500">Current Goal:</div>
+                  <div className="text-slate-200 font-medium font-sans">{selectedMemory.current_goal}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
+                    <span className="text-slate-500 block">Agent ID:</span>
+                    <span className="text-slate-300">{selectedMemory.agent_id}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="p-2 rounded bg-neutral-950 border border-neutral-800">
-                      <span className="text-neutral-500 block">Agent ID:</span>
-                      <span className="text-neutral-300">{selectedMemory.agent_id}</span>
-                    </div>
-                    <div className="p-2 rounded bg-neutral-950 border border-neutral-800">
-                      <span className="text-neutral-500 block">Workspace:</span>
-                      <span className="text-neutral-300">{selectedMemory.workspace_id}</span>
-                    </div>
-                  </div>
-                  <div className="p-2 rounded bg-neutral-950 border border-neutral-800 text-[11px]">
-                    <span className="text-neutral-500 block">Updated:</span>
-                    <span className="text-neutral-300">{new Date(selectedMemory.updated_at).toLocaleString()}</span>
+                  <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
+                    <span className="text-slate-500 block">Workspace:</span>
+                    <span className="text-slate-300">{selectedMemory.workspace_id}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Observations & Learnings */}
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 space-y-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-4 space-y-3 font-mono text-xs">
+                <div className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                   Observations Log ({selectedMemory.observations.length})
-                </h3>
+                </div>
                 {selectedMemory.observations.length === 0 ? (
-                  <p className="text-xs text-neutral-500 font-mono py-4 text-center">
-                    No observations recorded yet.
-                  </p>
+                  <div className="text-slate-500 py-6 text-center">No observations recorded yet.</div>
                 ) : (
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {selectedMemory.observations.map((obs, idx) => (
                       <div
                         key={idx}
-                        className="p-2 rounded bg-neutral-950 border border-neutral-800 text-xs font-mono text-emerald-300/90 flex items-start gap-2"
+                        className="p-2 rounded bg-slate-950 border border-slate-800/80 text-emerald-300/90 text-xs flex items-start gap-2"
                       >
-                        <span className="text-neutral-500">[{idx + 1}]</span>
+                        <span className="text-slate-500">[{idx + 1}]</span>
                         <span>{obs}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Completed Actions & Execution Results */}
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 space-y-3 md:col-span-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                  Completed Step Results
-                </h3>
-                {Object.keys(selectedMemory.execution_results).length === 0 ? (
-                  <p className="text-xs text-neutral-500 font-mono py-4 text-center">
-                    No action results stored yet.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {Object.entries(selectedMemory.execution_results).map(([actId, res]) => (
-                      <div
-                        key={actId}
-                        className="p-3 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1 font-mono text-xs"
-                      >
-                        <div className="text-neutral-400 font-semibold">{actId}</div>
-                        <div className="text-neutral-200 bg-neutral-900/80 p-2 rounded whitespace-pre-wrap max-h-32 overflow-y-auto">
-                          {res}
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -1334,120 +1143,78 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-neutral-800 bg-neutral-900/20 p-12 text-center text-neutral-400">
-              <Brain className="h-10 w-10 mx-auto text-neutral-600 mb-2" />
-              <h3 className="text-sm font-semibold text-neutral-200">No Memory Loaded</h3>
-              <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1">
-                Select a task in the Task Planner tab to view its isolated working memory layer.
-              </p>
+            <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-12 text-center text-xs font-mono text-slate-500">
+              No memory loaded. Select a task from the Task Execution tab to inspect its working memory layer.
             </div>
           )}
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 5: REAL-TIME ACTIVITY FEED                                            */}
-      {/* ========================================================================= */}
-      {activeTab === 'events' && (
+      {/* ===================================================================== */}
+      {/* TAB: RUNTIME LOGS / EVENT STREAM                                      */}
+      {/* ===================================================================== */}
+      {activeTab === 'logs' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-200">
-                Runtime Event Stream
-              </h2>
-              <p className="text-xs text-neutral-400">
-                Live audit trace of planner actions, approval decisions, and process exits.
-              </p>
-            </div>
-            <button
-              onClick={refreshAll}
-              className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-mono flex items-center gap-1 transition-colors"
-            >
-              <RefreshCw className="h-3 w-3" />
-              Refresh Stream
-            </button>
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-semibold uppercase tracking-wider text-slate-400">
+              Runtime Telemetry Stream ({events.length} Events)
+            </span>
+            <Button variant="secondary" size="xs" icon={<RefreshCw className="h-3 w-3" />} onClick={refreshAll}>
+              Refresh
+            </Button>
           </div>
 
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 space-y-2 max-h-[600px] overflow-y-auto">
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-3 space-y-2 max-h-[550px] overflow-y-auto font-mono text-xs">
             {events.length === 0 ? (
-              <div className="py-12 text-center text-xs text-neutral-500 font-mono">
-                No runtime events recorded yet.
-              </div>
+              <div className="py-8 text-center text-slate-500">No events logged yet.</div>
             ) : (
-              events.map(ev => {
-                const isKill = ev.event_type === 'kill_switch_triggered';
-                const isApproval = ev.event_type.startsWith('approval');
-                const isFailed = ev.event_type.includes('failed');
-
-                return (
-                  <div
-                    key={ev.id}
-                    className={`p-3 rounded-lg border text-xs font-mono transition-colors ${
-                      isKill
-                        ? 'border-rose-800 bg-rose-950/40 text-rose-200'
-                        : isFailed
-                        ? 'border-rose-900/60 bg-rose-950/20 text-rose-300'
-                        : isApproval
-                        ? 'border-amber-800/80 bg-amber-950/20 text-amber-300'
-                        : 'border-neutral-800 bg-neutral-950/60 text-neutral-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <span className="font-bold uppercase tracking-wider text-neutral-200">
-                        {ev.event_type.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-neutral-500">
-                        {new Date(ev.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-
-                    <div className="text-[11px] text-neutral-400">
-                      ID: {ev.id} {ev.agent_id ? `• Agent: ${ev.agent_id}` : ''}{' '}
-                      {ev.task_id ? `• Task: ${ev.task_id}` : ''}
-                    </div>
-
-                    {/* Payload Details */}
-                    {Object.keys(ev.payload || {}).length > 0 && (
-                      <div className="mt-1.5 p-2 rounded bg-neutral-900/90 border border-neutral-800 text-[10px] text-neutral-300 whitespace-pre-wrap max-h-24 overflow-y-auto">
-                        {JSON.stringify(ev.payload, null, 2)}
-                      </div>
-                    )}
+              events.map(ev => (
+                <div
+                  key={ev.id}
+                  className="p-2.5 rounded bg-slate-950 border border-slate-800/80 text-slate-300 flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-500 text-[11px] whitespace-nowrap">
+                      {new Date(ev.timestamp).toLocaleTimeString()}
+                    </span>
+                    <Badge variant="info" size="xs">
+                      {ev.event_type.replace(/_/g, ' ')}
+                    </Badge>
+                    <span className="text-slate-400 truncate max-w-xs">{ev.id}</span>
                   </div>
-                );
-              })
+                  <div className="text-slate-500 text-[11px] shrink-0">
+                    {ev.agent_id ? `Agent: ${ev.agent_id}` : 'System'}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: NEW TASK DEFINITION                                                */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* MODAL: NEW TASK DEFINITION                                            */}
+      {/* ===================================================================== */}
       {isNewTaskModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-xl border border-neutral-800 bg-neutral-900 p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-              <h3 className="text-sm font-semibold text-neutral-100 flex items-center gap-2">
-                <ListTodo className="h-4 w-4 text-emerald-400" />
-                Define Task Goal
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                <ListTodo className="h-4 w-4 text-blue-400" />
+                <span>Define Task Goal</span>
               </h3>
-              <button
-                onClick={() => setIsNewTaskModalOpen(false)}
-                className="text-neutral-400 hover:text-neutral-200"
-              >
+              <button onClick={() => setIsNewTaskModalOpen(false)} className="text-slate-400 hover:text-slate-200">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateTask} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Assign Agent Droid:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Assign Droid Worker:</label>
                 <select
                   value={newTaskAgentId}
                   onChange={e => setNewTaskAgentId(e.target.value)}
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   {agents.map(a => (
                     <option key={a.id} value={a.id}>
@@ -1458,13 +1225,11 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Target Workspace:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Target Workspace:</label>
                 <select
                   value={newTaskWorkspaceId}
                   onChange={e => setNewTaskWorkspaceId(e.target.value)}
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   {workspaces.map(w => (
                     <option key={w.id} value={w.id}>
@@ -1475,13 +1240,11 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Priority:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Priority:</label>
                 <select
                   value={newTaskPriority}
                   onChange={e => setNewTaskPriority(e.target.value as any)}
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -1491,94 +1254,76 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Goal Description:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Goal Description:</label>
                 <textarea
                   value={newTaskGoal}
                   onChange={e => setNewTaskGoal(e.target.value)}
                   rows={3}
-                  placeholder="e.g. Audit workspace dependencies and run test suites"
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500 font-mono"
+                  placeholder="e.g., Audit workspace filesystem dependencies and run compiler verification"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-neutral-800">
-                <button
-                  type="button"
-                  onClick={() => setIsNewTaskModalOpen(false)}
-                  className="px-3 py-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                >
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <Button variant="secondary" size="xs" onClick={() => setIsNewTaskModalOpen(false)}>
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
-                >
-                  Synthesize Plan & Create Task
-                </button>
+                </Button>
+                <Button variant="primary" size="xs" type="submit">
+                  Generate Plan & Create Task
+                </Button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: REGISTER NEW AGENT DROID                                           */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* MODAL: REGISTER NEW AGENT DROID                                       */}
+      {/* ===================================================================== */}
       {isNewAgentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-xl border border-neutral-800 bg-neutral-900 p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-              <h3 className="text-sm font-semibold text-neutral-100 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                 <Bot className="h-4 w-4 text-emerald-400" />
-                Register New Agent Droid
+                <span>Register Droid Worker</span>
               </h3>
-              <button
-                onClick={() => setIsNewAgentModalOpen(false)}
-                className="text-neutral-400 hover:text-neutral-200"
-              >
+              <button onClick={() => setIsNewAgentModalOpen(false)} className="text-slate-400 hover:text-slate-200">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateAgent} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateAgent} className="space-y-4">
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Droid Name:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Droid Name:</label>
                 <input
                   type="text"
                   value={newAgentName}
                   onChange={e => setNewAgentName(e.target.value)}
-                  placeholder="e.g. AI Heaven Droid Beta"
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  placeholder="e.g., AI Heaven Droid Beta"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Description:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Description:</label>
                 <input
                   type="text"
                   value={newAgentDesc}
                   onChange={e => setNewAgentDesc(e.target.value)}
-                  placeholder="e.g. Autonomous refactoring & testing worker"
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  placeholder="Autonomous testing and sandbox compiler worker"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-neutral-300 font-medium block mb-1">
-                  Assign Project:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Assign Project:</label>
                 <select
                   value={newAgentProjectId}
                   onChange={e => setNewAgentProjectId(e.target.value)}
-                  className="w-full rounded bg-neutral-950 border border-neutral-700 p-2 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 >
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>
@@ -1588,18 +1333,15 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                 </select>
               </div>
 
-              {/* Tool Permissions Toggles */}
-              <div className="space-y-2 pt-2 border-t border-neutral-800">
-                <label className="text-neutral-300 font-medium block">
-                  Tool Permissions:
-                </label>
-                <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <label className="text-slate-300 font-medium block">Tool Permissions:</label>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
                   {tools.map(tool => {
                     const isChecked = newAgentTools.includes(tool.id);
                     return (
                       <label
                         key={tool.id}
-                        className="flex items-center gap-2 p-2 rounded bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700"
+                        className="flex items-center gap-2 p-2 rounded bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700"
                       >
                         <input
                           type="checkbox"
@@ -1611,79 +1353,55 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                               setNewAgentTools(prev => prev.filter(t => t !== tool.id));
                             }
                           }}
-                          className="rounded text-emerald-600 focus:ring-0"
+                          className="rounded text-blue-600 focus:ring-0"
                         />
-                        <span className="text-neutral-300">{tool.name}</span>
+                        <span className="text-slate-300">{tool.name}</span>
                       </label>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Destructive Approval Enforcement */}
-              <div className="space-y-2 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newAgentRequiresApproval}
-                    onChange={e => setNewAgentRequiresApproval(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-0"
-                  />
-                  <span className="text-neutral-300 font-medium">
-                    Require explicit human sign-off for destructive operations (rm, drop, delete)
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-neutral-800">
-                <button
-                  type="button"
-                  onClick={() => setIsNewAgentModalOpen(false)}
-                  className="px-3 py-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                >
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <Button variant="secondary" size="xs" onClick={() => setIsNewAgentModalOpen(false)}>
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
-                >
-                  Register Agent
-                </button>
+                </Button>
+                <Button variant="primary" size="xs" type="submit">
+                  Register Droid
+                </Button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: EMERGENCY KILL SWITCH TRIGGER                                      */}
-      {/* ========================================================================= */}
+      {/* ===================================================================== */}
+      {/* MODAL: EMERGENCY KILL SWITCH TRIGGER                                  */}
+      {/* ===================================================================== */}
       {isKillSwitchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/85 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-xl border-2 border-rose-600 bg-neutral-900 p-6 space-y-4 shadow-2xl shadow-rose-950/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-xl border border-rose-600 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
             <div className="flex items-center gap-3 pb-3 border-b border-rose-900/60">
-              <div className="p-2 rounded bg-rose-600 text-white">
-                <AlertOctagon className="h-6 w-6" />
+              <div className="p-2 rounded bg-rose-600 text-white shrink-0">
+                <AlertOctagon className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-rose-100 uppercase tracking-wide">
-                  Emergency Kill Switch
+                <h3 className="text-sm font-bold text-rose-100 uppercase tracking-wide">
+                  Emergency Halt Kill Switch
                 </h3>
-                <p className="text-xs text-rose-300">
-                  Instantaneous halt of all running agent workers and queued tasks.
+                <p className="text-[11px] text-rose-300">
+                  Forcefully terminates running workers and aborts queued jobs.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-4">
               <div>
-                <label className="text-rose-200 font-medium block mb-1">
-                  Kill Switch Scope:
-                </label>
+                <label className="text-rose-200 font-medium block mb-1">Halt Scope:</label>
                 <select
                   value={killScope}
                   onChange={e => setKillScope(e.target.value as any)}
-                  className="w-full rounded bg-neutral-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
+                  className="w-full rounded bg-slate-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
                 >
                   <option value="global">Global (All Platform Agents & Workspaces)</option>
                   <option value="project">Project Scope</option>
@@ -1693,36 +1411,24 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
               <div>
                 <label className="text-rose-200 font-medium block mb-1">
-                  Reason for Emergency Stop (Logged in Audit):
+                  Reason for Halt (Audited):
                 </label>
                 <input
                   type="text"
                   value={killReason}
                   onChange={e => setKillReason(e.target.value)}
-                  className="w-full rounded bg-neutral-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500 font-mono"
+                  className="w-full rounded bg-slate-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
                   required
                 />
               </div>
 
-              <div className="p-3 rounded bg-rose-950/40 border border-rose-800/80 text-[11px] text-rose-300 leading-relaxed font-mono">
-                Warning: Triggering this command will forcefully terminate worker processes, cancel active tasks, and require manual operator reset to disarm.
-              </div>
-
               <div className="flex justify-end gap-2 pt-3 border-t border-rose-900/60">
-                <button
-                  type="button"
-                  onClick={() => setIsKillSwitchModalOpen(false)}
-                  className="px-3 py-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                >
+                <Button variant="secondary" size="xs" onClick={() => setIsKillSwitchModalOpen(false)}>
                   Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleTriggerKillSwitch}
-                  className="px-4 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-bold transition-colors shadow-lg shadow-rose-900/50"
-                >
-                  CONFIRM EMERGENCY HALT
-                </button>
+                </Button>
+                <Button variant="destructive" size="xs" onClick={handleTriggerKillSwitch}>
+                  Confirm Emergency Halt
+                </Button>
               </div>
             </div>
           </div>

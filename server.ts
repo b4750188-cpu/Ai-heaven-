@@ -5,6 +5,7 @@
 
 import express, { Request, Response } from 'express';
 import path from 'path';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { RESOURCES, PROVIDERS, RELATIONSHIPS } from './src/data/database.ts';
@@ -27,6 +28,33 @@ dotenv.config();
 
 const PORT = 3000;
 const HOST = '0.0.0.0';
+
+// Internal Server Configuration
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'ai_heaven_production_insecure_default_key_change_in_prod';
+const DATABASE_URL = process.env.DATABASE_URL;
+
+// HS256 JWT utilities for token issuance and validation
+function signJwt(payload: Record<string, any>, secret: string): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
+  return `${header}.${body}.${signature}`;
+}
+
+function verifyJwt(token: string, secret: string): Record<string, any> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [header, body, signature] = parts;
+    const expectedSig = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
+    if (signature !== expectedSig) return null;
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf-8'));
+    if (payload.exp && Date.now() / 1000 > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 // In-memory runtime database initialized with authoritative records
 let currentResources = [...RESOURCES];
@@ -193,14 +221,21 @@ async function startServer() {
     
     // Controlled CORS for API routes
     const origin = req.headers.origin;
+    const configuredOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+      : [
+          'http://localhost:3000',
+          'http://127.0.0.1:3000',
+          'https://ais-dev-zrhpytvpqxxvopx2vzwyfz-959964077611.asia-southeast1.run.app',
+          'https://ais-pre-zrhpytvpqxxvopx2vzwyfz-959964077611.asia-southeast1.run.app'
+        ];
+
     if (origin) {
-      const allowedOrigins = process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-        : [origin]; // in dev allow requesting origin
-      if (allowedOrigins.includes(origin)) {
+      if (configuredOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
       }
     }
     if (req.method === 'OPTIONS') {
@@ -209,15 +244,101 @@ async function startServer() {
     next();
   });
 
-  // 1. Health check endpoint
+  // 1. Health & Readiness check endpoint
   app.get('/api/health', (req: Request, res: Response) => {
+    const dbConfigured = Boolean(DATABASE_URL && DATABASE_URL.trim());
     res.json({
       status: 'healthy',
       service: 'AI Heaven Full-Stack Engine',
       environment: process.env.NODE_ENV || 'development',
+      database: {
+        configured: dbConfigured,
+        status: dbConfigured ? 'CONFIGURED' : 'UNVERIFIED',
+        mode: dbConfigured ? 'PostgreSQL' : 'In-Memory Authoritative Store',
+        message: dbConfigured
+          ? 'PostgreSQL database URL configured'
+          : 'DATABASE_URL is not configured in environment. Running on authoritative in-memory store.'
+      },
+      jwt_auth: {
+        configured: Boolean(process.env.JWT_SECRET_KEY),
+        algorithm: 'HS256'
+      },
+      allowed_origins_count: (process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').filter(Boolean).length : 4),
       resources_count: currentResources.length,
       relationships_count: currentRelationships.length,
       timestamp: new Date().toISOString()
+    });
+  });
+
+  // 1a. Database diagnostic endpoint (does NOT expose credentials)
+  app.get('/api/health/db', (req: Request, res: Response) => {
+    if (!DATABASE_URL || !DATABASE_URL.trim()) {
+      return res.json({
+        configured: false,
+        status: 'UNVERIFIED',
+        message: 'DATABASE_URL is not configured in environment. Operating in authoritative in-memory mode.'
+      });
+    }
+
+    try {
+      const parsed = new URL(DATABASE_URL);
+      res.json({
+        configured: true,
+        status: 'CONFIGURED',
+        scheme: parsed.protocol.replace(':', ''),
+        host: parsed.hostname,
+        port: parsed.port || '5432',
+        database: parsed.pathname.replace('/', ''),
+        connection_test: 'UNVERIFIED (Requires live PostgreSQL daemon in host environment)'
+      });
+    } catch {
+      res.status(400).json({
+        configured: false,
+        status: 'INVALID',
+        message: 'DATABASE_URL format is invalid'
+      });
+    }
+  });
+
+  // 1b. JWT Authentication: Token Issuance
+  app.post('/api/auth/token', (req: Request, res: Response) => {
+    const { email = currentUser.email, role = currentUser.role } = req.body || {};
+    const now = Math.floor(Date.now() / 1000);
+    const token = signJwt(
+      {
+        sub: currentUser.id,
+        email,
+        role,
+        iat: now,
+        exp: now + 3600
+      },
+      JWT_SECRET_KEY
+    );
+    res.json({
+      access_token: token,
+      token_type: 'bearer',
+      expires_in: 3600
+    });
+  });
+
+  // 1c. JWT Authentication: Token Verification
+  app.get('/api/auth/verify', (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ authenticated: false, error: 'Missing or malformed Authorization header' });
+    }
+    const token = authHeader.substring(7);
+    const decoded = verifyJwt(token, JWT_SECRET_KEY);
+    if (!decoded) {
+      return res.status(401).json({ authenticated: false, error: 'Invalid or expired token' });
+    }
+    res.json({
+      authenticated: true,
+      user: {
+        id: decoded.sub,
+        email: decoded.email,
+        role: decoded.role
+      }
     });
   });
 
@@ -302,7 +423,8 @@ async function startServer() {
 
   // 6. Knowledge Graph endpoint
   app.get('/api/graph', (req: Request, res: Response) => {
-    const nodes = currentResources.map(r => ({
+    // 1. Resource nodes
+    const resourceNodes = currentResources.map(r => ({
       id: r.slug,
       slug: r.slug,
       name: r.name,
@@ -310,19 +432,142 @@ async function startServer() {
       provider_id: r.provider_id,
       trust_score: r.trust_score,
       verification_status: r.verification_status,
-      is_demo_data: r.provenance.is_demo_data
+      is_demo_data: r.provenance?.is_demo_data || false,
+      summary: r.summary,
+      description: r.description,
+      capabilities: r.capabilities || [],
+      tags: r.tags || [],
+      version: r.version,
+      documentation_url: r.documentation_url,
+      source_url: r.source_url,
+      license: r.license,
+      agent_contract: r.agent_contract,
+      provenance: r.provenance,
+      category: r.categories?.[0] || 'AI Ecosystem',
+      cluster: r.provider_id ? r.provider_id.replace('prov_', '') : 'ecosystem'
     }));
 
-    const edges = currentRelationships.map(rel => ({
-      id: rel.id,
-      source: rel.source_slug,
-      target: rel.target_slug,
-      relationship_type: rel.relationship_type,
-      evidence_url: rel.evidence_url,
-      confidence: rel.confidence,
-      verified: rel.verified,
-      description: rel.description
+    // 2. Provider nodes
+    const providerNodes = PROVIDERS.map(p => ({
+      id: p.slug,
+      slug: p.slug,
+      name: p.name,
+      resource_type: 'provider' as const,
+      provider_id: p.id,
+      trust_score: p.verified ? 100 : 80,
+      verification_status: p.verified ? 'verified' : 'unverified',
+      is_demo_data: false,
+      summary: p.description,
+      description: p.description,
+      capabilities: p.resource_types_provided,
+      tags: ['provider', 'infrastructure', p.slug],
+      documentation_url: p.documentation_url,
+      source_url: p.website_url,
+      category: 'Cloud & AI Provider',
+      cluster: p.slug
     }));
+
+    // 3. Platform Tools
+    const toolNodes = registeredTools.map(t => ({
+      id: t.id,
+      slug: t.id,
+      name: t.name,
+      resource_type: 'tool' as const,
+      provider_id: 'prov_ai_heaven',
+      trust_score: 99,
+      verification_status: 'verified',
+      is_demo_data: false,
+      summary: t.description,
+      description: t.description,
+      capabilities: [t.capability],
+      tags: ['sandbox_tool', t.capability],
+      category: 'Agent Execution Tools',
+      cluster: 'platform_tools'
+    }));
+
+    // 4. Agent Droids
+    const agentNodes = agents.map(a => ({
+      id: a.id,
+      slug: a.id,
+      name: a.name,
+      resource_type: 'droid' as const,
+      provider_id: 'prov_ai_heaven',
+      trust_score: 98,
+      verification_status: 'verified',
+      is_demo_data: false,
+      summary: a.description,
+      description: a.description,
+      capabilities: a.permissions?.allowed_tools || [],
+      tags: ['autonomous_agent', 'droid', a.status],
+      status: a.status,
+      category: 'Autonomous Droids',
+      cluster: 'droids'
+    }));
+
+    const nodes = [...providerNodes, ...resourceNodes, ...toolNodes, ...agentNodes];
+
+    // Build complete set of real edges
+    const edges = [
+      // Direct resource-to-resource relationships
+      ...currentRelationships.map(rel => ({
+        id: rel.id,
+        source: rel.source_slug,
+        target: rel.target_slug,
+        relationship_type: rel.relationship_type,
+        evidence_url: rel.evidence_url,
+        confidence: rel.confidence,
+        verified: rel.verified,
+        description: rel.description
+      })),
+      // Provider -> Resource relationships (genuine ownership & provisioning)
+      ...currentResources.map(r => {
+        const prov = PROVIDERS.find(p => p.id === r.provider_id);
+        if (!prov) return null;
+        return {
+          id: `rel_prov_${prov.slug}_${r.slug}`,
+          source: prov.slug,
+          target: r.slug,
+          relationship_type: (r.resource_type === 'model' || r.resource_type === 'api' ? 'provides' : 'publishes') as any,
+          evidence_url: r.documentation_url || prov.website_url,
+          confidence: 1.0,
+          verified: true,
+          description: `${prov.name} provides and maintains ${r.name}.`
+        };
+      }).filter(Boolean) as any[],
+      // Droid -> Tools relationships (tool permissions)
+      ...agents.flatMap(a => (a.permissions?.allowed_tools || []).map(toolId => ({
+        id: `rel_agent_${a.id}_${toolId}`,
+        source: a.id,
+        target: toolId,
+        relationship_type: 'uses_tool' as const,
+        evidence_url: '/api/agents',
+        confidence: 1.0,
+        verified: true,
+        description: `${a.name} is authorized to invoke ${toolId} within execution boundary.`
+      }))),
+      // Droid -> Gemini API relationship (model intelligence provider)
+      ...agents.map(a => ({
+        id: `rel_agent_${a.id}_gemini_api`,
+        source: a.id,
+        target: 'gemini-api',
+        relationship_type: 'accesses' as const,
+        evidence_url: 'https://ai.google.dev/gemini-api/docs',
+        confidence: 1.0,
+        verified: true,
+        description: `${a.name} accesses Gemini API for multi-step reasoning and tool dispatch.`
+      })),
+      // Tool MCP Client -> Model Context Protocol relationship
+      {
+        id: 'rel_tool_mcp_client_protocol',
+        source: 'tool_mcp_client',
+        target: 'model-context-protocol',
+        relationship_type: 'integrates_with' as const,
+        evidence_url: 'https://modelcontextprotocol.io',
+        confidence: 1.0,
+        verified: true,
+        description: 'AI Heaven MCP client implements the open Model Context Protocol specification.'
+      }
+    ];
 
     res.json({ nodes, edges });
   });

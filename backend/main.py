@@ -23,6 +23,7 @@ from backend.schemas import (
     AuditEventResponseSchema
 )
 from backend.auth import get_current_user, require_role, create_access_token
+from backend.database import get_database_status
 
 app = FastAPI(
     title="AI Heaven API",
@@ -30,8 +31,8 @@ app = FastAPI(
     version="2026.1"
 )
 
-# Secure CORS: specify origins via environment variable with fallback to local development
-allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+# Secure CORS: specify origins via ALLOWED_ORIGINS with fallback to local development
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"))
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
 
 app.add_middleware(
@@ -45,12 +46,37 @@ app.add_middleware(
 
 @app.get("/health", tags=["Health"])
 async def health_check():
+    db_info = get_database_status()
+    jwt_configured = bool(os.getenv("JWT_SECRET_KEY"))
     return {
         "status": "healthy",
         "service": "AI Heaven Platform",
-        "database": "PostgreSQL 16",
+        "database": db_info,
+        "jwt_auth": {"configured": jwt_configured},
+        "allowed_origins_count": len(allowed_origins),
         "orm": "SQLAlchemy 2.0"
     }
+
+
+@app.post("/auth/token", tags=["Authentication"])
+async def login_for_access_token(credentials: dict):
+    """
+    Issue JWT access token signed with internal JWT_SECRET_KEY.
+    """
+    email = credentials.get("email", "developer@aiheaven.local")
+    role = credentials.get("role", "admin")
+    token = create_access_token(data={"sub": "usr_dev_default_01", "email": email, "role": role})
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get("/auth/verify", tags=["Authentication"])
+async def verify_auth_token(user: Optional[dict] = Depends(get_current_user)):
+    """
+    Verify current JWT token and return authenticated claims.
+    """
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing authentication token")
+    return {"authenticated": True, "user": user}
 
 
 @app.get("/resources", response_model=dict, tags=["Resources"])

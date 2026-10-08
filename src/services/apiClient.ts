@@ -255,7 +255,7 @@ class AIHeavenApiClient {
     }
 
     // Build graph representation from authoritative local database
-    const nodes: GraphNode[] = RESOURCES.map(r => ({
+    const resourceNodes: GraphNode[] = RESOURCES.map(r => ({
       id: r.slug,
       slug: r.slug,
       name: r.name,
@@ -263,19 +263,179 @@ class AIHeavenApiClient {
       provider_id: r.provider_id,
       trust_score: r.trust_score,
       verification_status: r.verification_status,
-      is_demo_data: r.provenance.is_demo_data
+      is_demo_data: r.provenance?.is_demo_data || false,
+      summary: r.summary,
+      description: r.description,
+      capabilities: r.capabilities || [],
+      tags: r.tags || [],
+      version: r.version,
+      documentation_url: r.documentation_url,
+      source_url: r.source_url,
+      license: r.license,
+      agent_contract: r.agent_contract,
+      provenance: r.provenance,
+      category: r.categories?.[0] || 'AI Ecosystem',
+      cluster: r.provider_id ? r.provider_id.replace('prov_', '') : 'ecosystem'
     }));
 
-    const edges: GraphEdge[] = RELATIONSHIPS.map(rel => ({
-      id: rel.id,
-      source: rel.source_slug,
-      target: rel.target_slug,
-      relationship_type: rel.relationship_type,
-      evidence_url: rel.evidence_url,
-      confidence: rel.confidence,
-      verified: rel.verified,
-      description: rel.description
+    const providerNodes: GraphNode[] = PROVIDERS.map(p => ({
+      id: p.slug,
+      slug: p.slug,
+      name: p.name,
+      resource_type: 'provider' as const,
+      provider_id: p.id,
+      trust_score: p.verified ? 100 : 80,
+      verification_status: p.verified ? 'verified' : 'unverified',
+      is_demo_data: false,
+      summary: p.description,
+      description: p.description,
+      capabilities: p.resource_types_provided,
+      tags: ['provider', 'infrastructure', p.slug],
+      documentation_url: p.documentation_url,
+      source_url: p.website_url,
+      category: 'Cloud & AI Provider',
+      cluster: p.slug
     }));
+
+    const toolNodes: GraphNode[] = [
+      {
+        id: 'tool_terminal_sandbox',
+        slug: 'tool_terminal_sandbox',
+        name: 'Sandboxed Terminal Execution',
+        resource_type: 'tool' as const,
+        provider_id: 'prov_ai_heaven',
+        trust_score: 99,
+        verification_status: 'verified',
+        is_demo_data: false,
+        summary: 'Executes shell commands strictly inside isolated container environment.',
+        description: 'Executes shell commands strictly inside isolated container environment.',
+        capabilities: ['terminal'],
+        tags: ['sandbox_tool', 'terminal'],
+        category: 'Agent Execution Tools',
+        cluster: 'platform_tools'
+      },
+      {
+        id: 'tool_fs_scoped',
+        slug: 'tool_fs_scoped',
+        name: 'Scoped Workspace Filesystem',
+        resource_type: 'tool' as const,
+        provider_id: 'prov_ai_heaven',
+        trust_score: 99,
+        verification_status: 'verified',
+        is_demo_data: false,
+        summary: 'Provides path-traversal protected read/write within workspace directories.',
+        description: 'Provides path-traversal protected read/write within workspace directories.',
+        capabilities: ['filesystem'],
+        tags: ['sandbox_tool', 'filesystem'],
+        category: 'Agent Execution Tools',
+        cluster: 'platform_tools'
+      },
+      {
+        id: 'tool_mcp_client',
+        slug: 'tool_mcp_client',
+        name: 'Model Context Protocol (MCP) Client',
+        resource_type: 'tool' as const,
+        provider_id: 'prov_ai_heaven',
+        trust_score: 99,
+        verification_status: 'verified',
+        is_demo_data: false,
+        summary: 'Enables discovery and invocation of remote MCP tools and dynamic resources.',
+        description: 'Enables discovery and invocation of remote MCP tools and dynamic resources.',
+        capabilities: ['mcp'],
+        tags: ['sandbox_tool', 'mcp'],
+        category: 'Agent Execution Tools',
+        cluster: 'platform_tools'
+      }
+    ];
+
+    const agentNodes: GraphNode[] = [
+      {
+        id: 'agent_droid_prime',
+        slug: 'agent_droid_prime',
+        name: 'AI Heaven Droid Prime',
+        resource_type: 'droid' as const,
+        provider_id: 'prov_ai_heaven',
+        trust_score: 98,
+        verification_status: 'verified',
+        is_demo_data: false,
+        summary: 'Autonomous platform engineering worker equipped with terminal, scoped filesystem, and MCP inspection.',
+        description: 'Autonomous platform engineering worker equipped with terminal, scoped filesystem, and MCP inspection.',
+        capabilities: ['tool_terminal_sandbox', 'tool_fs_scoped', 'tool_mcp_client'],
+        tags: ['autonomous_agent', 'droid', 'idle'],
+        status: 'idle',
+        category: 'Autonomous Droids',
+        cluster: 'droids'
+      }
+    ];
+
+    const nodes: GraphNode[] = [...providerNodes, ...resourceNodes, ...toolNodes, ...agentNodes];
+
+    const edges: GraphEdge[] = [
+      ...RELATIONSHIPS.map(rel => ({
+        id: rel.id,
+        source: rel.source_slug,
+        target: rel.target_slug,
+        relationship_type: rel.relationship_type,
+        evidence_url: rel.evidence_url,
+        confidence: rel.confidence,
+        verified: rel.verified,
+        description: rel.description
+      })),
+      ...RESOURCES.map(r => {
+        const prov = PROVIDERS.find(p => p.id === r.provider_id);
+        if (!prov) return null;
+        return {
+          id: `rel_prov_${prov.slug}_${r.slug}`,
+          source: prov.slug,
+          target: r.slug,
+          relationship_type: (r.resource_type === 'model' || r.resource_type === 'api' ? 'provides' : 'publishes') as any,
+          evidence_url: r.documentation_url || prov.website_url,
+          confidence: 1.0,
+          verified: true,
+          description: `${prov.name} provides and maintains ${r.name}.`
+        };
+      }).filter(Boolean) as GraphEdge[],
+      {
+        id: 'rel_agent_prime_fs',
+        source: 'agent_droid_prime',
+        target: 'tool_fs_scoped',
+        relationship_type: 'uses_tool',
+        evidence_url: '/api/agents',
+        confidence: 1.0,
+        verified: true,
+        description: 'AI Heaven Droid Prime is authorized to access scoped filesystem.'
+      },
+      {
+        id: 'rel_agent_prime_terminal',
+        source: 'agent_droid_prime',
+        target: 'tool_terminal_sandbox',
+        relationship_type: 'uses_tool',
+        evidence_url: '/api/agents',
+        confidence: 1.0,
+        verified: true,
+        description: 'AI Heaven Droid Prime is authorized to execute in sandboxed terminal.'
+      },
+      {
+        id: 'rel_agent_prime_gemini',
+        source: 'agent_droid_prime',
+        target: 'gemini-api',
+        relationship_type: 'accesses',
+        evidence_url: 'https://ai.google.dev/gemini-api/docs',
+        confidence: 1.0,
+        verified: true,
+        description: 'AI Heaven Droid Prime accesses Gemini API for multi-turn planning.'
+      },
+      {
+        id: 'rel_tool_mcp_client_protocol',
+        source: 'tool_mcp_client',
+        target: 'model-context-protocol',
+        relationship_type: 'integrates_with',
+        evidence_url: 'https://modelcontextprotocol.io',
+        confidence: 1.0,
+        verified: true,
+        description: 'AI Heaven MCP client implements the open Model Context Protocol specification.'
+      }
+    ];
 
     return { nodes, edges };
   }

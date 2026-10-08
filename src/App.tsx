@@ -5,8 +5,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { AgentContractModal } from './components/common/AgentContractModal';
-import { Footer } from './components/common/Footer';
-import { NavView, TopNav } from './components/common/TopNav';
 import { ConnectorConsole } from './components/connectors/ConnectorConsole';
 import { ResourceDetailPage } from './components/detail/ResourceDetailPage';
 import { ResourceExplorer } from './components/explorer/ResourceExplorer';
@@ -15,17 +13,37 @@ import { ProviderHub } from './components/providers/ProviderHub';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { BackendSettingsModal } from './components/settings/BackendSettingsModal';
 import { AgentRuntimeConsole } from './components/agents/AgentRuntimeConsole';
+import { AppShell, ShellView } from './components/shell/AppShell';
+import { HomeView } from './components/home/HomeView';
+import { ProjectsView } from './components/projects/ProjectsView';
+import { ToolsView } from './components/tools/ToolsView';
+import { ActivityView } from './components/activity/ActivityView';
+import { DocsView } from './components/docs/DocsView';
 import { apiClient } from './services/apiClient';
 import { KnowledgeGraphData } from './types/graph';
 import { Provider, Resource, ResourceRelationship } from './types/resource';
+import { AgentDefinition, AuditEvent, Project, ToolDefinition, Workspace } from './types/foundation';
+import { AgentWorker, KillSwitchStatus, RuntimeEvent } from './types/agentRuntime';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<NavView>('explore');
+  const [currentView, setCurrentView] = useState<ShellView>('home');
   const [resources, setResources] = useState<Resource[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [graphData, setGraphData] = useState<KnowledgeGraphData>({ nodes: [], edges: [] });
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [resourceRelationships, setResourceRelationships] = useState<ResourceRelationship[]>([]);
+  
+  // Platform & Agent Entities
+  const [agents, setAgents] = useState<AgentDefinition[]>([]);
+  const [workers, setWorkers] = useState<AgentWorker[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [tools, setTools] = useState<ToolDefinition[]>([]);
+  const [runtimeEvents, setRuntimeEvents] = useState<RuntimeEvent[]>([]);
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
+  const [isKillSwitchActive, setIsKillSwitchActive] = useState<boolean>(false);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -34,11 +52,18 @@ export default function App() {
   const [isBackendModalOpen, setIsBackendModalOpen] = useState(false);
   const [agentModalResource, setAgentModalResource] = useState<Resource | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
-  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
 
   // Initial Load
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Periodic polling for status and approvals
+  useEffect(() => {
+    const timer = setInterval(() => {
+      syncBackgroundStatus();
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   // Global keyboard shortcut for Search (⌘K / Ctrl+K)
@@ -57,21 +82,69 @@ export default function App() {
     setIsLoading(true);
     setLoadError(null);
     try {
-      const [resData, provData, gData, health] = await Promise.all([
+      const [
+        resData,
+        provData,
+        gData,
+        health,
+        agentsData,
+        workersData,
+        projectsData,
+        workspacesData,
+        toolsData,
+        eventsData,
+        auditData,
+        ksStatus,
+        approvalsData
+      ] = await Promise.all([
         apiClient.getResources(),
         apiClient.getProviders(),
         apiClient.getKnowledgeGraph(),
-        apiClient.checkHealth()
+        apiClient.checkHealth(),
+        apiClient.getAgents(),
+        apiClient.getWorkers(),
+        apiClient.getProjects(),
+        apiClient.getWorkspaces(),
+        apiClient.getTools(),
+        apiClient.getEvents({ limit: 50 }),
+        apiClient.getAuditEvents({ limit: 50 }),
+        apiClient.getKillSwitch(),
+        apiClient.getApprovals({ status: 'pending' })
       ]);
+
       setResources(resData.items);
       setProviders(provData);
       setGraphData(gData);
       setIsBackendConnected(health.connected);
+      setAgents(agentsData);
+      setWorkers(workersData);
+      setProjects(projectsData);
+      setWorkspaces(workspacesData);
+      setTools(toolsData);
+      setRuntimeEvents(eventsData);
+      setAuditEvents(auditData);
+      setIsKillSwitchActive(ksStatus.is_active);
+      setPendingApprovalsCount(approvalsData.length);
     } catch (err: any) {
       console.error('Failed to load initial data:', err);
       setLoadError(err?.message || 'Failed to initialize ecosystem catalog');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const syncBackgroundStatus = async () => {
+    try {
+      const [health, ksStatus, approvalsData] = await Promise.all([
+        apiClient.checkHealth(),
+        apiClient.getKillSwitch(),
+        apiClient.getApprovals({ status: 'pending' })
+      ]);
+      setIsBackendConnected(health.connected);
+      setIsKillSwitchActive(ksStatus.is_active);
+      setPendingApprovalsCount(approvalsData.length);
+    } catch {
+      // background silent catch
     }
   };
 
@@ -90,13 +163,17 @@ export default function App() {
     }
   };
 
-  const handleNavigateView = (view: NavView, slug?: string) => {
+  const handleNavigateView = (view: ShellView, slug?: string) => {
     if (slug) {
       handleNavigateBySlug(slug);
       return;
     }
     if (view === 'google-ai-studio') {
       handleNavigateBySlug('google-ai-studio');
+      return;
+    }
+    if (view === 'settings') {
+      setIsBackendModalOpen(true);
       return;
     }
     setCurrentView(view);
@@ -112,88 +189,153 @@ export default function App() {
     });
   };
 
+  const handleCreateProject = async (name: string, description: string) => {
+    const created = await apiClient.createProject({ name, description });
+    if (created) {
+      const updatedProjects = await apiClient.getProjects();
+      setProjects(updatedProjects);
+    }
+  };
+
+  const handleCreateWorkspace = async (projectId: string, name: string) => {
+    const created = await apiClient.createWorkspace({ project_id: projectId, name });
+    if (created) {
+      const updatedWorkspaces = await apiClient.getWorkspaces();
+      setWorkspaces(updatedWorkspaces);
+    }
+  };
+
+  const handleRefreshActivity = async () => {
+    const [eventsData, auditData] = await Promise.all([
+      apiClient.getEvents({ limit: 100 }),
+      apiClient.getAuditEvents({ limit: 100 })
+    ]);
+    setRuntimeEvents(eventsData);
+    setAuditEvents(auditData);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-950 text-neutral-100">
-      {/* Top Navigation conforming to Top Bar Contract */}
-      <TopNav
-        currentView={currentView}
-        onNavigate={handleNavigateView}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenBackendSettings={() => setIsBackendModalOpen(true)}
-        isBackendConnected={isBackendConnected}
-        pendingApprovalsCount={pendingApprovalsCount}
-      />
+    <AppShell
+      currentView={currentView}
+      onNavigate={handleNavigateView}
+      onOpenSearch={() => setIsSearchOpen(true)}
+      onOpenBackendSettings={() => setIsBackendModalOpen(true)}
+      isBackendConnected={isBackendConnected}
+      pendingApprovalsCount={pendingApprovalsCount}
+      isKillSwitchActive={isKillSwitchActive}
+    >
+      {loadError && (
+        <div className="mb-6 p-4 rounded-lg border border-rose-900/60 bg-rose-950/20 text-rose-300 text-xs flex items-center justify-between font-mono">
+          <span>Notice: {loadError}. Using authoritative local fallback.</span>
+          <button
+            onClick={loadData}
+            className="px-2.5 py-1 rounded bg-rose-900/60 hover:bg-rose-900 text-rose-100 transition-colors"
+          >
+            Retry Sync
+          </button>
+        </div>
+      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loadError && (
-          <div className="mb-6 p-4 rounded-lg border border-rose-900/60 bg-rose-950/20 text-rose-300 text-xs flex items-center justify-between font-mono">
-            <span>Notice: {loadError}. Using authoritative local fallback.</span>
-            <button
-              onClick={loadData}
-              className="px-2.5 py-1 rounded bg-rose-900/60 hover:bg-rose-900 text-rose-100 transition-colors"
-            >
-              Retry Sync
-            </button>
-          </div>
-        )}
+      {currentView === 'home' && (
+        <HomeView
+          resources={resources}
+          agents={agents}
+          workers={workers}
+          pendingApprovalsCount={pendingApprovalsCount}
+          isBackendConnected={isBackendConnected}
+          onNavigate={handleNavigateView}
+          onSelectResource={handleSelectResource}
+          onOpenNewTaskModal={() => handleNavigateView('tasks')}
+        />
+      )}
 
-        {currentView === 'explore' && (
-          <ResourceExplorer
-            resources={resources}
-            providers={providers}
-            isLoading={isLoading}
-            onSelectResource={handleSelectResource}
-            onOpenAgentSpec={(res) => setAgentModalResource(res)}
-            onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
-            onNavigateKnowledgeGraph={() => setCurrentView('graph')}
-            onNavigateAgents={() => setCurrentView('agents')}
-          />
-        )}
+      {currentView === 'explore' && (
+        <ResourceExplorer
+          resources={resources}
+          providers={providers}
+          isLoading={isLoading}
+          onSelectResource={handleSelectResource}
+          onOpenAgentSpec={(res) => setAgentModalResource(res)}
+          onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
+          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+          onNavigateAgents={() => setCurrentView('agents')}
+        />
+      )}
 
-        {currentView === 'detail' && selectedResource && (
-          <ResourceDetailPage
-            resource={selectedResource}
-            relationships={resourceRelationships}
-            onBack={() => setCurrentView('explore')}
-            onNavigateToResource={handleNavigateBySlug}
-          />
-        )}
+      {currentView === 'agents' && (
+        <AgentRuntimeConsole
+          initialTab="fleet"
+          onNavigateDetail={handleNavigateBySlug}
+          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+          onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
+        />
+      )}
 
-        {currentView === 'graph' && (
-          <KnowledgeGraphView
-            data={graphData}
-            onSelectResource={handleNavigateBySlug}
-          />
-        )}
+      {currentView === 'tasks' && (
+        <AgentRuntimeConsole
+          initialTab="workspace"
+          onNavigateDetail={handleNavigateBySlug}
+          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+          onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
+        />
+      )}
 
-        {currentView === 'providers' && (
-          <ProviderHub
-            providers={providers}
-            resources={resources}
-            onSelectResource={handleSelectResource}
-            onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
-          />
-        )}
+      {currentView === 'projects' && (
+        <ProjectsView
+          projects={projects}
+          workspaces={workspaces}
+          onCreateProject={handleCreateProject}
+          onCreateWorkspace={handleCreateWorkspace}
+        />
+      )}
 
-        {currentView === 'connectors' && (
-          <ConnectorConsole onSyncComplete={handleSyncComplete} />
-        )}
+      {currentView === 'tools' && (
+        <ToolsView
+          tools={tools}
+          onOpenNewTaskModal={() => handleNavigateView('tasks')}
+        />
+      )}
 
-        {currentView === 'agents' && (
-          <AgentRuntimeConsole
-            onNavigateDetail={handleNavigateBySlug}
-            onNavigateKnowledgeGraph={() => setCurrentView('graph')}
-            onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
-          />
-        )}
-      </main>
+      {currentView === 'activity' && (
+        <ActivityView
+          events={runtimeEvents}
+          auditEvents={auditEvents}
+          onRefresh={handleRefreshActivity}
+        />
+      )}
 
-      {/* Footer conforming to Minimal Anti-Slop Discipline */}
-      <Footer
-        onOpenBackendSettings={() => setIsBackendModalOpen(true)}
-        onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
-      />
+      {currentView === 'docs' && (
+        <DocsView />
+      )}
+
+      {currentView === 'detail' && selectedResource && (
+        <ResourceDetailPage
+          resource={selectedResource}
+          relationships={resourceRelationships}
+          onBack={() => setCurrentView('explore')}
+          onNavigateToResource={handleNavigateBySlug}
+        />
+      )}
+
+      {currentView === 'graph' && (
+        <KnowledgeGraphView
+          data={graphData}
+          onSelectResource={handleNavigateBySlug}
+        />
+      )}
+
+      {currentView === 'providers' && (
+        <ProviderHub
+          providers={providers}
+          resources={resources}
+          onSelectResource={handleSelectResource}
+          onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
+        />
+      )}
+
+      {currentView === 'connectors' && (
+        <ConnectorConsole onSyncComplete={handleSyncComplete} />
+      )}
 
       {/* Global Search Modal */}
       <GlobalSearchModal
@@ -217,6 +359,6 @@ export default function App() {
         onClose={() => setIsBackendModalOpen(false)}
         onBackendStatusChange={(connected) => setIsBackendConnected(connected)}
       />
-    </div>
+    </AppShell>
   );
 }
