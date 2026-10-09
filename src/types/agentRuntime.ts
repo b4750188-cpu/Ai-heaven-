@@ -4,6 +4,8 @@
  * task state machine, short-term working memory, emergency kill switch, and event streaming.
  */
 
+import { ExecutionReceipt } from './foundation';
+
 export type AgentWorkerState =
   | 'IDLE'
   | 'STARTING'
@@ -66,6 +68,8 @@ export interface PlannedAction {
 
 export interface AgentTask {
   id: string;
+  idempotency_key?: string;
+  correlation_id?: string;
   owner_id: string;
   project_id: string;
   workspace_id: string;
@@ -80,6 +84,7 @@ export interface AgentTask {
   completed_at?: string;
   failure_reason?: string;
   cancellation_reason?: string;
+  receipt?: ExecutionReceipt;
 }
 
 export interface AgentWorkingMemory {
@@ -111,29 +116,39 @@ export interface KillSwitchStatus {
 export type RuntimeEventType =
   | 'task_created'
   | 'plan_created'
+  | 'command_created'
+  | 'planned'
   | 'action_started'
   | 'approval_required'
   | 'approval_granted'
   | 'approval_rejected'
+  | 'tool_called'
   | 'execution_started'
   | 'execution_output'
   | 'execution_completed'
   | 'execution_failed'
   | 'execution_cancelled'
+  | 'result'
+  | 'state_changed'
   | 'task_completed'
   | 'task_failed'
   | 'agent_paused'
   | 'agent_terminated'
-  | 'kill_switch_triggered';
+  | 'kill_switch_triggered'
+  | 'state_recovered';
 
 export interface RuntimeEvent {
   id: string;
+  correlation_id?: string;
   event_type: RuntimeEventType;
   agent_id?: string;
   task_id?: string;
   execution_id?: string;
   project_id?: string;
   workspace_id?: string;
+  resource?: string;
+  action?: string;
+  result?: string;
   payload: Record<string, unknown>;
   timestamp: string;
 }

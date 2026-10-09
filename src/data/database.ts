@@ -908,8 +908,8 @@ export const RESOURCES: Resource[] = [
       what_is_it: 'A non-production demo resource for testing verification filtering.',
       what_does_it_do: 'Illustrates how unverified entries display warning banners and lower trust scores.',
       who_provides_it: 'Staging Test Harness',
-      inputs: ['Mock inputs'],
-      outputs: ['Mock outputs'],
+      inputs: ['Experimental payload parameter', 'Unverified environment state'],
+      outputs: ['Prototype diagnostic output', 'Staging execution log'],
       authentication: {
         type: 'none',
         required: false,

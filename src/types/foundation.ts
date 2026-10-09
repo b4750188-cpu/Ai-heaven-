@@ -94,11 +94,34 @@ export interface ExecutionPolicy {
   max_output_bytes: number;
 }
 
+export interface ToolProvenance {
+  source_provider: string;
+  author: string;
+  verified: boolean;
+  registered_at: string;
+  spec_url?: string;
+}
+
+export interface ToolAuthentication {
+  type: 'none' | 'api_key' | 'jwt' | 'bearer' | 'oauth';
+  required: boolean;
+  header_or_param?: string;
+  description?: string;
+}
+
 export interface ToolDefinition {
   id: string;
   name: string;
+  provider?: string;
   description: string;
   capability: ToolCapability;
+  input_schema?: Record<string, unknown>;
+  output_schema?: Record<string, unknown>;
+  permissions?: string[];
+  risk_level?: 'low' | 'medium' | 'high' | 'destructive';
+  authentication_requirements?: ToolAuthentication;
+  availability?: 'ready' | 'degraded' | 'disabled';
+  provenance?: ToolProvenance;
   permission_requirements: string[];
   execution_policy: ExecutionPolicy;
   is_enabled: boolean;
@@ -118,14 +141,99 @@ export type AuditEventStatus = 'success' | 'failure' | 'pending' | 'rejected';
 
 export interface AuditEvent {
   id: string;
+  correlation_id?: string;
   event_type: AuditEventType;
   actor_id: string;
   actor_type: 'user' | 'agent' | 'system';
+  resource?: string;
   project_id?: string;
   workspace_id?: string;
   action: string;
   status: AuditEventStatus;
+  result?: string;
   metadata: Record<string, unknown>;
   error_message?: string;
   timestamp: string;
+}
+
+export interface DroidManifest {
+  droid_id: string;
+  name: string;
+  version: string;
+  description: string;
+  state: string;
+  health: string;
+  capabilities: {
+    allowed_tools: string[];
+    allowed_resources: string[];
+    filesystem_scope: 'workspace_only' | 'read_only' | 'none';
+    network_scope: 'denied' | 'allow_outbound' | 'unrestricted';
+    approval_requirements: {
+      destructive_operations: boolean;
+      network_access: boolean;
+      filesystem_mutations: boolean;
+    };
+    max_execution_time_seconds: number;
+    max_memory_mb: number;
+  };
+  provenance: {
+    author: string;
+    organization: string;
+    specification_version: string;
+    runtime_engine: string;
+    created_at: string;
+    verified: boolean;
+  };
+  heartbeat_at: string;
+  last_activity_at: string;
+}
+
+export interface ExecutionReceipt {
+  receipt_id: string;
+  task_id: string;
+  correlation_id: string;
+  agent_id: string;
+  project_id: string;
+  workspace_id: string;
+  goal: string;
+  plan: Array<{
+    step_number: number;
+    purpose: string;
+    tool_id: string;
+    command: string;
+    expected_result: string;
+    risk_classification: string;
+    requires_approval: boolean;
+    status: string;
+    execution_id?: string;
+  }>;
+  actions_performed: Array<{
+    step_number: number;
+    action_id: string;
+    tool_id: string;
+    command: string;
+    status: string;
+    duration_ms: number;
+    completed_at?: string;
+  }>;
+  tools_used: string[];
+  resources_accessed: string[];
+  approvals: Array<{
+    approval_id: string;
+    action: string;
+    decision: 'approved' | 'rejected';
+    decided_by: string;
+    decided_at: string;
+    rejection_reason?: string;
+  }>;
+  outputs: Record<string, string>;
+  failures: string[];
+  duration_ms: number;
+  final_status: 'completed' | 'failed' | 'cancelled';
+  completed_at: string;
+  provenance: {
+    engine: string;
+    sandbox_isolation: string;
+    cryptographic_signature?: string;
+  };
 }

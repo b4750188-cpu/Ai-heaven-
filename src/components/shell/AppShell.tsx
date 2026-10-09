@@ -49,7 +49,6 @@ interface AppShellProps {
   currentView: ShellView;
   onNavigate: (view: ShellView, slug?: string) => void;
   onOpenSearch: () => void;
-  onOpenBackendSettings: () => void;
   isBackendConnected: boolean;
   pendingApprovalsCount?: number;
   isKillSwitchActive?: boolean;
@@ -60,7 +59,6 @@ export const AppShell: React.FC<AppShellProps> = ({
   currentView,
   onNavigate,
   onOpenSearch,
-  onOpenBackendSettings,
   isBackendConnected,
   pendingApprovalsCount = 0,
   isKillSwitchActive = false,
@@ -194,9 +192,9 @@ export const AppShell: React.FC<AppShellProps> = ({
 
           {/* Engine Health Status Indicator */}
           <div
-            onClick={onOpenBackendSettings}
+            onClick={() => onNavigate('activity')}
             className="cursor-pointer hidden lg:flex items-center gap-2 px-2.5 py-1 rounded border border-slate-800/80 bg-slate-900/40 text-[11px] font-mono text-slate-400 hover:border-slate-700 hover:text-slate-300 transition-colors"
-            title="FastAPI & Express Engine Status"
+            title="AI Heaven Engine Status & Telemetry"
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
@@ -256,12 +254,12 @@ export const AppShell: React.FC<AppShellProps> = ({
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
-                      onOpenBackendSettings();
+                      onNavigate('activity');
                     }}
                     className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 text-left transition-colors"
                   >
-                    <Database className="h-3.5 w-3.5 text-slate-400" />
-                    <span>Backend Configuration</span>
+                    <Activity className="h-3.5 w-3.5 text-slate-400" />
+                    <span>System Telemetry & Audit</span>
                   </button>
                   <button
                     onClick={() => {

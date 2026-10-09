@@ -11,7 +11,6 @@ import { ResourceExplorer } from './components/explorer/ResourceExplorer';
 import { KnowledgeGraphView } from './components/graph/KnowledgeGraphView';
 import { ProviderHub } from './components/providers/ProviderHub';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
-import { BackendSettingsModal } from './components/settings/BackendSettingsModal';
 import { AgentRuntimeConsole } from './components/agents/AgentRuntimeConsole';
 import { AppShell, ShellView } from './components/shell/AppShell';
 import { HomeView } from './components/home/HomeView';
@@ -49,7 +48,6 @@ export default function App() {
 
   // Modals
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isBackendModalOpen, setIsBackendModalOpen] = useState(false);
   const [agentModalResource, setAgentModalResource] = useState<Resource | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
 
@@ -173,7 +171,8 @@ export default function App() {
       return;
     }
     if (view === 'settings') {
-      setIsBackendModalOpen(true);
+      setCurrentView('activity');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     setCurrentView(view);
@@ -219,7 +218,6 @@ export default function App() {
       currentView={currentView}
       onNavigate={handleNavigateView}
       onOpenSearch={() => setIsSearchOpen(true)}
-      onOpenBackendSettings={() => setIsBackendModalOpen(true)}
       isBackendConnected={isBackendConnected}
       pendingApprovalsCount={pendingApprovalsCount}
       isKillSwitchActive={isKillSwitchActive}
@@ -351,13 +349,6 @@ export default function App() {
         resource={agentModalResource}
         onClose={() => setAgentModalResource(null)}
         onNavigateDetail={handleSelectResource}
-      />
-
-      {/* FastAPI / SQLAlchemy Architecture Modal */}
-      <BackendSettingsModal
-        isOpen={isBackendModalOpen}
-        onClose={() => setIsBackendModalOpen(false)}
-        onBackendStatusChange={(connected) => setIsBackendConnected(connected)}
       />
     </AppShell>
   );

@@ -129,14 +129,46 @@ let workspaces: Workspace[] = [defaultWorkspace];
 let agents: AgentDefinition[] = [defaultAgent];
 
 workspaceFilesystem.ensureWorkspaceInitialized(defaultWorkspace.id);
+agentRuntimeService.setPersistencePath(path.resolve(process.cwd(), 'data', 'runtime-state.json'));
 agentRuntimeService.registerWorker(defaultAgent);
 const registeredTools: ToolDefinition[] = [
   {
     id: 'tool_terminal_sandbox',
     name: 'Sandboxed Terminal Execution',
-    description: 'Executes shell commands strictly inside isolated container environment.',
+    provider: 'prov_ai_heaven',
+    description: 'Executes shell commands strictly inside isolated container environment with resource limits.',
     capability: 'terminal',
+    input_schema: {
+      type: 'object',
+      properties: {
+        command: { type: 'string', description: 'Shell command string to execute in workspace root.' }
+      },
+      required: ['command']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        stdout: { type: 'string' },
+        stderr: { type: 'string' },
+        exit_code: { type: 'integer' }
+      }
+    },
+    permissions: ['sandbox:exec', 'fs:workspace_write'],
     permission_requirements: ['sandbox:exec'],
+    risk_level: 'medium',
+    authentication_requirements: {
+      type: 'none',
+      required: false,
+      description: 'Internal sandbox execution boundary'
+    },
+    availability: 'ready',
+    provenance: {
+      source_provider: 'AI Heaven Core Platform',
+      author: 'Autonomous Systems Lab',
+      verified: true,
+      registered_at: '2026-09-01T00:00:00Z',
+      spec_url: 'https://aiheaven.dev/docs/tools/terminal-sandbox'
+    },
     execution_policy: {
       sandboxed_only: true,
       timeout_seconds: 60,
@@ -148,9 +180,41 @@ const registeredTools: ToolDefinition[] = [
   {
     id: 'tool_fs_scoped',
     name: 'Scoped Filesystem Access',
-    description: 'Read/write operations restricted strictly to workspace root path.',
+    provider: 'prov_ai_heaven',
+    description: 'Read/write operations restricted strictly to workspace root path without host traversal.',
     capability: 'filesystem',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: 'Relative path inside workspace directory' },
+        content: { type: 'string', description: 'File content for write operations' }
+      },
+      required: ['path']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string' },
+        size_bytes: { type: 'integer' },
+        content: { type: 'string' }
+      }
+    },
+    permissions: ['fs:workspace_read', 'fs:workspace_write'],
     permission_requirements: ['fs:workspace_write'],
+    risk_level: 'low',
+    authentication_requirements: {
+      type: 'none',
+      required: false,
+      description: 'Workspace scoped security boundary'
+    },
+    availability: 'ready',
+    provenance: {
+      source_provider: 'AI Heaven Core Platform',
+      author: 'Autonomous Systems Lab',
+      verified: true,
+      registered_at: '2026-09-01T00:00:00Z',
+      spec_url: 'https://aiheaven.dev/docs/tools/fs-scoped'
+    },
     execution_policy: {
       sandboxed_only: true,
       timeout_seconds: 15,
@@ -162,9 +226,41 @@ const registeredTools: ToolDefinition[] = [
   {
     id: 'tool_mcp_client',
     name: 'MCP Server Connector',
-    description: 'JSON-RPC client for interacting with verified Model Context Protocol tools.',
+    provider: 'prov_github',
+    description: 'JSON-RPC client for interacting with verified Model Context Protocol tools and servers.',
     capability: 'mcp',
+    input_schema: {
+      type: 'object',
+      properties: {
+        method: { type: 'string', description: 'MCP JSON-RPC method name' },
+        params: { type: 'object', description: 'Method arguments' }
+      },
+      required: ['method']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        result: { type: 'object' },
+        error: { type: 'object' }
+      }
+    },
+    permissions: ['mcp:call', 'network:outbound'],
     permission_requirements: ['mcp:call'],
+    risk_level: 'medium',
+    authentication_requirements: {
+      type: 'bearer',
+      required: false,
+      header_or_param: 'Authorization',
+      description: 'Optional server token'
+    },
+    availability: 'ready',
+    provenance: {
+      source_provider: 'Model Context Protocol Community',
+      author: 'Anthropic & Contributors',
+      verified: true,
+      registered_at: '2026-09-15T00:00:00Z',
+      spec_url: 'https://modelcontextprotocol.io'
+    },
     execution_policy: {
       sandboxed_only: true,
       timeout_seconds: 30,
@@ -176,9 +272,41 @@ const registeredTools: ToolDefinition[] = [
   {
     id: 'tool_github_sync',
     name: 'GitHub Repository Sync',
-    description: 'Syncs metadata and code trees from verified GitHub repositories.',
+    provider: 'prov_github',
+    description: 'Syncs metadata and code trees from verified GitHub repositories with read-only scope.',
     capability: 'github',
+    input_schema: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Owner/repo format string' },
+        branch: { type: 'string', description: 'Branch or tag reference' }
+      },
+      required: ['repo']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        commit_hash: { type: 'string' },
+        files_synced: { type: 'integer' }
+      }
+    },
+    permissions: ['git:read', 'network:outbound'],
     permission_requirements: ['git:read'],
+    risk_level: 'low',
+    authentication_requirements: {
+      type: 'bearer',
+      required: false,
+      header_or_param: 'GITHUB_TOKEN',
+      description: 'GitHub Personal Access Token for private repos'
+    },
+    availability: 'ready',
+    provenance: {
+      source_provider: 'GitHub Inc.',
+      author: 'AI Heaven Integration Team',
+      verified: true,
+      registered_at: '2026-09-10T00:00:00Z',
+      spec_url: 'https://docs.github.com/rest'
+    },
     execution_policy: {
       sandboxed_only: true,
       timeout_seconds: 45,
@@ -195,6 +323,7 @@ function logAuditEvent(event: Omit<AuditEvent, 'id' | 'timestamp'>): AuditEvent 
   const newEvent: AuditEvent = {
     ...event,
     id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    correlation_id: event.correlation_id || `corr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     timestamp: new Date().toISOString()
   };
   auditEvents.unshift(newEvent);
@@ -209,7 +338,7 @@ agentRuntimeService.setAuditLogger((event) => {
   logAuditEvent(event);
 });
 
-async function startServer() {
+export function createApiApp(): express.Express {
   const app = express();
   app.use(express.json());
 
@@ -231,7 +360,12 @@ async function startServer() {
         ];
 
     if (origin) {
-      if (configuredOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      const isAllowed =
+        configuredOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production';
+
+      if (isAllowed) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
@@ -1074,7 +1208,7 @@ async function startServer() {
 
   // 27. Task Creation with Planner
   app.post('/api/tasks', (req: Request, res: Response) => {
-    const { agent_id, project_id, workspace_id, goal, priority = 'medium' } = req.body;
+    const { agent_id, project_id, workspace_id, goal, priority = 'medium', idempotency_key } = req.body;
     if (!agent_id || !project_id || !workspace_id || !goal) {
       return res.status(400).json({ error: 'agent_id, project_id, workspace_id, and goal are required' });
     }
@@ -1092,7 +1226,8 @@ async function startServer() {
         agent,
         goal,
         priority,
-        registeredTools
+        registeredTools,
+        idempotency_key
       );
       res.status(201).json(task);
     } catch (err: any) {
@@ -1181,6 +1316,43 @@ async function startServer() {
     res.json(memory || null);
   });
 
+  // 31a. Structured Execution Receipts (Phase 1D)
+  app.get('/api/tasks/:taskId/receipt', (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const task = agentRuntimeService.getTask(taskId);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const receipt = agentRuntimeService.getReceipt(taskId) || task.receipt;
+    if (!receipt) {
+      if (task.status === 'completed' || task.status === 'failed' || task.status === 'cancelled') {
+        const generated = agentRuntimeService.generateReceipt(task, task.status as any);
+        return res.json(generated);
+      }
+      return res.status(404).json({ error: 'Receipt not yet generated (task in progress)' });
+    }
+    res.json(receipt);
+  });
+
+  // 31b. Droid Machine-Readable Capability Manifest (Phase 1D)
+  app.get('/api/agents/:agentId/manifest', (req: Request, res: Response) => {
+    const { agentId } = req.params;
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found' });
+    res.json(agentRuntimeService.getDroidManifest(agent));
+  });
+
+  app.get('/api/droids/:agentId/manifest', (req: Request, res: Response) => {
+    const { agentId } = req.params;
+    const agent = agents.find(a => a.id === agentId);
+    if (!agent) return res.status(404).json({ error: 'Droid not found' });
+    res.json(agentRuntimeService.getDroidManifest(agent));
+  });
+
+  app.get('/api/manifests', (req: Request, res: Response) => {
+    const manifests = agents.map(a => agentRuntimeService.getDroidManifest(a));
+    res.json(manifests);
+  });
+
   // 32. Emergency Kill Switch
   app.get('/api/kill-switch', (req: Request, res: Response) => {
     res.json(agentRuntimeService.getKillSwitchStatus());
@@ -1209,6 +1381,14 @@ async function startServer() {
     res.json(events);
   });
 
+  return app;
+}
+
+export const apiApp = createApiApp();
+
+async function startServer() {
+  const app = createApiApp();
+
   // Mount Vite development middlewares for SPA hot-reloading
   const isProd = process.env.NODE_ENV === 'production';
   if (!isProd) {
@@ -1230,7 +1410,13 @@ async function startServer() {
   });
 }
 
-startServer().catch(err => {
-  console.error('[AI Heaven] Server startup error:', err);
-  process.exit(1);
-});
+const isMainModule = Boolean(process.argv[1] && (
+  process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js')
+));
+
+if (isMainModule && !process.env.VERCEL) {
+  startServer().catch(err => {
+    console.error('[AI Heaven] Server startup error:', err);
+    process.exit(1);
+  });
+}

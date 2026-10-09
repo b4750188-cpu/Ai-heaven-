@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  FileText,
   Flame,
   HardDrive,
   HelpCircle,
@@ -40,7 +41,14 @@ import {
   RuntimeEvent,
   TaskPriority
 } from '../../types/agentRuntime';
-import { AgentDefinition, Project, ToolDefinition, Workspace } from '../../types/foundation';
+import {
+  AgentDefinition,
+  DroidManifest,
+  ExecutionReceipt,
+  Project,
+  ToolDefinition,
+  Workspace
+} from '../../types/foundation';
 import { ExecutionApproval, ExecutionJob } from '../../types/execution';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -79,6 +87,9 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
   const [selectedTask, setSelectedTask] = useState<AgentTask | null>(null);
   const [approvals, setApprovals] = useState<ExecutionApproval[]>([]);
   const [selectedMemory, setSelectedMemory] = useState<AgentWorkingMemory | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<ExecutionReceipt | null>(null);
+  const [selectedManifest, setSelectedManifest] = useState<DroidManifest | null>(null);
+  const [isManifestModalOpen, setIsManifestModalOpen] = useState<boolean>(false);
   const [events, setEvents] = useState<RuntimeEvent[]>([]);
   const [killSwitch, setKillSwitch] = useState<KillSwitchStatus>({
     is_active: false,
@@ -207,10 +218,27 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
     setSelectedTask(task);
     setActionError(null);
     try {
-      const mem = await apiClient.getTaskMemory(task.id);
+      const [mem, receipt] = await Promise.all([
+        apiClient.getTaskMemory(task.id),
+        apiClient.getTaskReceipt(task.id)
+      ]);
       setSelectedMemory(mem);
+      setSelectedReceipt(receipt);
     } catch {
       setSelectedMemory(null);
+      setSelectedReceipt(null);
+    }
+  };
+
+  const handleInspectManifest = async (agentId: string) => {
+    try {
+      const manifest = await apiClient.getDroidManifest(agentId);
+      if (manifest) {
+        setSelectedManifest(manifest);
+        setIsManifestModalOpen(true);
+      }
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to fetch droid manifest');
     }
   };
 
@@ -222,12 +250,14 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       const updated = await apiClient.executeNextAction(selectedTask.id);
       if (updated) {
         setSelectedTask(updated);
-        const [mem, apprs] = await Promise.all([
+        const [mem, apprs, receipt] = await Promise.all([
           apiClient.getTaskMemory(updated.id),
-          apiClient.getApprovals()
+          apiClient.getApprovals(),
+          apiClient.getTaskReceipt(updated.id)
         ]);
         setSelectedMemory(mem);
         setApprovals(apprs);
+        setSelectedReceipt(receipt);
       }
       await refreshAll();
     } catch (err: any) {
@@ -841,6 +871,62 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* Structured Execution Receipt (Phase 1D) */}
+                {selectedReceipt && (
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/10 p-4 space-y-3 font-mono text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-emerald-800/40">
+                      <div className="flex items-center gap-2 text-emerald-300 font-semibold">
+                        <FileText className="h-4 w-4" />
+                        <span>STRUCTURED EXECUTION RECEIPT</span>
+                      </div>
+                      <Badge variant={selectedReceipt.final_status === 'completed' ? 'success' : 'danger'} size="xs">
+                        {selectedReceipt.final_status.toUpperCase()}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                      <div>
+                        <span className="text-slate-500 block">Receipt ID</span>
+                        <span className="text-slate-200 font-semibold">{selectedReceipt.receipt_id}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Duration</span>
+                        <span className="text-slate-200">{selectedReceipt.duration_ms} ms</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Correlation ID</span>
+                        <span className="text-slate-200 truncate block">{selectedReceipt.correlation_id}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Sandbox Engine</span>
+                        <span className="text-slate-200">{selectedReceipt.provenance.engine}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] space-y-1 pt-1">
+                      <span className="text-slate-500 block">Tools Authorized & Used:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedReceipt.tools_used.map(t => (
+                          <code key={t} className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 text-[10px]">
+                            {t}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedReceipt.failures.length > 0 && (
+                      <div className="text-[11px] space-y-1 text-red-300 pt-1">
+                        <span className="text-red-400 font-semibold block">Failures Logged:</span>
+                        {selectedReceipt.failures.map((f, i) => (
+                          <div key={i} className="bg-red-950/30 p-1.5 rounded border border-red-800/40">
+                            {f}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-lg border border-slate-800/80 bg-slate-900/30 p-12 text-center text-slate-500 font-mono text-xs">
@@ -944,6 +1030,14 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                         </td>
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              icon={<FileText className="h-3 w-3" />}
+                              onClick={() => handleInspectManifest(agent.id)}
+                            >
+                              Manifest
+                            </Button>
                             <Button
                               variant="secondary"
                               size="xs"
@@ -1430,6 +1524,121 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                   Confirm Emergency Halt
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* MODAL: DROID IDENTITY & CAPABILITY MANIFEST (Phase 1D)                */}
+      {/* ===================================================================== */}
+      {isManifestModalOpen && selectedManifest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs">
+          <div className="w-full max-w-xl rounded-xl border border-slate-700 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded bg-blue-950 text-blue-400 border border-blue-800/40">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wide">
+                    {selectedManifest.name}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Machine-Readable Capability Manifest (v{selectedManifest.version})
+                  </p>
+                </div>
+              </div>
+              <Badge variant="info" size="xs">
+                {selectedManifest.state}
+              </Badge>
+            </div>
+
+            <div className="space-y-3 text-[11px]">
+              <div>
+                <span className="text-slate-500 uppercase tracking-wider block text-[10px]">Description</span>
+                <p className="text-slate-200 mt-0.5">{selectedManifest.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 p-3 rounded bg-slate-900/60 border border-slate-800">
+                <div>
+                  <span className="text-slate-500 block">Droid ID:</span>
+                  <span className="text-slate-200">{selectedManifest.droid_id}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Health:</span>
+                  <span className="text-emerald-400 capitalize">{selectedManifest.health}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Filesystem Scope:</span>
+                  <span className="text-slate-200 uppercase">{selectedManifest.capabilities.filesystem_scope}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Network Scope:</span>
+                  <span className="text-slate-200 uppercase">{selectedManifest.capabilities.network_scope}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Max Execution Time:</span>
+                  <span className="text-slate-200">{selectedManifest.capabilities.max_execution_time_seconds}s</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Max Memory:</span>
+                  <span className="text-slate-200">{selectedManifest.capabilities.max_memory_mb} MB</span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-slate-500 uppercase tracking-wider block text-[10px] mb-1">
+                  Authorized Tool Whitelist ({selectedManifest.capabilities.allowed_tools.length})
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedManifest.capabilities.allowed_tools.map(tool => (
+                    <span key={tool} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-blue-300">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-slate-500 uppercase tracking-wider block text-[10px] mb-1">
+                  Approval Gates Policy
+                </span>
+                <div className="space-y-1 bg-slate-900/40 p-2.5 rounded border border-slate-800/80">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-300">Destructive Shell Operations:</span>
+                    <span className={selectedManifest.capabilities.approval_requirements.destructive_operations ? 'text-amber-400' : 'text-slate-400'}>
+                      {selectedManifest.capabilities.approval_requirements.destructive_operations ? 'Requires Human Approval' : 'Auto-Permitted'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-300">Direct Network Access:</span>
+                    <span className={selectedManifest.capabilities.approval_requirements.network_access ? 'text-amber-400' : 'text-slate-400'}>
+                      {selectedManifest.capabilities.approval_requirements.network_access ? 'Requires Approval' : 'Policy Governed'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800 text-[10px] text-slate-500 space-y-0.5">
+                <div>Provenance Author: <span className="text-slate-300">{selectedManifest.provenance.author}</span></div>
+                <div>Organization: <span className="text-slate-300">{selectedManifest.provenance.organization}</span></div>
+                <div>RFC Specification: <span className="text-slate-300">{selectedManifest.provenance.specification_version}</span></div>
+                <div>Engine: <span className="text-slate-300">{selectedManifest.provenance.runtime_engine}</span></div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setIsManifestModalOpen(false);
+                  setSelectedManifest(null);
+                }}
+              >
+                Close Manifest
+              </Button>
             </div>
           </div>
         </div>

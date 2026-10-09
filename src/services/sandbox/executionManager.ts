@@ -36,7 +36,9 @@ export class ExecutionManager {
     metadata: Record<string, unknown>,
     projectId?: string,
     workspaceId?: string,
-    errorMessage?: string
+    errorMessage?: string,
+    resource?: string,
+    result?: string
   ) {
     if (this.auditLogCallback) {
       this.auditLogCallback({
@@ -48,7 +50,9 @@ export class ExecutionManager {
         action,
         status,
         metadata,
-        error_message: errorMessage
+        error_message: errorMessage,
+        resource: resource || (workspaceId ? `workspace:${workspaceId}` : undefined),
+        result
       });
     }
   }
@@ -98,7 +102,7 @@ export class ExecutionManager {
       return failedJob;
     }
 
-    if (!tool.is_enabled) {
+    if (!tool.is_enabled || tool.availability === 'disabled') {
       const failedJob: ExecutionJob = {
         id: jobId,
         agent_id: agent.id,
@@ -341,6 +345,19 @@ export class ExecutionManager {
         { jobId, durationMs: result.duration_ms, outputTruncated: result.output_truncated },
         request.project_id,
         request.workspace_id
+      );
+    } else if (result.exit_code === 124) {
+      job.state = 'timed_out';
+      job.error_message = result.stderr || 'Execution boundary timeout exceeded.';
+      this.logAudit(
+        'tool_execution',
+        agent.id,
+        'timeout_sandbox_execution',
+        'failure',
+        { jobId, exitCode: 124, stderr: result.stderr },
+        request.project_id,
+        request.workspace_id,
+        job.error_message
       );
     } else {
       job.state = 'failed';

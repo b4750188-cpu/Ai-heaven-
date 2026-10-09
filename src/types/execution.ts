@@ -12,7 +12,8 @@ export type ExecutionState =
   | 'executed'
   | 'failed'
   | 'cancelled'
-  | 'rejected';
+  | 'rejected'
+  | 'timed_out';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired';
 

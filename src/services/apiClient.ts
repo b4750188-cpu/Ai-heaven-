@@ -8,6 +8,8 @@ import { PROVIDERS, RELATIONSHIPS, RESOURCES } from '../data/database';
 import {
   AgentDefinition,
   AuditEvent,
+  DroidManifest,
+  ExecutionReceipt,
   Project,
   ToolDefinition,
   User,
@@ -39,7 +41,7 @@ export interface BackendStatus {
   error?: string;
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE_URL = '/api';
 
 class AIHeavenApiClient {
   private baseUrl: string;
@@ -962,6 +964,42 @@ class AIHeavenApiClient {
       if (options?.agent_id) params.set('agent_id', options.agent_id);
       if (options?.limit) params.set('limit', String(options.limit));
       const res = await fetch(`${this.baseUrl}/events?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return [];
+  }
+
+  public async getTaskReceipt(taskId: string): Promise<ExecutionReceipt | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/tasks/${encodeURIComponent(taskId)}/receipt`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getDroidManifest(agentId: string): Promise<DroidManifest | null> {
+    try {
+      const res = await fetch(`${this.baseUrl}/droids/${encodeURIComponent(agentId)}/manifest`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async getManifests(): Promise<DroidManifest[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/manifests`, {
         headers: { 'Accept': 'application/json' }
       });
       if (res.ok) return await res.json();

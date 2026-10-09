@@ -142,14 +142,18 @@ export class SandboxExecutor {
       };
     }
 
-    // 4. Timeout check simulation (if command is 'sleep 100' or simulated timeout)
-    const timeoutMs = (tool.execution_policy.timeout_seconds || 30) * 1000;
-    if (command.includes('sleep 999') || command.includes('--simulate-timeout')) {
+    // 4. Timeout check simulation (if command is 'sleep N' exceeding limit or simulated timeout)
+    const timeoutSeconds = tool.execution_policy.timeout_seconds || 30;
+    const timeoutMs = timeoutSeconds * 1000;
+    const sleepMatch = command.match(/^sleep\s+(\d+(\.\d+)?)/i);
+    const requestedSleep = sleepMatch ? parseFloat(sleepMatch[1]) : 0;
+
+    if (command.includes('--simulate-timeout') || command.includes('sleep 999') || (sleepMatch && requestedSleep > timeoutSeconds)) {
       return {
         execution_id: executionId,
         exit_code: 124, // Standard SIGTERM timeout code
         stdout: '',
-        stderr: `EXECUTION TIMEOUT: Process terminated after exceeding ${tool.execution_policy.timeout_seconds}s execution boundary limit.`,
+        stderr: `EXECUTION TIMEOUT: Process terminated after exceeding ${timeoutSeconds}s execution boundary limit.`,
         output_truncated: false,
         duration_ms: timeoutMs
       };

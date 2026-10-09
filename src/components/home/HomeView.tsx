@@ -5,16 +5,19 @@ import {
   Bot,
   Building2,
   CheckCircle2,
+  Clock,
   Code2,
   Compass,
   Cpu,
   Database,
   ExternalLink,
+  FileText,
   Flame,
   Globe,
   HardDrive,
   Layers,
   ListTodo,
+  Loader2,
   Network,
   Play,
   Plus,
@@ -26,15 +29,17 @@ import {
   ShieldCheck,
   Terminal,
   Workflow,
+  XCircle,
   Zap
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { AgentDefinition } from '../../types/foundation';
-import { AgentWorker } from '../../types/agentRuntime';
+import { AgentDefinition, ExecutionReceipt } from '../../types/foundation';
+import { AgentTask, AgentWorker } from '../../types/agentRuntime';
 import { Resource } from '../../types/resource';
 import { ShellView } from '../shell/AppShell';
+import { apiClient } from '../../services/apiClient';
 
 interface HomeViewProps {
   resources: Resource[];
@@ -68,12 +73,88 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const primaryWorker = workers.find(w => w.agent_id === primaryAgent.id) || workers[0];
 
   const [commandPrompt, setCommandPrompt] = useState('');
+  const [isDispatching, setIsDispatching] = useState(false);
+  const [activeTask, setActiveTask] = useState<AgentTask | null>(null);
+  const [activeReceipt, setActiveReceipt] = useState<ExecutionReceipt | null>(null);
+  const [executionStage, setExecutionStage] = useState<
+    'idle' | 'queued' | 'planning' | 'approval' | 'executing' | 'completed' | 'failed' | 'cancelled'
+  >('idle');
+  const [executionMessage, setExecutionMessage] = useState<string>('');
 
-  const handleCommandSubmit = (e: React.FormEvent) => {
+  const handleCommandSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commandPrompt.trim()) return;
-    // Dispatch into agent tasks view
-    onNavigate('agents');
+    const prompt = commandPrompt.trim();
+    if (!prompt) return;
+
+    setIsDispatching(true);
+    setExecutionStage('queued');
+    setExecutionMessage(`Queuing command for ${primaryAgent.name}...`);
+    setActiveReceipt(null);
+
+    try {
+      // 1. Queued -> Planning: create task with real planner
+      setExecutionStage('planning');
+      setExecutionMessage('Planner decomposing goal into sandboxed execution steps...');
+      
+      const task = await apiClient.createTask({
+        agent_id: primaryAgent.id,
+        project_id: primaryAgent.project_id || 'proj_ai_heaven_core',
+        workspace_id: primaryAgent.workspace_id || 'ws_default_sandbox',
+        goal: prompt,
+        priority: 'high'
+      });
+
+      if (!task) {
+        throw new Error('Failed to create task on engine');
+      }
+
+      setActiveTask(task);
+      setExecutionStage('executing');
+      setExecutionMessage(`Plan verified: ${task.plan.length} sandboxed steps. Advancing execution...`);
+
+      // 2. Step execution through backend worker
+      let currentTask = task;
+      while (
+        currentTask.status === 'created' ||
+        currentTask.status === 'in_progress' ||
+        currentTask.status === 'planning'
+      ) {
+        const nextAction = currentTask.plan[currentTask.current_action_index];
+        if (nextAction?.requires_approval) {
+          setExecutionStage('approval');
+          setExecutionMessage(`Step ${nextAction.step_number} requires human approval: "${nextAction.command}"`);
+          break;
+        }
+
+        const advanced = await apiClient.executeNextAction(currentTask.id);
+        if (!advanced) break;
+        currentTask = advanced;
+        setActiveTask(advanced);
+
+        if (advanced.status === 'completed') {
+          setExecutionStage('completed');
+          setExecutionMessage('All sandboxed steps executed successfully. Receipt generated.');
+          const receipt = await apiClient.getTaskReceipt(advanced.id);
+          if (receipt) setActiveReceipt(receipt);
+          break;
+        } else if (advanced.status === 'failed') {
+          setExecutionStage('failed');
+          setExecutionMessage(advanced.failure_reason || 'Execution halted on error.');
+          const receipt = await apiClient.getTaskReceipt(advanced.id);
+          if (receipt) setActiveReceipt(receipt);
+          break;
+        } else if (advanced.status === 'cancelled') {
+          setExecutionStage('cancelled');
+          setExecutionMessage(advanced.cancellation_reason || 'Task cancelled.');
+          break;
+        }
+      }
+    } catch (err: any) {
+      setExecutionStage('failed');
+      setExecutionMessage(err.message || 'Error dispatching command to Droid Prime');
+    } finally {
+      setIsDispatching(false);
+    }
   };
 
   // Top spotlight resources
@@ -184,6 +265,128 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Explore Knowledge Topology →
             </button>
           </div>
+
+          {/* Active Command Execution Console & Receipt Viewer */}
+          {executionStage !== 'idle' && (
+            <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/80 p-4 font-mono text-xs backdrop-blur-md space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 font-semibold">DROID PRIME DISPATCH:</span>
+                  <span className="text-slate-200 truncate max-w-xs">{activeTask?.goal || commandPrompt}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {executionStage === 'queued' && (
+                    <span className="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <Clock className="h-3 w-3 animate-spin" /> QUEUED
+                    </span>
+                  )}
+                  {executionStage === 'planning' && (
+                    <span className="px-2 py-0.5 rounded bg-blue-950/80 border border-blue-500/40 text-blue-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <Loader2 className="h-3 w-3 animate-spin" /> PLANNING
+                    </span>
+                  )}
+                  {executionStage === 'approval' && (
+                    <span className="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <ShieldAlert className="h-3 w-3" /> APPROVAL REQUIRED
+                    </span>
+                  )}
+                  {executionStage === 'executing' && (
+                    <span className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <Loader2 className="h-3 w-3 animate-spin" /> EXECUTING ({activeTask?.current_action_index || 0}/{activeTask?.plan.length || 0})
+                    </span>
+                  )}
+                  {executionStage === 'completed' && (
+                    <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <CheckCircle2 className="h-3 w-3" /> COMPLETED
+                    </span>
+                  )}
+                  {executionStage === 'failed' && (
+                    <span className="px-2 py-0.5 rounded bg-red-950/80 border border-red-500/40 text-red-300 font-semibold flex items-center gap-1.5 text-[10px]">
+                      <XCircle className="h-3 w-3" /> FAILED
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-slate-300 text-[11px] flex items-center gap-2">
+                <span className="text-slate-500">Status:</span>
+                <span>{executionMessage}</span>
+              </div>
+
+              {/* Plan step progression */}
+              {activeTask && activeTask.plan.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Planned Execution Steps:</span>
+                  <div className="space-y-1">
+                    {activeTask.plan.map((step) => (
+                      <div
+                        key={step.id}
+                        className={`flex items-center justify-between px-2.5 py-1.5 rounded border text-[11px] ${
+                          step.status === 'completed'
+                            ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
+                            : step.status === 'executing'
+                            ? 'bg-cyan-950/30 border-cyan-700/50 text-cyan-200'
+                            : step.status === 'failed'
+                            ? 'bg-red-950/30 border-red-800/40 text-red-300'
+                            : 'bg-slate-900/40 border-slate-800/60 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500">#{step.step_number}</span>
+                          <span>{step.purpose}</span>
+                          <code className="text-[10px] text-slate-400 bg-slate-950 px-1 py-0.2 rounded border border-slate-800">
+                            {step.command}
+                          </code>
+                        </div>
+                        <span className="text-[10px] uppercase font-semibold">
+                          {step.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Structured Execution Receipt if available */}
+              {activeReceipt && (
+                <div className="mt-2 p-2.5 rounded bg-slate-900/60 border border-emerald-500/30 space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between text-emerald-400 font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5" /> Structured Execution Receipt
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">{activeReceipt.receipt_id}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-800">
+                    <div>Duration: <span className="text-slate-200">{activeReceipt.duration_ms}ms</span></div>
+                    <div>Tools: <span className="text-slate-200">{activeReceipt.tools_used.join(', ')}</span></div>
+                    <div>Engine: <span className="text-slate-200">{activeReceipt.provenance.engine}</span></div>
+                    <div>Status: <span className="text-emerald-400 uppercase font-semibold">{activeReceipt.final_status}</span></div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1 text-[11px]">
+                <button
+                  onClick={() => {
+                    setExecutionStage('idle');
+                    setActiveTask(null);
+                    setActiveReceipt(null);
+                  }}
+                  className="text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  Dismiss
+                </button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<ArrowRight className="h-3 w-3" />}
+                  onClick={() => onNavigate('agents')}
+                >
+                  Inspect in Agent Runtime Console
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Real-time Telemetry Strip */}
