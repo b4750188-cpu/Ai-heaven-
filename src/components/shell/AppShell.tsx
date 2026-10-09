@@ -6,6 +6,7 @@ import {
   Bot,
   Building2,
   CheckCircle2,
+  ClipboardCheck,
   Compass,
   Database,
   ExternalLink,
@@ -18,6 +19,7 @@ import {
   Network,
   RefreshCw,
   Search,
+  Server,
   Settings,
   Shield,
   ShieldAlert,
@@ -38,7 +40,9 @@ export type ShellView =
   | 'providers'
   | 'projects'
   | 'tasks'
+  | 'operations'
   | 'activity'
+  | 'review'
   | 'connectors'
   | 'settings'
   | 'docs'
@@ -94,6 +98,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   ];
 
   const systemNav = [
+    { id: 'review' as ShellView, label: 'Review Center', icon: ClipboardCheck },
+    { id: 'operations' as ShellView, label: 'Operations', icon: Server },
     { id: 'activity' as ShellView, label: 'Activity', icon: Activity },
     { id: 'connectors' as ShellView, label: 'Connectors', icon: Workflow },
     { id: 'settings' as ShellView, label: 'Settings', icon: Settings },

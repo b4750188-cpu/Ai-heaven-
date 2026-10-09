@@ -22,6 +22,7 @@ import { AgentDefinition, AuditEvent, DroidManifest, ExecutionReceipt, ToolDefin
 import { ExecutionJob } from '../../types/execution';
 import { ExecutionManager, executionManager } from './executionManager';
 import { SandboxExecutor, sandboxExecutor } from './sandboxExecutor';
+import { postgresManager } from '../../db/postgres';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -57,22 +58,87 @@ export class AgentRuntimeService {
   }
 
   public persistState(): void {
-    if (!this.persistenceFilePath) return;
-    try {
-      const dir = path.dirname(this.persistenceFilePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+    // 1. File-based persistence (local/dev/testing)
+    if (this.persistenceFilePath) {
+      try {
+        const dir = path.dirname(this.persistenceFilePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        const data = {
+          tasks: Array.from(this.tasks.entries()),
+          workers: Array.from(this.workers.entries()),
+          receipts: Array.from(this.receipts.entries()),
+          idempotencyKeys: Array.from(this.idempotencyKeys.entries()),
+          persistedAt: new Date().toISOString()
+        };
+        fs.writeFileSync(this.persistenceFilePath, JSON.stringify(data, null, 2), 'utf-8');
+      } catch {
+        // Best-effort in virtual or read-only environments
       }
-      const data = {
-        tasks: Array.from(this.tasks.entries()),
-        workers: Array.from(this.workers.entries()),
-        receipts: Array.from(this.receipts.entries()),
-        idempotencyKeys: Array.from(this.idempotencyKeys.entries()),
-        persistedAt: new Date().toISOString()
-      };
-      fs.writeFileSync(this.persistenceFilePath, JSON.stringify(data, null, 2), 'utf-8');
-    } catch {
-      // Best-effort in virtual or read-only environments
+    }
+
+    // 2. PostgreSQL durable persistence (shared serverless cloud environment)
+    if (postgresManager.isConfigured()) {
+      for (const task of this.tasks.values()) {
+        postgresManager.saveTask(task).catch(() => {});
+      }
+      for (const worker of this.workers.values()) {
+        postgresManager.saveWorker(worker).catch(() => {});
+      }
+      postgresManager.saveKillSwitch(this.killSwitch).catch(() => {});
+    }
+  }
+
+  public async syncFromPostgres(): Promise<{ recoveredTasks: number; recoveredWorkers: number }> {
+    if (!postgresManager.isConfigured()) return { recoveredTasks: 0, recoveredWorkers: 0 };
+    try {
+      const dbTasks = await postgresManager.getTasks();
+      for (const task of dbTasks) {
+        if (task.status === 'in_progress' || task.status === 'planning') {
+          for (const act of task.plan) {
+            if (act.status === 'executing') {
+              act.status = 'pending';
+            }
+          }
+        }
+        this.tasks.set(task.id, task);
+        if (task.idempotency_key) {
+          this.idempotencyKeys.set(task.idempotency_key, task.id);
+        }
+        if (task.receipt) {
+          this.receipts.set(task.id, task.receipt);
+        }
+      }
+
+      const dbWorkers = await postgresManager.getWorkers();
+      for (const w of dbWorkers) {
+        if (w.state === 'EXECUTING' || w.state === 'STARTING') {
+          w.state = 'READY';
+        }
+        this.workers.set(w.id, w);
+      }
+
+      const ks = await postgresManager.getKillSwitch();
+      if (ks) {
+        this.killSwitch = {
+          is_active: ks.is_active,
+          scope: ks.scope || 'global',
+          target_id: ks.target_id || '',
+          triggered_by: ks.triggered_by || '',
+          triggered_at: ks.triggered_at ? new Date(ks.triggered_at).toISOString() : '',
+          reason: ks.reason || ''
+        };
+      }
+
+      const recoveredTasks = this.tasks.size;
+      const recoveredWorkers = this.workers.size;
+      this.emitEvent('state_recovered', { recoveredTasks, recoveredWorkers, source: 'postgresql' });
+      this.logAudit('config_change', 'system', 'state_recovery_postgres', 'success', { recoveredTasks, recoveredWorkers });
+      return { recoveredTasks, recoveredWorkers };
+    } catch (err: any) {
+      console.error('[AgentRuntimeService] PostgreSQL sync warning:', err?.message || err);
+      return { recoveredTasks: 0, recoveredWorkers: 0 };
     }
   }
 
@@ -127,6 +193,51 @@ export class AgentRuntimeService {
       console.error('[AgentRuntimeService] State recovery warning:', err?.message || err);
       return { recoveredTasks: 0, recoveredWorkers: 0 };
     }
+  }
+
+  public resetWorkerState(agentId: string): AgentWorker | null {
+    const worker = this.workers.get(agentId);
+    if (!worker) return null;
+    worker.state = 'READY';
+    worker.health = 'healthy';
+    worker.current_task_id = undefined;
+    worker.current_execution_id = undefined;
+    worker.heartbeat_at = new Date().toISOString();
+    this.persistState();
+    this.logAudit('config_change', 'operator', 'reset_worker_state', 'success', { agentId });
+    return worker;
+  }
+
+  public getMetrics(): {
+    tasks: { total: number; created: number; in_progress: number; completed: number; failed: number; cancelled: number; paused: number };
+    workers: { total: number; ready: number; executing: number; waiting_approval: number; paused: number; terminated: number };
+    receiptsCount: number;
+    killSwitchActive: boolean;
+  } {
+    const tasks = Array.from(this.tasks.values());
+    const workers = Array.from(this.workers.values());
+
+    return {
+      tasks: {
+        total: tasks.length,
+        created: tasks.filter(t => t.status === 'created').length,
+        in_progress: tasks.filter(t => t.status === 'in_progress').length,
+        completed: tasks.filter(t => t.status === 'completed').length,
+        failed: tasks.filter(t => t.status === 'failed').length,
+        cancelled: tasks.filter(t => t.status === 'cancelled').length,
+        paused: tasks.filter(t => t.status === 'paused').length
+      },
+      workers: {
+        total: workers.length,
+        ready: workers.filter(w => w.state === 'READY').length,
+        executing: workers.filter(w => w.state === 'EXECUTING').length,
+        waiting_approval: workers.filter(w => w.state === 'WAITING_APPROVAL').length,
+        paused: workers.filter(w => w.state === 'PAUSED').length,
+        terminated: workers.filter(w => w.state === 'TERMINATED').length
+      },
+      receiptsCount: this.receipts.size,
+      killSwitchActive: this.killSwitch.is_active
+    };
   }
 
   public setAuditLogger(logger: (event: Omit<AuditEvent, 'id' | 'timestamp'>) => void) {

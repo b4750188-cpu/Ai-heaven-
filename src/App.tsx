@@ -3,26 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { AgentContractModal } from './components/common/AgentContractModal';
-import { ConnectorConsole } from './components/connectors/ConnectorConsole';
-import { ResourceDetailPage } from './components/detail/ResourceDetailPage';
 import { ResourceExplorer } from './components/explorer/ResourceExplorer';
-import { KnowledgeGraphView } from './components/graph/KnowledgeGraphView';
-import { ProviderHub } from './components/providers/ProviderHub';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
-import { AgentRuntimeConsole } from './components/agents/AgentRuntimeConsole';
 import { AppShell, ShellView } from './components/shell/AppShell';
 import { HomeView } from './components/home/HomeView';
-import { ProjectsView } from './components/projects/ProjectsView';
-import { ToolsView } from './components/tools/ToolsView';
-import { ActivityView } from './components/activity/ActivityView';
-import { DocsView } from './components/docs/DocsView';
 import { apiClient } from './services/apiClient';
 import { KnowledgeGraphData } from './types/graph';
 import { Provider, Resource, ResourceRelationship } from './types/resource';
 import { AgentDefinition, AuditEvent, Project, ToolDefinition, Workspace } from './types/foundation';
 import { AgentWorker, KillSwitchStatus, RuntimeEvent } from './types/agentRuntime';
+
+// Code-split secondary views for maximum initial bundle efficiency
+const KnowledgeGraphView = lazy(() => import('./components/graph/KnowledgeGraphView').then(m => ({ default: m.KnowledgeGraphView })));
+const AgentRuntimeConsole = lazy(() => import('./components/agents/AgentRuntimeConsole').then(m => ({ default: m.AgentRuntimeConsole })));
+const ResourceDetailPage = lazy(() => import('./components/detail/ResourceDetailPage').then(m => ({ default: m.ResourceDetailPage })));
+const ProviderHub = lazy(() => import('./components/providers/ProviderHub').then(m => ({ default: m.ProviderHub })));
+const ConnectorConsole = lazy(() => import('./components/connectors/ConnectorConsole').then(m => ({ default: m.ConnectorConsole })));
+const ProjectsView = lazy(() => import('./components/projects/ProjectsView').then(m => ({ default: m.ProjectsView })));
+const ToolsView = lazy(() => import('./components/tools/ToolsView').then(m => ({ default: m.ToolsView })));
+const ActivityView = lazy(() => import('./components/activity/ActivityView').then(m => ({ default: m.ActivityView })));
+const DocsView = lazy(() => import('./components/docs/DocsView').then(m => ({ default: m.DocsView })));
+const OperatorDashboard = lazy(() => import('./components/operations/OperatorDashboard').then(m => ({ default: m.OperatorDashboard })));
+const ReviewCenter = lazy(() => import('./components/review/ReviewCenter').then(m => ({ default: m.ReviewCenter })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -56,11 +60,13 @@ export default function App() {
     loadData();
   }, []);
 
-  // Periodic polling for status and approvals
+  // Periodic polling for status and approvals (only active when tab is visible)
   useEffect(() => {
     const timer = setInterval(() => {
-      syncBackgroundStatus();
-    }, 5000);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        syncBackgroundStatus();
+      }
+    }, 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -234,106 +240,119 @@ export default function App() {
         </div>
       )}
 
-      {currentView === 'home' && (
-        <HomeView
-          resources={resources}
-          agents={agents}
-          workers={workers}
-          pendingApprovalsCount={pendingApprovalsCount}
-          isBackendConnected={isBackendConnected}
-          onNavigate={handleNavigateView}
-          onSelectResource={handleSelectResource}
-          onOpenNewTaskModal={() => handleNavigateView('tasks')}
-        />
-      )}
+      <Suspense fallback={<div className="flex items-center justify-center p-12 text-xs font-mono text-neutral-400">Loading module...</div>}>
+        {currentView === 'home' && (
+          <HomeView
+            resources={resources}
+            agents={agents}
+            workers={workers}
+            pendingApprovalsCount={pendingApprovalsCount}
+            isBackendConnected={isBackendConnected}
+            onNavigate={handleNavigateView}
+            onSelectResource={handleSelectResource}
+            onOpenNewTaskModal={() => handleNavigateView('tasks')}
+          />
+        )}
 
-      {currentView === 'explore' && (
-        <ResourceExplorer
-          resources={resources}
-          providers={providers}
-          isLoading={isLoading}
-          onSelectResource={handleSelectResource}
-          onOpenAgentSpec={(res) => setAgentModalResource(res)}
-          onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
-          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
-          onNavigateAgents={() => setCurrentView('agents')}
-        />
-      )}
+        {currentView === 'explore' && (
+          <ResourceExplorer
+            resources={resources}
+            providers={providers}
+            isLoading={isLoading}
+            onSelectResource={handleSelectResource}
+            onOpenAgentSpec={(res) => setAgentModalResource(res)}
+            onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
+            onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+            onNavigateAgents={() => setCurrentView('agents')}
+          />
+        )}
 
-      {currentView === 'agents' && (
-        <AgentRuntimeConsole
-          initialTab="fleet"
-          onNavigateDetail={handleNavigateBySlug}
-          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
-          onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
-        />
-      )}
+        {currentView === 'agents' && (
+          <AgentRuntimeConsole
+            initialTab="fleet"
+            onNavigateDetail={handleNavigateBySlug}
+            onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+            onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
+          />
+        )}
 
-      {currentView === 'tasks' && (
-        <AgentRuntimeConsole
-          initialTab="workspace"
-          onNavigateDetail={handleNavigateBySlug}
-          onNavigateKnowledgeGraph={() => setCurrentView('graph')}
-          onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
-        />
-      )}
+        {currentView === 'tasks' && (
+          <AgentRuntimeConsole
+            initialTab="workspace"
+            onNavigateDetail={handleNavigateBySlug}
+            onNavigateKnowledgeGraph={() => setCurrentView('graph')}
+            onApprovalsCountChange={(count) => setPendingApprovalsCount(count)}
+          />
+        )}
 
-      {currentView === 'projects' && (
-        <ProjectsView
-          projects={projects}
-          workspaces={workspaces}
-          onCreateProject={handleCreateProject}
-          onCreateWorkspace={handleCreateWorkspace}
-        />
-      )}
+        {currentView === 'projects' && (
+          <ProjectsView
+            projects={projects}
+            workspaces={workspaces}
+            onCreateProject={handleCreateProject}
+            onCreateWorkspace={handleCreateWorkspace}
+          />
+        )}
 
-      {currentView === 'tools' && (
-        <ToolsView
-          tools={tools}
-          onOpenNewTaskModal={() => handleNavigateView('tasks')}
-        />
-      )}
+        {currentView === 'tools' && (
+          <ToolsView
+            tools={tools}
+            onOpenNewTaskModal={() => handleNavigateView('tasks')}
+          />
+        )}
 
-      {currentView === 'activity' && (
-        <ActivityView
-          events={runtimeEvents}
-          auditEvents={auditEvents}
-          onRefresh={handleRefreshActivity}
-        />
-      )}
+        {currentView === 'activity' && (
+          <ActivityView
+            events={runtimeEvents}
+            auditEvents={auditEvents}
+            onRefresh={handleRefreshActivity}
+          />
+        )}
 
-      {currentView === 'docs' && (
-        <DocsView />
-      )}
+        {currentView === 'docs' && (
+          <DocsView />
+        )}
 
-      {currentView === 'detail' && selectedResource && (
-        <ResourceDetailPage
-          resource={selectedResource}
-          relationships={resourceRelationships}
-          onBack={() => setCurrentView('explore')}
-          onNavigateToResource={handleNavigateBySlug}
-        />
-      )}
+        {currentView === 'review' && (
+          <ReviewCenter onNavigateView={handleNavigateView} />
+        )}
 
-      {currentView === 'graph' && (
-        <KnowledgeGraphView
-          data={graphData}
-          onSelectResource={handleNavigateBySlug}
-        />
-      )}
+        {currentView === 'operations' && (
+          <OperatorDashboard
+            onNavigateToAgent={() => setCurrentView('agents')}
+            onNavigateToApprovals={() => setCurrentView('tasks')}
+          />
+        )}
 
-      {currentView === 'providers' && (
-        <ProviderHub
-          providers={providers}
-          resources={resources}
-          onSelectResource={handleSelectResource}
-          onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
-        />
-      )}
+        {currentView === 'detail' && selectedResource && (
+          <ResourceDetailPage
+            resource={selectedResource}
+            relationships={resourceRelationships}
+            onBack={() => setCurrentView('explore')}
+            onNavigateToResource={handleNavigateBySlug}
+          />
+        )}
 
-      {currentView === 'connectors' && (
-        <ConnectorConsole onSyncComplete={handleSyncComplete} />
-      )}
+        {currentView === 'graph' && (
+          <KnowledgeGraphView
+            data={graphData}
+            onSelectResource={handleNavigateBySlug}
+          />
+        )}
+
+        {currentView === 'providers' && (
+          <ProviderHub
+            providers={providers}
+            resources={resources}
+            onSelectResource={handleSelectResource}
+            onNavigateGoogleAIStudio={() => handleNavigateBySlug('google-ai-studio')}
+          />
+        )}
+
+        {currentView === 'connectors' && (
+          <ConnectorConsole onSyncComplete={handleSyncComplete} />
+        )}
+      </Suspense>
 
       {/* Global Search Modal */}
       <GlobalSearchModal

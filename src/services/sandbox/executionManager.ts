@@ -16,6 +16,7 @@ import {
   SandboxExecutionRequest
 } from '../../types/execution';
 import { SandboxExecutor, sandboxExecutor } from './sandboxExecutor';
+import { postgresManager } from '../../db/postgres';
 
 export class ExecutionManager {
   private jobs = new Map<string, ExecutionJob>();
@@ -172,6 +173,10 @@ export class ExecutionManager {
       this.approvals.set(approvalId, approval);
       this.jobs.set(jobId, initialJob);
 
+      if (postgresManager.isConfigured()) {
+        postgresManager.saveApproval(approval).catch(() => {});
+      }
+
       this.logAudit(
         'approval_decision',
         agent.id,
@@ -260,6 +265,10 @@ export class ExecutionManager {
         job.workspace_id
       );
 
+      if (postgresManager.isConfigured()) {
+        postgresManager.saveApproval(approval).catch(() => {});
+      }
+
       return { approval, job };
     }
 
@@ -267,6 +276,10 @@ export class ExecutionManager {
     approval.status = 'approved';
     job.state = 'approved';
     job.updated_at = now;
+
+    if (postgresManager.isConfigured()) {
+      postgresManager.saveApproval(approval).catch(() => {});
+    }
 
     this.logAudit(
       'approval_decision',
@@ -430,7 +443,29 @@ export class ExecutionManager {
     return this.approvals.get(approvalId);
   }
 
+  public cleanupExpiredApprovals(): number {
+    const now = new Date();
+    let expiredCount = 0;
+    for (const approval of this.approvals.values()) {
+      if (approval.status === 'pending' && new Date(approval.expires_at) < now) {
+        approval.status = 'expired';
+        expiredCount++;
+        const job = this.jobs.get(approval.execution_id);
+        if (job && (job.state === 'planned' || job.state === 'draft')) {
+          job.state = 'rejected';
+          job.updated_at = now.toISOString();
+          job.error_message = 'Approval expired before decision.';
+        }
+        if (postgresManager.isConfigured()) {
+          postgresManager.saveApproval(approval).catch(() => {});
+        }
+      }
+    }
+    return expiredCount;
+  }
+
   public listApprovals(projectId?: string, status?: ApprovalStatus): ExecutionApproval[] {
+    this.cleanupExpiredApprovals();
     let list = Array.from(this.approvals.values());
     if (projectId) list = list.filter(a => a.project_id === projectId);
     if (status) list = list.filter(a => a.status === status);

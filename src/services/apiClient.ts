@@ -43,12 +43,46 @@ export interface BackendStatus {
 
 const API_BASE_URL = '/api';
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 class AIHeavenApiClient {
   private baseUrl: string;
   private isBackendAvailable: boolean | null = null;
+  private cache = new Map<string, CacheEntry<any>>();
+  private inFlight = new Map<string, Promise<any>>();
 
   constructor() {
     this.baseUrl = API_BASE_URL.replace(/\/$/, '');
+  }
+
+  public clearCache() {
+    this.cache.clear();
+    this.inFlight.clear();
+  }
+
+  private async fetchWithCache<T>(cacheKey: string, ttlMs: number, fetcher: () => Promise<T>): Promise<T> {
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < ttlMs) {
+      return cached.data;
+    }
+    if (this.inFlight.has(cacheKey)) {
+      return this.inFlight.get(cacheKey);
+    }
+    const promise = fetcher()
+      .then((data) => {
+        this.cache.set(cacheKey, { data, timestamp: Date.now() });
+        this.inFlight.delete(cacheKey);
+        return data;
+      })
+      .catch((err) => {
+        this.inFlight.delete(cacheKey);
+        throw err;
+      });
+    this.inFlight.set(cacheKey, promise);
+    return promise;
   }
 
   public getBaseUrl(): string {
@@ -212,19 +246,21 @@ class AIHeavenApiClient {
   }
 
   public async getProviders(): Promise<Provider[]> {
-    if (this.baseUrl) {
-      try {
-        const res = await fetch(`${this.baseUrl}/providers`, {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (res.ok) {
-          return await res.json();
+    return this.fetchWithCache('providers', 30000, async () => {
+      if (this.baseUrl) {
+        try {
+          const res = await fetch(`${this.baseUrl}/providers`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            return await res.json();
+          }
+        } catch {
+          // Fall back
         }
-      } catch {
-        // Fall back
       }
-    }
-    return PROVIDERS;
+      return PROVIDERS;
+    });
   }
 
   public async syncConnector(connectorId: string): Promise<any> {
@@ -243,20 +279,21 @@ class AIHeavenApiClient {
   }
 
   public async getKnowledgeGraph(): Promise<KnowledgeGraphData> {
-    if (this.baseUrl) {
-      try {
-        const res = await fetch(`${this.baseUrl}/graph`, {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (res.ok) {
-          return await res.json();
+    return this.fetchWithCache('knowledge_graph', 30000, async () => {
+      if (this.baseUrl) {
+        try {
+          const res = await fetch(`${this.baseUrl}/graph`, {
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            return await res.json();
+          }
+        } catch {
+          // Fall back
         }
-      } catch {
-        // Fall back
       }
-    }
 
-    // Build graph representation from authoritative local database
+      // Build graph representation from authoritative local database
     const resourceNodes: GraphNode[] = RESOURCES.map(r => ({
       id: r.slug,
       slug: r.slug,
@@ -439,7 +476,8 @@ class AIHeavenApiClient {
       }
     ];
 
-    return { nodes, edges };
+      return { nodes, edges };
+    });
   }
 
   // ==========================================
@@ -554,15 +592,17 @@ class AIHeavenApiClient {
   }
 
   public async getTools(): Promise<ToolDefinition[]> {
-    try {
-      const res = await fetch(`${this.baseUrl}/tools`, {
-        headers: { 'Accept': 'application/json' }
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      // Fallback
-    }
-    return [];
+    return this.fetchWithCache('tools', 30000, async () => {
+      try {
+        const res = await fetch(`${this.baseUrl}/tools`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) return await res.json();
+      } catch {
+        // Fallback
+      }
+      return [];
+    });
   }
 
   public async getAuditEvents(options?: { event_type?: string; project_id?: string; limit?: number }): Promise<AuditEvent[]> {
@@ -1007,6 +1047,114 @@ class AIHeavenApiClient {
       // Fallback
     }
     return [];
+  }
+
+  // --- Operations & Autonomous Reliability Controls ---
+
+  public async getOperationsOverview(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/operations/overview`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
+  public async triggerStateRecovery(): Promise<{ success: boolean; recoveredTasks: number; recoveredWorkers: number }> {
+    const res = await fetch(`${this.baseUrl}/operations/recover-state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Recovery request failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async resetWorker(agentId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/operations/workers/${encodeURIComponent(agentId)}/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Worker reset failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async cleanupStaleApprovals(): Promise<{ success: boolean; expiredApprovalsCleaned: number }> {
+    const res = await fetch(`${this.baseUrl}/operations/cleanup-stale-approvals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Cleanup failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Review & Quality Assurance Center ---
+
+  public async getReviewLatest(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/review/latest`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch latest review (HTTP ${res.status})`);
+    return await res.json();
+  }
+
+  public async runReview(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/review/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to trigger review execution (HTTP ${res.status})`);
+    return await res.json();
+  }
+
+  public async getReviewReports(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/review/reports`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch review reports (HTTP ${res.status})`);
+    const data = await res.json();
+    return data.reports || [];
+  }
+
+  public async getReviewReportById(id: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/review/reports/${encodeURIComponent(id)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch review report ${id} (HTTP ${res.status})`);
+    return await res.json();
+  }
+
+  public async getReviewFixes(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/review/fixes`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch review fixes (HTTP ${res.status})`);
+    const data = await res.json();
+    return data.fixes || [];
+  }
+
+  public async applyReviewFix(fixId: string, confirmed: boolean = true): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/review/fixes/${encodeURIComponent(fixId)}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ confirmed })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `Failed to apply fix ${fixId}`);
+    }
+    return await res.json();
+  }
+
+  public async runReviewTests(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/review/tests/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to run automated test runner (HTTP ${res.status})`);
+    return await res.json();
   }
 }
 

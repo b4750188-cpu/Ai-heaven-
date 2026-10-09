@@ -2,7 +2,58 @@
   "version": 2,
   "buildCommand": "vite build",
   "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https: wss:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self';"
+        }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/.env(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/.git(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*).sql",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*).bak",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/server-status(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/phpinfo(.*)",
+      "destination": "/api/index.ts"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api/index.ts"

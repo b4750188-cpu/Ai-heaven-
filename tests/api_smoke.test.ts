@@ -1,6 +1,8 @@
 /**
- * AI HEAVEN - Production API Smoke Tests
- * Verifies that the Express API app and endpoints function cleanly without errors.
+ * AI HEAVEN - Production API & Security Smoke Tests
+ * Validates all 13 audited endpoints, dual routing (/api/* and /*),
+ * sensitive path blocking (/.env, /.git/config, /backup.sql),
+ * and comprehensive security headers (CSP, nosniff, frame-ancestors/SAMEORIGIN).
  */
 
 import http from 'http';
@@ -8,7 +10,7 @@ import { apiApp } from '../server.ts';
 
 async function runSmokeTests() {
   console.log('======================================================');
-  console.log('AI HEAVEN - PRODUCTION API SMOKE TESTS');
+  console.log('AI HEAVEN - PRODUCTION API & SECURITY REGRESSION SUITE');
   console.log('======================================================\n');
 
   const server = http.createServer(apiApp);
@@ -19,6 +21,16 @@ async function runSmokeTests() {
   let passed = 0;
   let failed = 0;
 
+  function report(condition: boolean, item: string, details?: string) {
+    if (condition) {
+      passed++;
+      console.log(`  [PASS] ${item}`);
+    } else {
+      failed++;
+      console.error(`  [FAIL] ${item}: ${details || 'Assertion failed'}`);
+    }
+  }
+
   async function checkEndpoint(path: string, method = 'GET', body?: any) {
     try {
       const opts: RequestInit = {
@@ -28,98 +40,137 @@ async function runSmokeTests() {
       };
       const res = await fetch(`${baseUrl}${path}`, opts);
       const json = await res.json();
-      if (res.ok) {
-        passed++;
-        console.log(`  [PASS] ${method} ${path} -> HTTP ${res.status}`);
-        return json;
-      } else {
-        failed++;
-        console.error(`  [FAIL] ${method} ${path} -> HTTP ${res.status}:`, json);
-        return null;
-      }
+      return { status: res.status, headers: res.headers, json };
     } catch (err: any) {
-      failed++;
-      console.error(`  [FAIL] ${method} ${path} -> Fetch Error:`, err.message);
-      return null;
+      return { status: 0, headers: new Headers(), json: null, error: err.message };
     }
   }
 
-  // 1. Health
+  // --- 1. Audited Endpoints (/api/*) ---
+  console.log('1. Audited Production Endpoints:');
+
   const health = await checkEndpoint('/api/health');
-  if (health && health.status === 'healthy') {
-    console.log('    ✓ Health status is healthy');
-  }
+  report(health.status === 200 && health.json?.status === 'healthy', 'GET /api/health -> HTTP 200 (healthy)');
 
-  // 2. Resources
+  const healthDb = await checkEndpoint('/api/health/db');
+  report(healthDb.status === 200 || healthDb.status === 503, 'GET /api/health/db -> Returns structured DB diagnostic');
+
   const resources = await checkEndpoint('/api/resources');
-  if (resources && resources.total >= 10) {
-    console.log(`    ✓ Returned ${resources.total} authoritative resources`);
-  }
+  report(resources.status === 200 && resources.json?.items?.length >= 10, 'GET /api/resources -> HTTP 200 with paginated items');
 
-  // 3. Providers
+  const resourceDetail = await checkEndpoint('/api/resources/gemini-1-5-pro');
+  report(resourceDetail.status === 200 && resourceDetail.json?.slug === 'gemini-1-5-pro', 'GET /api/resources/:slug -> HTTP 200');
+
+  const resourceRels = await checkEndpoint('/api/resources/gemini-1-5-pro/relationships');
+  report(resourceRels.status === 200 && Array.isArray(resourceRels.json), 'GET /api/resources/:slug/relationships -> HTTP 200');
+
   const providers = await checkEndpoint('/api/providers');
-  if (providers && providers.length >= 6) {
-    console.log(`    ✓ Returned ${providers.length} verified providers`);
-  }
+  report(providers.status === 200 && providers.json?.length >= 6, 'GET /api/providers -> HTTP 200');
 
-  // 4. Knowledge Graph
   const graph = await checkEndpoint('/api/graph');
-  if (graph && graph.nodes.length > 0 && graph.edges.length > 0) {
-    console.log(`    ✓ Knowledge Graph contains ${graph.nodes.length} nodes and ${graph.edges.length} edges`);
-  }
+  report(graph.status === 200 && graph.json?.nodes?.length > 0 && graph.json?.edges?.length > 0, 'GET /api/graph -> HTTP 200 with graph nodes/edges');
 
-  // 5. Workers
   const workers = await checkEndpoint('/api/workers');
-  if (workers && workers.length >= 1) {
-    console.log(`    ✓ Active workers count: ${workers.length}`);
-  }
+  report(workers.status === 200 && workers.json?.length >= 1, 'GET /api/workers -> HTTP 200');
 
-  // 6. Authoritative Tools
   const tools = await checkEndpoint('/api/tools');
-  if (tools && tools.length >= 4) {
-    console.log(`    ✓ Authoritative tools count: ${tools.length}`);
-  }
+  report(tools.status === 200 && tools.json?.length >= 4, 'GET /api/tools -> HTTP 200');
 
-  // 7. Droid Manifests
   const manifests = await checkEndpoint('/api/manifests');
-  if (manifests && manifests.length >= 1) {
-    console.log(`    ✓ Droid manifest verified: ${manifests[0].name}`);
-  }
+  report(manifests.status === 200 && manifests.json?.length >= 1, 'GET /api/manifests -> HTTP 200');
 
-  // 8. Auth token generation
-  const auth = await checkEndpoint('/api/auth/token', 'POST');
-  if (auth && auth.token) {
-    console.log('    ✓ Cryptographic JWT token issued');
-  }
+  const auth = await checkEndpoint('/api/auth/token', 'POST', { email: 'admin@aiheaven.local', role: 'admin' });
+  report(auth.status === 200 && Boolean(auth.json?.token), 'POST /api/auth/token -> HTTP 200 with signed JWT');
 
-  // 9. Kill switch
-  const ks = await checkEndpoint('/api/kill-switch');
-  if (ks && ks.is_active === false) {
-    console.log('    ✓ Emergency Kill Switch ready and healthy');
-  }
+  const authMe = await checkEndpoint('/api/auth/me');
+  report(authMe.status === 200 && authMe.json?.authenticated === true, 'GET /api/auth/me -> HTTP 200');
 
-  // 10. Approvals
+  const killSwitch = await checkEndpoint('/api/kill-switch');
+  report(killSwitch.status === 200 && killSwitch.json?.is_active === false, 'GET /api/kill-switch -> HTTP 200 (healthy)');
+
   const approvals = await checkEndpoint('/api/approvals');
-  if (Array.isArray(approvals)) {
-    console.log('    ✓ Approvals queue queryable');
+  report(approvals.status === 200 && Array.isArray(approvals.json), 'GET /api/approvals -> HTTP 200 queue');
+
+  const events = await checkEndpoint('/api/events');
+  report(events.status === 200 && Array.isArray(events.json), 'GET /api/events -> HTTP 200 event stream');
+
+  const audit = await checkEndpoint('/api/audit');
+  report(audit.status === 200 && Array.isArray(audit.json), 'GET /api/audit -> HTTP 200 audit trail');
+
+  const opsOverview = await checkEndpoint('/api/operations/overview');
+  report(opsOverview.status === 200 && opsOverview.json?.status === 'online', 'GET /api/operations/overview -> HTTP 200 with online status and metrics');
+
+  const cleanupApprovals = await checkEndpoint('/api/operations/cleanup-stale-approvals', 'POST');
+  report(cleanupApprovals.status === 200 && cleanupApprovals.json?.success === true, 'POST /api/operations/cleanup-stale-approvals -> HTTP 200');
+
+  const recoverState = await checkEndpoint('/api/operations/recover-state', 'POST');
+  report(recoverState.status === 200 && recoverState.json?.success === true, 'POST /api/operations/recover-state -> HTTP 200');
+
+  // --- 2. Vercel Dual Routing Parity (stripped /api) ---
+  console.log('\n2. Vercel Dual Routing Parity (both /api/* and /* resolve):');
+  const healthRoot = await checkEndpoint('/health');
+  report(healthRoot.status === 200 && healthRoot.json?.status === 'healthy', 'GET /health -> HTTP 200 (parity with /api/health)');
+
+  const graphRoot = await checkEndpoint('/graph');
+  report(graphRoot.status === 200 && graphRoot.json?.nodes?.length > 0, 'GET /graph -> HTTP 200 (parity with /api/graph)');
+
+  // --- 3. Security Headers Verification ---
+  console.log('\n3. Hardened Security Headers:');
+  const sampleRes = await fetch(`${baseUrl}/api/health`);
+  const nosniff = sampleRes.headers.get('x-content-type-options');
+  report(nosniff === 'nosniff', 'Header X-Content-Type-Options: nosniff');
+
+  const frameOptions = sampleRes.headers.get('x-frame-options');
+  report(frameOptions === 'SAMEORIGIN', 'Header X-Frame-Options: SAMEORIGIN');
+
+  const referrerPolicy = sampleRes.headers.get('referrer-policy');
+  report(referrerPolicy === 'strict-origin-when-cross-origin', 'Header Referrer-Policy: strict-origin-when-cross-origin');
+
+  const permissionsPolicy = sampleRes.headers.get('permissions-policy');
+  report(Boolean(permissionsPolicy && permissionsPolicy.includes('camera=()')), 'Header Permissions-Policy: restrictive directives');
+
+  const csp = sampleRes.headers.get('content-security-policy');
+  report(Boolean(csp && csp.includes("default-src 'self'")), 'Header Content-Security-Policy: strict policy active');
+
+  const requestIdHeader = sampleRes.headers.get('x-request-id');
+  report(Boolean(requestIdHeader && requestIdHeader.startsWith('req_')), 'Header X-Request-Id: active request tracing');
+
+  // --- 4. Sensitive Path Exposure Blocker ---
+  console.log('\n4. Sensitive Path Blocking (Forbidden/Not Found, never SPA HTML):');
+  const sensitivePaths = [
+    '/.env',
+    '/.env.production',
+    '/.git/config',
+    '/backup.sql',
+    '/dump.bak',
+    '/server-status',
+    '/phpinfo.php'
+  ];
+
+  for (const sPath of sensitivePaths) {
+    const res = await fetch(`${baseUrl}${sPath}`);
+    const body = await res.text();
+    const contentType = res.headers.get('content-type') || '';
+    const isBlocked = res.status === 404 || res.status === 403;
+    const isNotHtml = !contentType.includes('text/html') && !body.includes('<!doctype html>');
+    report(isBlocked && isNotHtml, `Blocked sensitive path "${sPath}" (HTTP ${res.status}, non-HTML)`);
   }
 
-  // 11. Events
-  const events = await checkEndpoint('/api/events');
-  if (Array.isArray(events)) {
-    console.log('    ✓ Event spine queryable');
-  }
+  // --- 5. Secret Redaction Test ---
+  console.log('\n5. Secret Redaction & Leak Prevention:');
+  const bodyText = JSON.stringify(health.json) + JSON.stringify(healthDb.json);
+  report(!bodyText.includes('password') && !bodyText.includes('secret') && !bodyText.includes('ai_heaven_production_insecure'), 'Zero passwords or JWT secrets in API diagnostic responses');
 
   server.close();
 
   console.log('\n------------------------------------------------------');
-  console.log(`API SMOKE TESTS: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
+  console.log(`SECURITY & API REGRESSION TESTS: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
   console.log('------------------------------------------------------\n');
 
   if (failed > 0) process.exit(1);
 }
 
 runSmokeTests().catch(err => {
-  console.error('Smoke test suite error:', err);
+  console.error('Test runner failure:', err);
   process.exit(1);
 });
