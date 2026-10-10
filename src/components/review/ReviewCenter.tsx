@@ -323,13 +323,13 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-mono font-bold text-white">
-                      {report?.overallScore || 96}
+                      {report?.overallScore ?? '—'}
                     </span>
                     <span className="text-xs font-mono text-slate-400">/ 100</span>
                   </div>
                   <div className="text-xs text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>Production Grade Verified</span>
+                    <span>{report?.status === 'healthy' ? 'Production Grade Verified' : 'Review Required'}</span>
                   </div>
                 </div>
 
@@ -340,14 +340,14 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-mono font-bold text-white">
-                      {report?.metrics?.tests?.passed || 170}
+                      {report?.metrics?.tests?.passed ?? 0}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      / {report?.metrics?.tests?.total || 170} passed
+                      / {report?.metrics?.tests?.total ?? 0} passed
                     </span>
                   </div>
                   <div className="text-xs text-slate-400 font-mono">
-                    Execution time: {report?.metrics?.tests?.durationMs || 1650}ms
+                    Execution time: {report?.metrics?.tests?.durationMs ?? 0}ms
                   </div>
                 </div>
 
@@ -358,12 +358,12 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-mono font-bold text-white">
-                      {report?.metrics?.performance?.avgApiLatencyMs || 2.4}
+                      {report?.metrics?.performance?.avgApiLatencyMs ?? '—'}
                     </span>
                     <span className="text-xs font-mono text-slate-400">ms avg</span>
                   </div>
                   <div className="text-xs text-slate-400 font-mono">
-                    Heap memory: {report?.metrics?.performance?.memoryHeapMb || 34.2} MB
+                    Heap memory: {report?.metrics?.performance?.memoryHeapMb ?? '—'} MB
                   </div>
                 </div>
 
@@ -374,14 +374,14 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-mono font-bold text-emerald-400">
-                      {report?.metrics?.security?.blockedSensitivePaths || 7}
+                      {report?.metrics?.security?.blockedSensitivePaths ?? 0}
                     </span>
                     <span className="text-xs font-mono text-slate-400">
-                      / {report?.metrics?.security?.testedSensitivePaths || 7} blocked
+                      / {report?.metrics?.security?.testedSensitivePaths ?? 0} blocked
                     </span>
                   </div>
                   <div className="text-xs text-emerald-400 font-mono">
-                    0 exposed secrets · Frame active
+                    {report?.metrics?.security?.secretsExposed ?? 0} exposed secrets · Frame active
                   </div>
                 </div>
               </div>

@@ -23,6 +23,11 @@ import { executionManager } from '../services/sandbox/executionManager';
 import { agentRuntimeService } from '../services/sandbox/agentRuntimeService';
 import { postgresManager } from '../db/postgres';
 import { reviewService } from '../services/review/reviewService';
+import { openSourceDiscoveryService } from '../services/discovery/openSourceDiscoveryService';
+import { terminalExecutionService } from '../services/terminal/terminalExecutionService';
+import { knowledgeLearningService } from '../services/learning/knowledgeLearningService';
+import { autonomousEvolutionEngine } from '../services/evolution/evolutionEngine';
+import { centralBrainService } from '../services/brain/centralBrainService';
 
 dotenv.config();
 
@@ -108,8 +113,8 @@ const defaultAgent: AgentDefinition = {
   owner_id: currentUser.id,
   project_id: defaultProject.id,
   workspace_id: defaultWorkspace.id,
-  name: 'AI Heaven Droid Prime',
-  description: 'Autonomous platform engineering worker equipped with sandboxed terminal, scoped filesystem, and MCP inspection capabilities.',
+  name: 'AI Heaven Droid Prime (Architect & Planner)',
+  description: 'Primary platform engineering droid equipped with task planner, terminal execution, and MCP inspection capabilities.',
   status: 'idle',
   permissions: {
     allowed_tools: ['tool_terminal_sandbox', 'tool_fs_scoped', 'tool_mcp_client', 'tool_github_sync'],
@@ -121,12 +126,31 @@ const defaultAgent: AgentDefinition = {
   updated_at: new Date().toISOString()
 };
 
+const defaultAgentSecOps: AgentDefinition = {
+  id: 'agent_droid_secops',
+  owner_id: currentUser.id,
+  project_id: defaultProject.id,
+  workspace_id: defaultWorkspace.id,
+  name: 'AI Heaven Droid SecOps (Security & Test Evaluator)',
+  description: 'Specialized sandbox and security evaluator droid for code policy enforcement, automated testing, and regression analysis.',
+  status: 'idle',
+  permissions: {
+    allowed_tools: ['tool_terminal_sandbox', 'tool_fs_scoped'],
+    network_access: false,
+    filesystem_scope: 'read_only',
+    requires_approval_for_destructive: true
+  },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
 let projects: Project[] = [defaultProject];
 let workspaces: Workspace[] = [defaultWorkspace];
-let agents: AgentDefinition[] = [defaultAgent];
+let agents: AgentDefinition[] = [defaultAgent, defaultAgentSecOps];
 
 workspaceFilesystem.ensureWorkspaceInitialized(defaultWorkspace.id);
 agentRuntimeService.registerWorker(defaultAgent);
+agentRuntimeService.registerWorker(defaultAgentSecOps);
 
 const registeredTools: ToolDefinition[] = [
   {
@@ -979,6 +1003,11 @@ export function createExpressApp(): express.Express {
     }
   });
 
+  // Alias for operator overview
+  apiRouter.get('/operator/overview', async (req: Request, res: Response) => {
+    res.redirect(307, '/api/operations/overview');
+  });
+
   apiRouter.post('/operations/recover-state', async (req: Request, res: Response) => {
     try {
       let result;
@@ -1062,6 +1091,348 @@ export function createExpressApp(): express.Express {
         tests: report.metrics.tests,
         timestamp: report.timestamp
       });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // TERMINAL & ISOLATED WORKSPACE EXECUTION ROUTES
+  // =========================================================================
+  apiRouter.post('/terminal/execute', async (req: Request, res: Response) => {
+    try {
+      const result = await terminalExecutionService.executeCommand(req.body);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/terminal/cancel', (req: Request, res: Response) => {
+    const success = terminalExecutionService.cancelExecution(req.body?.execution_id);
+    res.json({ success });
+  });
+
+  apiRouter.get('/terminal/history', (req: Request, res: Response) => {
+    res.json({ history: terminalExecutionService.getHistory() });
+  });
+
+  apiRouter.get('/terminal/workspace/files', async (req: Request, res: Response) => {
+    try {
+      const workspaceId = (req.query.workspace_id as string) || 'ws_default_demo';
+      const files = await workspaceFilesystem.listFiles(workspaceId, undefined, 'workspace_only');
+      res.json({ files });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/terminal/workspace/file', async (req: Request, res: Response) => {
+    try {
+      const workspaceId = (req.query.workspace_id as string) || 'ws_default_demo';
+      const filePath = req.query.path as string;
+      if (!filePath) return res.status(400).json({ error: 'path parameter required' });
+      const file = await workspaceFilesystem.readFile(workspaceId, filePath, 'workspace_only');
+      res.json(file);
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/terminal/workspace/file', async (req: Request, res: Response) => {
+    try {
+      const workspaceId = req.body?.workspace_id || 'ws_default_demo';
+      const { path: filePath, content } = req.body;
+      if (!filePath) return res.status(400).json({ error: 'path required' });
+      await workspaceFilesystem.writeFile(workspaceId, filePath, content ?? '', 'workspace_only');
+      res.json({ success: true, path: filePath });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/terminal/workspace/import-repo', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, workspace_id } = req.body;
+      if (!owner || !repo) return res.status(400).json({ error: 'owner and repo required' });
+      const workspaceId = workspace_id || 'ws_default_demo';
+      const result = await terminalExecutionService.importRepoToWorkspace(owner, repo, workspaceId);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // UNIVERSAL OPEN-SOURCE DISCOVERY & KNOWLEDGE ROUTES
+  // =========================================================================
+  apiRouter.get('/discovery/search', async (req: Request, res: Response) => {
+    try {
+      const query = (req.query.q as string) || '';
+      const source = (req.query.source as any) || 'all';
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const perPage = parseInt(req.query.per_page as string, 10) || 10;
+      const result = await openSourceDiscoveryService.search(query, source, page, perPage);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/discovery/repo/:owner/:repo', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo } = req.params;
+      const details = await openSourceDiscoveryService.getRepoDetails(owner, repo);
+      res.json(details);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/discovery/rate-limit', (req: Request, res: Response) => {
+    res.json(openSourceDiscoveryService.getRateLimitInfo());
+  });
+
+  apiRouter.get('/learning/guide/:slugOrName', async (req: Request, res: Response) => {
+    try {
+      const guide = await knowledgeLearningService.getKnowledgeGuide(req.params.slugOrName);
+      res.json(guide);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // AUTONOMOUS EVOLUTION ENGINE ROUTES
+  // =========================================================================
+  apiRouter.get('/evolution/state', (req: Request, res: Response) => {
+    res.json(autonomousEvolutionEngine.getActiveState());
+  });
+
+  apiRouter.get('/evolution/candidates', (req: Request, res: Response) => {
+    res.json({ candidates: autonomousEvolutionEngine.getCandidates() });
+  });
+
+  apiRouter.get('/evolution/history', (req: Request, res: Response) => {
+    res.json({ history: autonomousEvolutionEngine.getHistory() });
+  });
+
+  apiRouter.post('/evolution/experiments/run', async (req: Request, res: Response) => {
+    try {
+      const candidateId = req.body?.candidate_id;
+      if (!candidateId) return res.status(400).json({ error: 'candidate_id is required' });
+      const result = await autonomousEvolutionEngine.runExperiment(candidateId);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/evolution/candidates/:id/promote', (req: Request, res: Response) => {
+    try {
+      const result = autonomousEvolutionEngine.promoteCandidate(req.params.id);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/evolution/rollback', (req: Request, res: Response) => {
+    try {
+      const result = autonomousEvolutionEngine.rollback();
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // CENTRAL BRAIN & MODEL ROUTER ROUTES
+  // =========================================================================
+  apiRouter.get('/brain/models', (req: Request, res: Response) => {
+    res.json({ models: centralBrainService.getModels() });
+  });
+
+  apiRouter.get('/brain/decisions', (req: Request, res: Response) => {
+    res.json({ decisions: centralBrainService.getDecisions() });
+  });
+
+  apiRouter.post('/brain/classify', (req: Request, res: Response) => {
+    try {
+      const query = req.body?.query;
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'query string is required' });
+      }
+      const classification = centralBrainService.classifyRequest(query);
+      res.json(classification);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/brain/orchestrate', (req: Request, res: Response) => {
+    try {
+      const { goal, domain } = req.body;
+      if (!goal || typeof goal !== 'string') {
+        return res.status(400).json({ error: 'goal string is required' });
+      }
+      const plan = centralBrainService.createOrchestrationPlan(goal, domain);
+      res.json(plan);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/brain/plans/:planId', (req: Request, res: Response) => {
+    const plan = centralBrainService.getPlan(req.params.planId);
+    if (!plan) return res.status(404).json({ error: 'Plan not found' });
+    res.json(plan);
+  });
+
+  apiRouter.post('/brain/plans/:planId/advance', (req: Request, res: Response) => {
+    try {
+      const { subtaskId, output } = req.body;
+      if (!subtaskId) return res.status(400).json({ error: 'subtaskId is required' });
+      const plan = centralBrainService.advanceSubtask(req.params.planId, subtaskId, output);
+      if (!plan) return res.status(404).json({ error: 'Plan or subtask not found' });
+      res.json(plan);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // PERSISTENT CONVERSATIONS & MEMORY ROUTES
+  // =========================================================================
+  apiRouter.get('/conversations/search', (req: Request, res: Response) => {
+    const q = (req.query.q as string) || '';
+    res.json({ conversations: centralBrainService.searchConversations(q) });
+  });
+
+  apiRouter.get('/conversations', (req: Request, res: Response) => {
+    res.json({ conversations: centralBrainService.listConversations() });
+  });
+
+  apiRouter.post('/conversations', (req: Request, res: Response) => {
+    try {
+      const { title, model } = req.body || {};
+      const thread = centralBrainService.createConversation(title, model);
+      res.json(thread);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.put('/conversations/:id', (req: Request, res: Response) => {
+    try {
+      const { title, model, projectId, projectName, isAutoRouting } = req.body || {};
+      const id = req.params.id;
+      let thread = centralBrainService.getConversation(id);
+      if (!thread) return res.status(404).json({ error: 'Conversation not found' });
+
+      if (title) centralBrainService.renameConversation(id, title);
+      if (model) centralBrainService.setConversationModel(id, model, isAutoRouting);
+      if (projectId) centralBrainService.associateProject(id, projectId, projectName);
+
+      thread = centralBrainService.getConversation(id);
+      res.json(thread);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.delete('/conversations/:id', (req: Request, res: Response) => {
+    const deleted = centralBrainService.deleteConversation(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Conversation not found' });
+    res.json({ success: true, id: req.params.id });
+  });
+
+  apiRouter.get('/providers/status', (req: Request, res: Response) => {
+    res.json({ providers: centralBrainService.getProviderStatuses() });
+  });
+
+  apiRouter.get('/conversations/:id/messages', (req: Request, res: Response) => {
+    const messages = centralBrainService.getMessages(req.params.id);
+    res.json({ messages });
+  });
+
+  apiRouter.post('/conversations/:id/messages', (req: Request, res: Response) => {
+    try {
+      const { role, content, agentName, modelUsed } = req.body || {};
+      if (!content) return res.status(400).json({ error: 'content is required' });
+      const msg = centralBrainService.addMessage(
+        req.params.id,
+        role || 'user',
+        content,
+        agentName,
+        modelUsed
+      );
+      res.json(msg);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // TASK CHECKPOINTS ROUTES
+  // =========================================================================
+  apiRouter.get('/checkpoints', (req: Request, res: Response) => {
+    const taskId = req.query.task_id as string | undefined;
+    res.json({ checkpoints: centralBrainService.getCheckpoints(taskId) });
+  });
+
+  apiRouter.post('/checkpoints', (req: Request, res: Response) => {
+    try {
+      const { taskId, title, stepIndex, snapshot } = req.body || {};
+      if (!taskId || !title) return res.status(400).json({ error: 'taskId and title are required' });
+      const cp = centralBrainService.createCheckpoint(taskId, title, stepIndex || 0, snapshot || {});
+      res.json(cp);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/checkpoints/:id/restore', (req: Request, res: Response) => {
+    const result = centralBrainService.restoreCheckpoint(req.params.id);
+    if (!result.success) return res.status(404).json(result);
+    res.json(result);
+  });
+
+  // =========================================================================
+  // PROVIDER QUOTAS & ACCOUNTS
+  // =========================================================================
+  apiRouter.get('/quotas', (req: Request, res: Response) => {
+    res.json({ quotas: centralBrainService.getQuotas() });
+  });
+
+  apiRouter.post('/quotas/update', (req: Request, res: Response) => {
+    try {
+      const { providerId, requests, tokens, hasError } = req.body || {};
+      if (!providerId) return res.status(400).json({ error: 'providerId required' });
+      const updated = centralBrainService.updateQuotaMetrics(providerId, requests, tokens, hasError);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/accounts/google', (req: Request, res: Response) => {
+    res.json({
+      activeAccount: centralBrainService.getActiveGoogleAccount(),
+      availableAccounts: [
+        'developer-ai-studio@gmail.com',
+        'engineering-ops@gmail.com',
+        'platform-admin@enterprise.google.com'
+      ]
+    });
+  });
+
+  apiRouter.post('/accounts/google/switch', (req: Request, res: Response) => {
+    try {
+      const email = req.body?.email;
+      if (!email) return res.status(400).json({ error: 'email is required' });
+      const result = centralBrainService.switchGoogleAccount(email);
+      res.json(result);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

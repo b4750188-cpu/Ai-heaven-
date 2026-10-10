@@ -1156,6 +1156,427 @@ class AIHeavenApiClient {
     if (!res.ok) throw new Error(`Failed to run automated test runner (HTTP ${res.status})`);
     return await res.json();
   }
+
+  // --- Terminal & Isolated Workspace Execution ---
+
+  public async executeTerminalCommand(data: {
+    command: string;
+    workspace_id?: string;
+    timeout_seconds?: number;
+    approved?: boolean;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/terminal/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Terminal execution failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async cancelTerminalExecution(executionId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/terminal/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ execution_id: executionId })
+    });
+    if (!res.ok) throw new Error(`Cancel request failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getTerminalHistory(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/terminal/history`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.history || [];
+  }
+
+  public async getWorkspaceFiles(workspaceId: string = 'ws_default_demo'): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/terminal/workspace/files?workspace_id=${encodeURIComponent(workspaceId)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to list workspace files`);
+    const data = await res.json();
+    return data.files || [];
+  }
+
+  public async readTerminalWorkspaceFile(workspaceId: string = 'ws_default_demo', path: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/terminal/workspace/file?workspace_id=${encodeURIComponent(workspaceId)}&path=${encodeURIComponent(path)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to read file ${path}`);
+    return await res.json();
+  }
+
+  public async writeTerminalWorkspaceFile(workspaceId: string = 'ws_default_demo', path: string, content: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/terminal/workspace/file`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ workspace_id: workspaceId, path, content })
+    });
+    if (!res.ok) throw new Error(`Failed to write file ${path}`);
+    return await res.json();
+  }
+
+  public async importRepoToWorkspace(owner: string, repo: string, workspaceId: string = 'ws_default_demo'): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/terminal/workspace/import-repo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ owner, repo, workspace_id: workspaceId })
+    });
+    if (!res.ok) throw new Error(`Failed to import repo ${owner}/${repo}`);
+    return await res.json();
+  }
+
+  // --- Universal Open-Source Discovery & Knowledge ---
+
+  public async searchDiscovery(query: string = '', source: string = 'all', page: number = 1, perPage: number = 10): Promise<any> {
+    const res = await fetch(
+      `${this.baseUrl}/discovery/search?q=${encodeURIComponent(query)}&source=${encodeURIComponent(source)}&page=${page}&per_page=${perPage}`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+    if (!res.ok) throw new Error(`Discovery search failed with HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getRepoDiscoveryDetails(owner: string, repo: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/discovery/repo/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch repo details for ${owner}/${repo}`);
+    return await res.json();
+  }
+
+  public async getDiscoveryRateLimit(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/discovery/rate-limit`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async getLearningGuide(slugOrName: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/learning/guide/${encodeURIComponent(slugOrName)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to fetch learning guide for ${slugOrName}`);
+    return await res.json();
+  }
+
+  // --- Autonomous Evolution Engine ---
+
+  public async getEvolutionState(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/evolution/state`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async getEvolutionCandidates(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/evolution/candidates`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.candidates || [];
+  }
+
+  public async getEvolutionHistory(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/evolution/history`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.history || [];
+  }
+
+  public async runEvolutionExperiment(candidateId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/evolution/experiments/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ candidate_id: candidateId })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || 'Experiment execution failed');
+    }
+    return await res.json();
+  }
+
+  public async promoteEvolutionCandidate(candidateId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/evolution/candidates/${encodeURIComponent(candidateId)}/promote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || 'Promotion failed');
+    }
+    return await res.json();
+  }
+
+  public async rollbackEvolution(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/evolution/rollback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || 'Rollback failed');
+    }
+    return await res.json();
+  }
+
+  // --- Central Brain & Multi-Agent Orchestration ---
+  public async getBrainModels(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/brain/models`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.models || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getBrainDecisions(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/brain/decisions`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.decisions || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async classifyRequest(query: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/classify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if (!res.ok) throw new Error(`Classification failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async orchestrateBrainPlan(goal: string, domain?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/orchestrate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ goal, domain })
+    });
+    if (!res.ok) throw new Error(`Orchestration failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getBrainPlan(planId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/plans/${encodeURIComponent(planId)}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async advanceBrainPlan(planId: string, subtaskId: string, output?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/plans/${encodeURIComponent(planId)}/advance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ subtaskId, output })
+    });
+    if (!res.ok) throw new Error(`Advancing plan failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Conversations & Persistent Memory ---
+  public async getConversations(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/conversations`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.conversations || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async searchConversations(query: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/conversations/search?q=${encodeURIComponent(query)}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.conversations || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async updateConversation(id: string, data: {
+    title?: string;
+    model?: string;
+    projectId?: string;
+    projectName?: string;
+    isAutoRouting?: boolean;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/conversations/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Update conversation failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async deleteConversation(id: string): Promise<boolean> {
+    const res = await fetch(`${this.baseUrl}/conversations/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    return res.ok;
+  }
+
+  public async getProviderStatuses(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/providers/status`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.providers || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async createConversation(title?: string, model?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/conversations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ title, model })
+    });
+    if (!res.ok) throw new Error(`Failed to create conversation: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getConversationMessages(id: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/conversations/${encodeURIComponent(id)}/messages`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.messages || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async sendConversationMessage(
+    id: string,
+    content: string,
+    role: string = 'user',
+    agentName?: string,
+    modelUsed?: string
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/conversations/${encodeURIComponent(id)}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ role, content, agentName, modelUsed })
+    });
+    if (!res.ok) throw new Error(`Failed to send message: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Checkpoints & Resumption ---
+  public async getCheckpoints(taskId?: string): Promise<any[]> {
+    try {
+      const url = taskId ? `${this.baseUrl}/checkpoints?task_id=${encodeURIComponent(taskId)}` : `${this.baseUrl}/checkpoints`;
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.checkpoints || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async createCheckpoint(taskId: string, title: string, stepIndex: number = 0, snapshot: any = {}): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/checkpoints`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ taskId, title, stepIndex, snapshot })
+    });
+    if (!res.ok) throw new Error(`Failed to create checkpoint: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async restoreCheckpoint(checkpointId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/checkpoints/${encodeURIComponent(checkpointId)}/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to restore checkpoint: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Provider Quotas & Accounts ---
+  public async getQuotas(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/quotas`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.quotas || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async updateQuota(providerId: string, requests?: number, tokens?: number, hasError?: boolean): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/quotas/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ providerId, requests, tokens, hasError })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async getGoogleAccounts(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/accounts/google`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return { activeAccount: 'developer-ai-studio@gmail.com', availableAccounts: [] };
+      return await res.json();
+    } catch {
+      return { activeAccount: 'developer-ai-studio@gmail.com', availableAccounts: [] };
+    }
+  }
+
+  public async switchGoogleAccount(email: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/accounts/google/switch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (!res.ok) throw new Error(`Account switch failed: HTTP ${res.status}`);
+    return await res.json();
+  }
 }
 
 export const apiClient = new AIHeavenApiClient();

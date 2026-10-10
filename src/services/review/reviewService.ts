@@ -184,7 +184,7 @@ class ReviewService {
         let reconciledCount = 0;
         for (const w of workers) {
           if (w.state === 'EXECUTING' || w.state === 'STARTING') {
-            agentRuntimeService.resetWorkerState(w.id);
+            agentRuntimeService.resetWorkerState(w.agent_id);
             reconciledCount++;
           }
         }
@@ -237,7 +237,7 @@ class ReviewService {
       '/api/resources',
       '/api/graph',
       '/api/tools',
-      '/api/operator/overview'
+      '/api/operations/overview'
     ];
 
     const baseUrl = 'http://127.0.0.1:3000';
@@ -535,7 +535,7 @@ class ReviewService {
     });
 
     // Check 3: Check pending approvals count
-    const pendingApprovals = executionManager.listApprovals({ status: 'pending' });
+    const pendingApprovals = executionManager.listApprovals(undefined, 'pending');
     if (pendingApprovals.length > 5) {
       findings.push({
         id: 'finding_pending_approvals_backlog',
@@ -562,7 +562,7 @@ class ReviewService {
         title: `Stuck Workers Detected: ${stuckWorkers.length} non-idle workers`,
         filePath: 'src/services/sandbox/agentRuntimeService.ts',
         line: 95,
-        evidence: `Workers ${stuckWorkers.map(w => w.id).join(', ')} currently flagged in active execution without active task correlation.`,
+        evidence: `Workers ${stuckWorkers.map(w => w.agent_id).join(', ')} currently flagged in active execution without active task correlation.`,
         recommendation: 'Trigger safe worker reconciliation to reset workers to READY.',
         proposedFix: this.activeFixes.get('fix_reconcile_workers'),
         resolved: false

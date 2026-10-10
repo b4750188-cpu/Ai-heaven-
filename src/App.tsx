@@ -27,6 +27,11 @@ const ActivityView = lazy(() => import('./components/activity/ActivityView').the
 const DocsView = lazy(() => import('./components/docs/DocsView').then(m => ({ default: m.DocsView })));
 const OperatorDashboard = lazy(() => import('./components/operations/OperatorDashboard').then(m => ({ default: m.OperatorDashboard })));
 const ReviewCenter = lazy(() => import('./components/review/ReviewCenter').then(m => ({ default: m.ReviewCenter })));
+const TerminalWorkspace = lazy(() => import('./components/terminal/TerminalWorkspace').then(m => ({ default: m.TerminalWorkspace })));
+const CentralBrainView = lazy(() => import('./components/brain/CentralBrainView').then(m => ({ default: m.CentralBrainView })));
+const ConversationsView = lazy(() => import('./components/memory/ConversationsView').then(m => ({ default: m.ConversationsView })));
+const EvolutionView = lazy(() => import('./components/evolution/EvolutionView').then(m => ({ default: m.EvolutionView })));
+const GoogleIntegrationView = lazy(() => import('./components/google/GoogleIntegrationView').then(m => ({ default: m.GoogleIntegrationView })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -254,6 +259,22 @@ export default function App() {
           />
         )}
 
+        {currentView === 'brain' && (
+          <CentralBrainView />
+        )}
+
+        {currentView === 'memory' && (
+          <ConversationsView />
+        )}
+
+        {currentView === 'evolution' && (
+          <EvolutionView />
+        )}
+
+        {currentView === 'google' && (
+          <GoogleIntegrationView />
+        )}
+
         {currentView === 'explore' && (
           <ResourceExplorer
             resources={resources}
@@ -265,6 +286,10 @@ export default function App() {
             onNavigateKnowledgeGraph={() => setCurrentView('graph')}
             onNavigateAgents={() => setCurrentView('agents')}
           />
+        )}
+
+        {currentView === 'terminal' && (
+          <TerminalWorkspace />
         )}
 
         {currentView === 'agents' && (

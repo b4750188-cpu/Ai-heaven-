@@ -4,9 +4,11 @@ import {
   Bell,
   BookOpen,
   Bot,
+  Brain,
   Building2,
   CheckCircle2,
   ClipboardCheck,
+  Cloud,
   Compass,
   Database,
   ExternalLink,
@@ -16,6 +18,7 @@ import {
   Layers,
   ListTodo,
   Menu,
+  MessageSquare,
   Network,
   RefreshCw,
   Search,
@@ -26,6 +29,7 @@ import {
   Terminal,
   User,
   Workflow,
+  Wrench,
   X
 } from 'lucide-react';
 import React, { useState } from 'react';
@@ -33,7 +37,12 @@ import { Badge } from '../ui/Badge';
 
 export type ShellView =
   | 'home'
+  | 'brain'
+  | 'memory'
+  | 'evolution'
+  | 'google'
   | 'explore'
+  | 'terminal'
   | 'agents'
   | 'graph'
   | 'tools'
@@ -73,22 +82,27 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   // Grouped Navigation Items matching the design specification
   const primaryNav = [
-    { id: 'home' as ShellView, label: 'Home', icon: Home },
-    { id: 'explore' as ShellView, label: 'Resources', icon: Compass },
+    { id: 'home' as ShellView, label: 'Command Center', icon: Home },
+    { id: 'brain' as ShellView, label: 'AI Brain & Router', icon: Brain },
     {
       id: 'agents' as ShellView,
-      label: 'Droids',
+      label: 'Agent Fleet & Droids',
       icon: Bot,
       badge: pendingApprovalsCount > 0 ? String(pendingApprovalsCount) : undefined,
       badgeVariant: 'warning' as const
     },
-    { id: 'graph' as ShellView, label: 'Knowledge Graph', icon: Network }
+    { id: 'memory' as ShellView, label: 'Memory & Threads', icon: MessageSquare },
+    { id: 'terminal' as ShellView, label: 'Terminal & Sandbox', icon: Terminal },
+    { id: 'explore' as ShellView, label: 'Open-Source Explorer', icon: Compass }
   ];
 
   const platformNav = [
-    { id: 'providers' as ShellView, label: 'Providers', icon: Building2 },
-    { id: 'tools' as ShellView, label: 'Tools', icon: Terminal },
-    { id: 'projects' as ShellView, label: 'Projects', icon: FolderGit2 },
+    { id: 'google' as ShellView, label: 'Google & Drive', icon: Cloud },
+    { id: 'evolution' as ShellView, label: 'Autonomous Evolution', icon: Flame },
+    { id: 'graph' as ShellView, label: 'Knowledge Graph', icon: Network },
+    { id: 'projects' as ShellView, label: 'Projects & Workspaces', icon: FolderGit2 },
+    { id: 'providers' as ShellView, label: 'Providers & Quotas', icon: Building2 },
+    { id: 'tools' as ShellView, label: 'Tools', icon: Wrench },
     {
       id: 'tasks' as ShellView,
       label: 'Tasks & Approvals',
@@ -99,8 +113,8 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   const systemNav = [
     { id: 'review' as ShellView, label: 'Review Center', icon: ClipboardCheck },
-    { id: 'operations' as ShellView, label: 'Operations', icon: Server },
-    { id: 'activity' as ShellView, label: 'Activity', icon: Activity },
+    { id: 'operations' as ShellView, label: 'Operations & Health', icon: Server },
+    { id: 'activity' as ShellView, label: 'Activity Logs', icon: Activity },
     { id: 'connectors' as ShellView, label: 'Connectors', icon: Workflow },
     { id: 'settings' as ShellView, label: 'Settings', icon: Settings },
     { id: 'docs' as ShellView, label: 'Documentation', icon: BookOpen }
