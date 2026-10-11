@@ -1744,6 +1744,255 @@ class AIHeavenApiClient {
     if (!res.ok) return null;
     return await res.json();
   }
+
+  // ==========================================
+  // AUTHENTICATION & MULTI-PROVIDER METHODS
+  // ==========================================
+
+  private authToken: string | null = null;
+
+  public setAuthToken(token: string | null): void {
+    this.authToken = token;
+    if (typeof window !== 'undefined') {
+      if (token) localStorage.setItem('aiheaven_auth_token', token);
+      else localStorage.removeItem('aiheaven_auth_token');
+    }
+  }
+
+  public getAuthToken(): string | null {
+    if (!this.authToken && typeof window !== 'undefined') {
+      this.authToken = localStorage.getItem('aiheaven_auth_token');
+    }
+    return this.authToken;
+  }
+
+  private getAuthHeaders(extra: Record<string, string> = {}): Record<string, string> {
+    const token = this.getAuthToken();
+    return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extra
+    };
+  }
+
+  public async getAuthProviders(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/providers`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.providers || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async registerAccount(email: string, password: string, fullName: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email, password, fullName })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    if (data.accessToken) this.setAuthToken(data.accessToken);
+    return data;
+  }
+
+  public async loginWithPassword(email: string, password: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (data.accessToken) this.setAuthToken(data.accessToken);
+    return data;
+  }
+
+  public async loginWithOAuth(
+    provider: string,
+    providerUserId: string,
+    email: string,
+    fullName?: string,
+    avatarUrl?: string
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/oauth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ provider, providerUserId, email, fullName, avatarUrl })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'OAuth sign-in failed');
+    if (data.accessToken) this.setAuthToken(data.accessToken);
+    return data;
+  }
+
+  public async getAuthCurrentUser(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/me`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  public async getAllUsersForSwitcher(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/users`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.users || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async switchAccount(targetUserId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/switch`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ targetUserId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Account switch failed');
+    if (data.accessToken) this.setAuthToken(data.accessToken);
+    return data;
+  }
+
+  public async linkAccount(provider: string, providerUserId: string, email?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/link`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ provider, providerUserId, email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Account linking failed');
+    return data;
+  }
+
+  public async unlinkAccount(provider: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/unlink`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ provider })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Account unlinking failed');
+    return data;
+  }
+
+  public async logoutAuth(): Promise<void> {
+    try {
+      await fetch(`${this.baseUrl}/auth/logout`, {
+        method: 'POST',
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+    } catch {
+      // Best effort
+    }
+    this.setAuthToken(null);
+  }
+
+  // ==========================================
+  // AUTONOMOUS BUG-BOUNTY PLATFORM METHODS
+  // ==========================================
+
+  public async getBugHuntWorkspace(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/workspace`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Failed to load bug hunt workspace: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getBugHuntPrograms(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/programs`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.programs || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getBugHuntDroids(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/droids`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.droids || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getBugHuntFindings(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/findings`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.findings || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getBugHuntJob(huntId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/hunts/${encodeURIComponent(huntId)}`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Failed to load hunt job: HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async startAutonomousBugHunt(programId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/start`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ programId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to start autonomous bug hunt');
+    return data;
+  }
+
+  public async startCustomBugHunt(title: string, config: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/custom`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ title, config })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to start custom bug hunt');
+    return data;
+  }
+
+  public async verifyTargetScope(target: string, programId?: string): Promise<{ authorized: boolean; reason?: string }> {
+    const res = await fetch(`${this.baseUrl}/bughunt/verify-scope`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ target, programId })
+    });
+    if (!res.ok) return { authorized: false, reason: 'Failed to verify scope' };
+    return await res.json();
+  }
 }
 
 export const apiClient = new AIHeavenApiClient();

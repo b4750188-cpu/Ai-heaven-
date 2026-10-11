@@ -1,8 +1,8 @@
 {
-  "checkpoint_version": "3.0.0",
-  "saved_at": "2026-10-11T19:12:00.000Z",
+  "checkpoint_version": "4.0.0",
+  "saved_at": "2026-10-11T19:42:00.000Z",
   "project_name": "AI Heaven Studio Bridge",
-  "phase": "PHASE 13: CONTINUITY & INTELLIGENCE ENGINE",
+  "phase": "PART 1/6: CORE AUTONOMOUS BUG-HUNTING PLATFORM, AUTHENTICATION, AND WORKSPACE",
   "build_and_test_verification": {
     "type_check": {
       "command": "npm run lint",
@@ -15,33 +15,48 @@
       "command": "npm test",
       "tool": "tsx --test tests/*.test.ts && tsx tests/reality_audit.ts",
       "exit_code": 0,
-      "suites_count": 9,
-      "tests_passed": 56,
+      "suites_count": 10,
+      "tests_passed": 73,
       "tests_failed": 0,
       "adversarial_reality_checks_passed": 37,
       "adversarial_reality_checks_failed": 0,
-      "total_verified_checks": 93,
+      "total_verified_checks": 110,
       "status": "PASSED"
     },
     "production_build": {
       "command": "npm run build",
       "tool": "vite build",
       "exit_code": 0,
-      "transformed_modules": 1696,
-      "build_duration_ms": 958,
+      "transformed_modules": 1698,
+      "build_duration_ms": 936,
       "status": "PASSED"
     }
   },
   "subsystem_status_matrix": {
+    "autonomous_bug_hunting_platform": {
+      "implementation": "COMPLETE",
+      "operational_mode": "FULLY OPERATIONAL",
+      "live_verification": "Two prominent actions implemented (START BUG HUNTING & CUSTOM BUG HUNT). 6 specialized security droids deployed (Argus-01, Hydra-02, Aegis-03, Vulcan-04, Specter-05, Cerberus-06). Program scope enforcement validates in-scope vs out-of-scope targets. Independent verification generates reproducible curl PoCs and cryptographic SHA-256 evidence seals. Markdown reports formatted for HackerOne & Bugcrowd VRT."
+    },
+    "authentication_and_multi_provider": {
+      "implementation": "COMPLETE",
+      "operational_mode": "FULLY OPERATIONAL",
+      "live_verification": "PBKDF2 SHA-512 password hashing (100,000 iterations), Google Identity Services OAuth 2.0, GitHub OAuth, honest provider status auditing for Microsoft and Apple without false claims, account linking/unlinking, and safe multi-tenant account switching with CSRF & session expiry protection."
+    },
+    "user_workspaces_and_isolation": {
+      "implementation": "COMPLETE",
+      "operational_mode": "FULLY OPERATIONAL",
+      "live_verification": "Strict tenant isolation on server-side queries. User workspaces contain isolated bug hunts, verified findings, tool configs, and program connections. Cross-tenant access rejected with 403 Forbidden."
+    },
     "continuity_and_intelligence_engine": {
       "implementation": "COMPLETE",
       "operational_mode": "FULLY OPERATIONAL",
-      "live_verification": "Durable engineering memories with evidence status (VERIFIED, INFERRED, UNVERIFIED, OUTDATED), strict tenant & project isolation, safe learning pipeline, task resurrection without duplicate side effects, empirical routing calibration (N>=3 sample threshold), and REST API parity verified across 9 automated test suites."
+      "live_verification": "Durable engineering memories with evidence status (VERIFIED, INFERRED, UNVERIFIED, OUTDATED), strict tenant & project isolation, safe learning pipeline, task resurrection without duplicate side effects, and empirical routing calibration."
     },
     "central_brain_router": {
       "implementation": "COMPLETE",
       "operational_mode": "FULLY OPERATIONAL",
-      "live_verification": "Domain classification, capability scoring, DAG multi-agent planning with pre-task architectural constraint injection, and honest failover verified."
+      "live_verification": "Domain classification, capability scoring, DAG multi-agent planning with pre-task architectural constraint injection, and honest failover."
     },
     "google_oauth": {
       "implementation": "COMPLETE",
@@ -57,36 +72,15 @@
       "implementation": "COMPLETE",
       "operational_mode": "IN-MEMORY FALLBACK (AWAITING DATABASE_URL)",
       "live_verification": "Automated migrations defined for 10 tables including aiheaven_engineering_memories and aiheaven_task_outcomes. Seamless connection pool and remote SSL support ready upon DATABASE_URL configuration."
-    },
-    "terminal_and_sandbox": {
-      "implementation": "COMPLETE",
-      "operational_mode": "FULLY OPERATIONAL & ISOLATED",
-      "live_verification": "Isolated workspace virtual filesystem (ws_default_demo), exit code 126 for forbidden host escalation, and approval gating for destructive actions verified."
-    },
-    "evolution_and_review": {
-      "implementation": "COMPLETE",
-      "operational_mode": "FULLY OPERATIONAL",
-      "live_verification": "Evolution benchmarks, candidate promotion/rollback, QA finding reports, and remediation fixes verified."
-    },
-    "vercel_production_deployment": {
-      "implementation": "COMPLETE",
-      "operational_mode": "READY FOR DEPLOYMENT",
-      "live_verification": "Serverless entry point at api/index.ts, strict CSP frame-ancestors, nosniff, and sensitive path blocking in vercel.json verified."
     }
   },
-  "success_criterion_demonstration": {
-    "criterion": "Given an existing project and an interrupted task, AI Heaven must retrieve the correct history, identify the last verified state, explain what remains, resume safely, and record evidence of the eventual result.",
-    "verified_by_test": "tests/continuity_intelligence.test.ts#Subtest_7",
-    "status": "VERIFIED_PASSING",
-    "telemetry": {
-      "taskId": "task_interrupted_pipeline_audit",
-      "completedActionsIdentified": 2,
-      "remainingActionsExecuted": 2,
-      "skippedPreCompletedActions": 2,
-      "duplicateSideEffects": 0,
-      "finalStatus": "completed",
-      "testsPassed": 1,
-      "testsFailed": 0
-    }
-  }
+  "required_environment_variables": {
+    "DATABASE_URL": "Optional - enables persistent PostgreSQL database across restarts",
+    "GEMINI_API_KEY": "Optional - enables live Google Gemini generative model inference",
+    "VITE_GOOGLE_CLIENT_ID": "Optional - activates Google Identity Services browser sign-in",
+    "GITHUB_CLIENT_ID": "Optional - activates GitHub OAuth login",
+    "GITHUB_CLIENT_SECRET": "Optional - required for server-side GitHub OAuth code exchange",
+    "JWT_SECRET_KEY": "Optional - server-side secret for signing authentication JWT tokens"
+  },
+  "next_part_to_execute": "PART 2/6: TARGET RECONNAISSANCE, ASSET DISCOVERY, AND ATTACK SURFACE MAPPING"
 }

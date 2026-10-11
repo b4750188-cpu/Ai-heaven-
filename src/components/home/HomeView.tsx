@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Zap,
   Cpu,
+  Crosshair,
   Layers,
   Database,
   ExternalLink,
@@ -399,6 +400,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* 3. DEDICATED WORK AREAS LAUNCHPAD (Grid Layout)                         */}
       {/* ===================================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Work Area 0: Autonomous Bug Bounty Platform */}
+        <button
+          onClick={() => onNavigate('bughunt')}
+          className="text-left p-4 bg-gradient-to-br from-indigo-950/40 via-slate-900/60 to-slate-900 border border-indigo-700/50 rounded-lg hover:border-indigo-500 transition-colors flex flex-col justify-between group shadow-lg shadow-indigo-950/30"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Crosshair className="h-5 w-5 text-indigo-400 group-hover:scale-105 transition-transform" />
+              <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-100">Autonomous Bug Bounty Platform</h3>
+              <span className="px-1.5 py-0.2 text-[9px] bg-indigo-950 text-indigo-300 border border-indigo-800 rounded font-mono">
+                CORE
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Autonomous Droid Fleet (Argus, Hydra, Aegis, Vulcan, Specter, Cerberus), scope enforcement, and cryptographic evidence seals.
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-indigo-900/40 text-[11px] font-mono text-indigo-300 flex justify-between">
+            <span>6 Specialized Droids</span>
+            <span>HackerOne & Bugcrowd</span>
+          </div>
+        </button>
+
         {/* Work Area 1: Brain & Router */}
         <button
           onClick={() => onNavigate('brain')}

@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Cloud,
   Compass,
+  Crosshair,
   Database,
   ExternalLink,
   Flame,
@@ -38,6 +39,7 @@ import { Badge } from '../ui/Badge';
 
 export type ShellView =
   | 'home'
+  | 'bughunt'
   | 'brain'
   | 'continuity'
   | 'memory'
@@ -67,6 +69,8 @@ interface AppShellProps {
   isBackendConnected: boolean;
   pendingApprovalsCount?: number;
   isKillSwitchActive?: boolean;
+  onOpenAuth?: () => void;
+  currentUser?: any;
   children: React.ReactNode;
 }
 
@@ -77,6 +81,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   isBackendConnected,
   pendingApprovalsCount = 0,
   isKillSwitchActive = false,
+  onOpenAuth,
+  currentUser,
   children
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -85,6 +91,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   // Grouped Navigation Items matching the design specification
   const primaryNav = [
     { id: 'home' as ShellView, label: 'Command Center', icon: Home },
+    { id: 'bughunt' as ShellView, label: 'Bug Bounty & Droids', icon: Crosshair },
     { id: 'brain' as ShellView, label: 'AI Brain & Router', icon: Brain },
     {
       id: 'agents' as ShellView,
@@ -251,14 +258,14 @@ export const AppShell: React.FC<AppShellProps> = ({
               onClick={() => setIsUserMenuOpen(prev => !prev)}
               className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded border border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors"
             >
-              <div className="h-5 w-5 rounded bg-blue-900/40 border border-blue-600/30 flex items-center justify-center text-[10px] font-mono text-blue-300 font-bold">
-                EN
+              <div className="h-5 w-5 rounded bg-indigo-900/40 border border-indigo-600/30 flex items-center justify-center text-[10px] font-mono text-indigo-300 font-bold">
+                {currentUser?.fullName?.charAt(0) || 'R'}
               </div>
               <span className="hidden xl:inline text-xs font-mono text-slate-300 max-w-[120px] truncate">
-                developer@aiheaven.local
+                {currentUser?.email || 'researcher@aiheaven.security'}
               </span>
-              <span className="text-[10px] font-mono text-blue-400 font-semibold px-1 py-0.2 rounded bg-blue-950/60 border border-blue-800/40">
-                ADMIN
+              <span className="text-[10px] font-mono text-indigo-400 font-semibold px-1 py-0.2 rounded bg-indigo-950/60 border border-indigo-800/40">
+                {currentUser?.role?.toUpperCase() || 'RESEARCHER'}
               </span>
             </button>
 
@@ -269,20 +276,31 @@ export const AppShell: React.FC<AppShellProps> = ({
                   className="fixed inset-0 z-40"
                   onClick={() => setIsUserMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-slate-800 bg-[#0B0F19] p-2 shadow-2xl z-50 text-xs font-mono animate-in fade-in-50 duration-100">
+                <div className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-800 bg-[#0B0F19] p-2 shadow-2xl z-50 text-xs font-mono animate-in fade-in-50 duration-100">
                   <div className="px-2 py-1.5 border-b border-slate-800/80 mb-1">
-                    <div className="font-semibold text-slate-200">AI Heaven Engineer</div>
-                    <div className="text-[11px] text-slate-500">developer@aiheaven.local</div>
+                    <div className="font-semibold text-slate-200">{currentUser?.fullName || 'Lead Bounty Hunter'}</div>
+                    <div className="text-[11px] text-slate-500">{currentUser?.email || 'researcher@aiheaven.security'}</div>
+                    <div className="text-[10px] text-indigo-400 mt-0.5">Tenant: {currentUser?.tenantId || 'tenant_researcher_01'}</div>
                   </div>
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
-                      onNavigate('activity');
+                      onOpenAuth?.();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-indigo-300 hover:text-white hover:bg-indigo-950/50 text-left transition-colors border border-indigo-900/40 mb-1"
+                  >
+                    <User className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>Manage Identity & Access</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onNavigate('bughunt');
                     }}
                     className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 text-left transition-colors"
                   >
-                    <Activity className="h-3.5 w-3.5 text-slate-400" />
-                    <span>System Telemetry & Audit</span>
+                    <Crosshair className="h-3.5 w-3.5 text-slate-400" />
+                    <span>Bug-Bounty Workspace</span>
                   </button>
                   <button
                     onClick={() => {

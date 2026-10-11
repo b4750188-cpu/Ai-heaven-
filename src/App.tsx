@@ -5,6 +5,7 @@
 
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { AgentContractModal } from './components/common/AgentContractModal';
+import { AuthModal } from './components/auth/AuthModal';
 import { ResourceExplorer } from './components/explorer/ResourceExplorer';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { AppShell, ShellView } from './components/shell/AppShell';
@@ -33,6 +34,7 @@ const ConversationsView = lazy(() => import('./components/memory/ConversationsVi
 const EvolutionView = lazy(() => import('./components/evolution/EvolutionView').then(m => ({ default: m.EvolutionView })));
 const GoogleIntegrationView = lazy(() => import('./components/google/GoogleIntegrationView').then(m => ({ default: m.GoogleIntegrationView })));
 const ContinuityCenter = lazy(() => import('./components/continuity/ContinuityCenter').then(m => ({ default: m.ContinuityCenter })));
+const BugHuntWorkspace = lazy(() => import('./components/bughunt/BugHuntWorkspace').then(m => ({ default: m.BugHuntWorkspace })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -52,6 +54,10 @@ export default function App() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [isKillSwitchActive, setIsKillSwitchActive] = useState<boolean>(false);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
+
+  // Authentication State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authCurrentUser, setAuthCurrentUser] = useState<any>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -135,6 +141,13 @@ export default function App() {
       setAuditEvents(auditData);
       setIsKillSwitchActive(ksStatus.is_active);
       setPendingApprovalsCount(approvalsData.length);
+
+      try {
+        const authData = await apiClient.getAuthCurrentUser();
+        if (authData?.user) setAuthCurrentUser(authData.user);
+      } catch {
+        // Fallback to default
+      }
     } catch (err: any) {
       console.error('Failed to load initial data:', err);
       setLoadError(err?.message || 'Failed to initialize ecosystem catalog');
@@ -233,6 +246,8 @@ export default function App() {
       isBackendConnected={isBackendConnected}
       pendingApprovalsCount={pendingApprovalsCount}
       isKillSwitchActive={isKillSwitchActive}
+      onOpenAuth={() => setIsAuthModalOpen(true)}
+      currentUser={authCurrentUser}
     >
       {loadError && (
         <div className="mb-6 p-4 rounded-lg border border-rose-900/60 bg-rose-950/20 text-rose-300 text-xs flex items-center justify-between font-mono">
@@ -257,6 +272,13 @@ export default function App() {
             onNavigate={handleNavigateView}
             onSelectResource={handleSelectResource}
             onOpenNewTaskModal={() => handleNavigateView('tasks')}
+          />
+        )}
+
+        {currentView === 'bughunt' && (
+          <BugHuntWorkspace
+            currentUser={authCurrentUser}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
 
@@ -398,6 +420,14 @@ export default function App() {
         resource={agentModalResource}
         onClose={() => setAgentModalResource(null)}
         onNavigateDetail={handleSelectResource}
+      />
+
+      {/* Multi-Provider Authentication & Tenant Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUser={authCurrentUser}
+        onUserChanged={(u) => setAuthCurrentUser(u)}
       />
     </AppShell>
   );

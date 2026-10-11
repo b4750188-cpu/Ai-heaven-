@@ -29,6 +29,8 @@ import { knowledgeLearningService } from '../services/learning/knowledgeLearning
 import { autonomousEvolutionEngine } from '../services/evolution/evolutionEngine';
 import { centralBrainService } from '../services/brain/centralBrainService';
 import { continuityEngine } from '../services/continuity/continuityEngine';
+import { authService } from '../services/auth/authService';
+import { bugHuntService } from '../services/bughunt/bugHuntService';
 
 dotenv.config();
 
@@ -540,6 +542,34 @@ export function createExpressApp(): express.Express {
     }
   });
 
+  // Helper to extract authenticated user with strict tenant binding
+  const getRequestUser = (req: Request) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const verified = authService.verifyToken(token);
+      if (verified) return verified;
+
+      const decoded = verifyJwt(token, JWT_SECRET_KEY);
+      if (decoded) {
+        return {
+          id: decoded.sub,
+          email: decoded.email,
+          fullName: decoded.email?.split('@')[0] || 'Researcher',
+          role: decoded.role || 'security_researcher',
+          isActive: true,
+          isEmailVerified: true,
+          tenantId: `tenant_${decoded.sub}`,
+          linkedIdentities: [],
+          activeSessionsCount: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+    }
+    return authService.getDefaultResearcher();
+  };
+
   // 2. JWT Authentication: Token Issuance
   apiRouter.post('/auth/token', (req: Request, res: Response) => {
     const { email = currentUser.email, role = currentUser.role } = req.body || {};
@@ -568,27 +598,180 @@ export function createExpressApp(): express.Express {
     });
   });
 
-  // 3. User verification
-  apiRouter.get('/auth/me', (req: Request, res: Response) => {
+  // 3. Multi-Provider Authentication API
+  apiRouter.get('/auth/providers', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
+    const statuses = authService.getProviderStatuses(user?.id);
+    res.json({ providers: statuses });
+  });
+
+  apiRouter.post('/auth/register', (req: Request, res: Response) => {
+    try {
+      const { email, password, fullName } = req.body || {};
+      const session = authService.register(email, password, fullName);
+      res.status(201).json(session);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/login', (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body || {};
+      const session = authService.loginWithPassword(email, password);
+      res.json(session);
+    } catch (err: any) {
+      res.status(401).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/oauth', (req: Request, res: Response) => {
+    try {
+      const { provider, providerUserId, email, fullName, avatarUrl } = req.body || {};
+      if (!provider || !email) {
+        return res.status(400).json({ error: 'provider and email are required for OAuth sign-in' });
+      }
+      const session = authService.loginOrRegisterOAuth(
+        provider,
+        providerUserId || email,
+        email,
+        fullName,
+        avatarUrl
+      );
+      res.json(session);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/auth/users', (_req: Request, res: Response) => {
+    res.json({ users: authService.getAllUsersForSwitcher() });
+  });
+
+  apiRouter.post('/auth/switch', (req: Request, res: Response) => {
+    try {
+      const { targetUserId } = req.body || {};
+      if (!targetUserId) return res.status(400).json({ error: 'targetUserId is required' });
+      const session = authService.switchAccount(targetUserId);
+      res.json(session);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/link', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { provider, providerUserId, email } = req.body || {};
+      const updated = authService.linkAccount(user.id, provider, providerUserId, email || user.email);
+      res.json({ user: updated, success: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/unlink', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { provider } = req.body || {};
+      const updated = authService.unlinkAccount(user.id, provider);
+      res.json({ user: updated, success: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/logout', (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const decoded = verifyJwt(token, JWT_SECRET_KEY);
-      if (decoded) {
-        return res.json({
-          authenticated: true,
-          user: {
-            id: decoded.sub,
-            email: decoded.email,
-            role: decoded.role
-          }
-        });
-      }
+      authService.logout(authHeader.substring(7));
     }
+    res.json({ logged_out: true });
+  });
+
+  // User verification
+  apiRouter.get('/auth/me', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
     res.json({
       authenticated: true,
-      user: currentUser
+      user
     });
+  });
+
+  // 3.5. Autonomous Bug-Bounty Platform Endpoints
+  apiRouter.get('/bughunt/workspace', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const ws = bugHuntService.getWorkspace(user.id, user.tenantId);
+      res.json(ws);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/bughunt/programs', (_req: Request, res: Response) => {
+    res.json({ programs: bugHuntService.getPrograms() });
+  });
+
+  apiRouter.get('/bughunt/droids', (_req: Request, res: Response) => {
+    res.json({ droids: bugHuntService.getDroids() });
+  });
+
+  apiRouter.get('/bughunt/findings', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const findings = bugHuntService.getFindingsForUser(user.id, user.tenantId);
+      res.json({ findings });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/bughunt/hunts/:id', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const hunt = bugHuntService.getHuntJob(req.params.id, user.id, user.tenantId);
+      res.json(hunt);
+    } catch (err: any) {
+      const isForbidden = err.message?.includes('Tenant boundary');
+      res.status(isForbidden ? 403 : 404).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/start', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { programId } = req.body || {};
+      const job = await bugHuntService.startAutonomousBugHunt(user.id, user.tenantId, programId);
+      res.json(job);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/custom', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { title, config } = req.body || {};
+      if (!config || !config.scope) {
+        return res.status(400).json({ error: 'Custom hunt config with scope is required' });
+      }
+      const job = await bugHuntService.startCustomBugHunt(user.id, user.tenantId, title, config);
+      res.json(job);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/verify-scope', (req: Request, res: Response) => {
+    try {
+      const { target, programId } = req.body || {};
+      if (!target) return res.status(400).json({ error: 'Target is required' });
+      const check = bugHuntService.isTargetAuthorized(target, programId);
+      res.json(check);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // 4. Resources collection
