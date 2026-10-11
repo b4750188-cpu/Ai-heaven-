@@ -353,7 +353,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 {activeTask.plan.map((step, idx) => {
                   const isDone = idx < activeTask.current_action_index || activeTask.status === 'completed';
                   const isCurrent = idx === activeTask.current_action_index && activeTask.status === 'in_progress';
-                  const isWaiting = step.requires_approval && activeTask.status === 'waiting_approval';
+                  const isWaiting = step.requires_approval && (activeTask.status as string) === 'waiting_approval';
 
                   return (
                     <div
@@ -383,11 +383,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {activeReceipt && (
               <div className="p-3 rounded bg-slate-950 border border-emerald-900/80 text-xs font-mono text-slate-300 space-y-1">
                 <div className="flex items-center justify-between text-emerald-400 font-semibold">
-                  <span>EXECUTION RECEIPT: {activeReceipt.id}</span>
+                  <span>EXECUTION RECEIPT: {activeReceipt.receipt_id}</span>
                   <span>STATUS: {activeReceipt.final_status.toUpperCase()}</span>
                 </div>
                 <div className="text-[11px] text-slate-400">
-                  Duration: {activeReceipt.duration_ms}ms · Tools: {activeReceipt.tools_used.join(', ')} · Checksum: {activeReceipt.provenance.code_hash}
+                  Duration: {activeReceipt.duration_ms}ms · Tools: {activeReceipt.tools_used.join(', ')} · Checksum: {activeReceipt.provenance.cryptographic_signature || activeReceipt.provenance.sandbox_isolation}
                 </div>
               </div>
             )}

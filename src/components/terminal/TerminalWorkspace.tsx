@@ -117,7 +117,7 @@ export const TerminalWorkspace: React.FC = () => {
     setSaveStatus(null);
     try {
       const file = await apiClient.readWorkspaceFile('ws_default_demo', path);
-      setFileContent(file.content || '');
+      setFileContent(file?.content || '');
     } catch {
       setFileContent('# Empty or newly initialized file');
     } finally {

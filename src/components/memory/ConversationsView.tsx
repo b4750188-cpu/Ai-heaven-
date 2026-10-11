@@ -237,35 +237,22 @@ export const ConversationsView: React.FC = () => {
     setIsSending(true);
 
     try {
-      // 1. Send User Message
-      const userMsg = await apiClient.sendConversationMessage(
+      // Dispatch genuine chat turn to Central Brain
+      const result = await apiClient.chatInConversation(
         activeConversationId,
         userText,
-        'user'
+        selectedModel === 'auto' ? undefined : selectedModel
       );
-      setMessages(prev => [...prev, userMsg]);
 
-      // 2. Classify or resolve model
-      let effectiveModelName = selectedModel;
-      let domain = 'general';
+      setMessages(prev => [...prev, result.userMessage, result.assistantMessage]);
 
-      if (selectedModel === 'auto') {
-        const classification = await apiClient.classifyRequest(userText);
-        effectiveModelName = classification.recommendedModel.id;
-        domain = classification.domain;
+      if (result.decision) {
+        setNotification({
+          type: 'success',
+          message: `Routed to ${result.decision.selectedModelName} (${result.decision.detectedDomain}). Decision receipt: ${result.decision.id}`
+        });
+        setTimeout(() => setNotification(null), 4000);
       }
-
-      // 3. Dispatch simulated/live completion
-      const responseText = `[${effectiveModelName.toUpperCase()} · ${domain.toUpperCase()}] Request received and processed under active session context. State verified.`;
-
-      const botMsg = await apiClient.sendConversationMessage(
-        activeConversationId,
-        responseText,
-        'assistant',
-        'Central Brain',
-        effectiveModelName
-      );
-      setMessages(prev => [...prev, botMsg]);
 
       // Update thread message count
       setConversations(prev => prev.map(c => c.id === activeConversationId ? { ...c, messageCount: c.messageCount + 2, updatedAt: new Date().toISOString() } : c));

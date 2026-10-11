@@ -273,6 +273,52 @@ class PostgresManager {
           );
         `);
 
+        // 9. Engineering Memories table (Continuity Engine)
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_engineering_memories (
+            id VARCHAR(128) PRIMARY KEY,
+            tenant_id VARCHAR(128) NOT NULL,
+            project_id VARCHAR(128),
+            project_name VARCHAR(256),
+            title VARCHAR(256) NOT NULL,
+            domain VARCHAR(64) NOT NULL,
+            category VARCHAR(64) NOT NULL,
+            content TEXT NOT NULL,
+            tags JSONB DEFAULT '[]'::jsonb,
+            evidence_status VARCHAR(32) NOT NULL,
+            confidence_score REAL NOT NULL,
+            source_type VARCHAR(64) NOT NULL,
+            source_reference VARCHAR(256) NOT NULL,
+            is_global_approved BOOLEAN DEFAULT FALSE,
+            evidence_payload JSONB DEFAULT '{}'::jsonb,
+            influencing_tasks JSONB DEFAULT '[]'::jsonb,
+            update_history JSONB DEFAULT '[]'::jsonb,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
+        // 10. Task Outcomes table (Measurable Telemetry)
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_task_outcomes (
+            id VARCHAR(128) PRIMARY KEY,
+            task_id VARCHAR(128) NOT NULL,
+            project_id VARCHAR(128) NOT NULL,
+            model_used VARCHAR(128) NOT NULL,
+            duration_ms INTEGER NOT NULL,
+            tests_total INTEGER DEFAULT 0,
+            tests_passed INTEGER DEFAULT 0,
+            tests_failed INTEGER DEFAULT 0,
+            reliability_score REAL DEFAULT 1.0,
+            tokens_used INTEGER DEFAULT 0,
+            cost_estimate REAL DEFAULT 0.0,
+            cost_source VARCHAR(64) DEFAULT 'catalog_estimated',
+            regressions_detected INTEGER DEFAULT 0,
+            resumed_from_checkpoint VARCHAR(128),
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
         // Create indexes for query speed
         await client.query(`
           CREATE INDEX IF NOT EXISTS idx_tasks_agent_proj ON aiheaven_tasks(agent_id, project_id);
@@ -280,6 +326,9 @@ class PostgresManager {
           CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON aiheaven_audit_events(timestamp DESC);
           CREATE INDEX IF NOT EXISTS idx_approvals_status ON aiheaven_approvals(status);
           CREATE INDEX IF NOT EXISTS idx_jobs_state ON aiheaven_execution_jobs(state);
+          CREATE INDEX IF NOT EXISTS idx_memories_tenant_proj ON aiheaven_engineering_memories(tenant_id, project_id);
+          CREATE INDEX IF NOT EXISTS idx_memories_status ON aiheaven_engineering_memories(evidence_status);
+          CREATE INDEX IF NOT EXISTS idx_outcomes_proj_task ON aiheaven_task_outcomes(project_id, task_id);
         `);
 
         await client.query('COMMIT');
@@ -478,6 +527,141 @@ class PostgresManager {
     if (!pool) return null;
     const res = await pool.query('SELECT * FROM aiheaven_kill_switch WHERE id = $1', ['global']);
     return res.rows[0] || null;
+  }
+
+  // --- Continuity Engine Helper Queries ---
+
+  public async saveEngineeringMemory(memory: any): Promise<void> {
+    if (!this.isConfigured()) return;
+    const pool = this.getPool();
+    if (!pool) return;
+    await pool.query(
+      `INSERT INTO aiheaven_engineering_memories
+        (id, tenant_id, project_id, project_name, title, domain, category, content, tags, evidence_status, confidence_score, source_type, source_reference, is_global_approved, evidence_payload, influencing_tasks, update_history, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+       ON CONFLICT (id) DO UPDATE SET
+         title = EXCLUDED.title,
+         content = EXCLUDED.content,
+         tags = EXCLUDED.tags,
+         evidence_status = EXCLUDED.evidence_status,
+         confidence_score = EXCLUDED.confidence_score,
+         is_global_approved = EXCLUDED.is_global_approved,
+         evidence_payload = EXCLUDED.evidence_payload,
+         influencing_tasks = EXCLUDED.influencing_tasks,
+         update_history = EXCLUDED.update_history,
+         updated_at = NOW()`,
+      [
+        memory.id,
+        memory.tenantId,
+        memory.projectId || null,
+        memory.projectName || null,
+        memory.title,
+        memory.domain,
+        memory.category,
+        memory.content,
+        JSON.stringify(memory.tags || []),
+        memory.evidenceStatus,
+        memory.confidenceScore,
+        memory.sourceType,
+        memory.sourceReference,
+        Boolean(memory.isGlobalApproved),
+        JSON.stringify(memory.evidencePayload || {}),
+        JSON.stringify(memory.influencingTasks || []),
+        JSON.stringify(memory.updateHistory || []),
+        memory.createdAt || new Date().toISOString(),
+        memory.updatedAt || new Date().toISOString()
+      ]
+    );
+  }
+
+  public async getEngineeringMemories(tenantId: string, projectId?: string | null, includeGlobal = true): Promise<any[]> {
+    if (!this.isConfigured()) return [];
+    const pool = this.getPool();
+    if (!pool) return [];
+
+    let query = 'SELECT * FROM aiheaven_engineering_memories WHERE (tenant_id = $1';
+    const params: any[] = [tenantId];
+
+    if (projectId) {
+      params.push(projectId);
+      query += ` AND project_id = $${params.length}`;
+    }
+
+    query += ')';
+
+    if (includeGlobal) {
+      query += ' OR (is_global_approved = TRUE AND project_id IS NULL)';
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const res = await pool.query(query, params);
+    return res.rows.map(row => ({
+      ...row,
+      tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags,
+      evidencePayload: typeof row.evidence_payload === 'string' ? JSON.parse(row.evidence_payload) : row.evidence_payload,
+      influencingTasks: typeof row.influencing_tasks === 'string' ? JSON.parse(row.influencing_tasks) : row.influencing_tasks,
+      updateHistory: typeof row.update_history === 'string' ? JSON.parse(row.update_history) : row.update_history
+    }));
+  }
+
+  public async deleteEngineeringMemory(id: string, tenantId: string): Promise<boolean> {
+    if (!this.isConfigured()) return true;
+    const pool = this.getPool();
+    if (!pool) return false;
+    const res = await pool.query('DELETE FROM aiheaven_engineering_memories WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+    return (res.rowCount ?? 0) > 0;
+  }
+
+  public async saveTaskOutcome(outcome: any): Promise<void> {
+    if (!this.isConfigured()) return;
+    const pool = this.getPool();
+    if (!pool) return;
+    await pool.query(
+      `INSERT INTO aiheaven_task_outcomes
+        (id, task_id, project_id, model_used, duration_ms, tests_total, tests_passed, tests_failed, reliability_score, tokens_used, cost_estimate, cost_source, regressions_detected, resumed_from_checkpoint, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [
+        outcome.id,
+        outcome.taskId,
+        outcome.projectId,
+        outcome.modelUsed,
+        outcome.durationMs,
+        outcome.testsTotal || 0,
+        outcome.testsPassed || 0,
+        outcome.testsFailed || 0,
+        outcome.reliabilityScore ?? 1.0,
+        outcome.tokensUsed || 0,
+        outcome.costEstimate || 0.0,
+        outcome.costSource || 'catalog_estimated',
+        outcome.regressionsDetected || 0,
+        outcome.resumedFromCheckpoint || null,
+        outcome.timestamp || new Date().toISOString()
+      ]
+    );
+  }
+
+  public async getTaskOutcomes(projectId?: string, modelUsed?: string): Promise<any[]> {
+    if (!this.isConfigured()) return [];
+    const pool = this.getPool();
+    if (!pool) return [];
+    let query = 'SELECT * FROM aiheaven_task_outcomes';
+    const params: any[] = [];
+    const where: string[] = [];
+    if (projectId) {
+      params.push(projectId);
+      where.push(`project_id = $${params.length}`);
+    }
+    if (modelUsed) {
+      params.push(modelUsed);
+      where.push(`model_used = $${params.length}`);
+    }
+    if (where.length > 0) {
+      query += ' WHERE ' + where.join(' AND ');
+    }
+    query += ' ORDER BY created_at DESC';
+    const res = await pool.query(query, params);
+    return res.rows;
   }
 }
 

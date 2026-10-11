@@ -26,6 +26,7 @@ import {
   Settings,
   Shield,
   ShieldAlert,
+  Sparkles,
   Terminal,
   User,
   Workflow,
@@ -38,6 +39,7 @@ import { Badge } from '../ui/Badge';
 export type ShellView =
   | 'home'
   | 'brain'
+  | 'continuity'
   | 'memory'
   | 'evolution'
   | 'google'
@@ -97,6 +99,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   ];
 
   const platformNav = [
+    { id: 'continuity' as ShellView, label: 'Continuity Center', icon: Sparkles },
     { id: 'google' as ShellView, label: 'Google & Drive', icon: Cloud },
     { id: 'evolution' as ShellView, label: 'Autonomous Evolution', icon: Flame },
     { id: 'graph' as ShellView, label: 'Knowledge Graph', icon: Network },

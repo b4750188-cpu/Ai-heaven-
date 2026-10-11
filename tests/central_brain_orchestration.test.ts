@@ -277,4 +277,33 @@ test('CENTRAL BRAIN, MODEL ROUTER & MULTI-AGENT ORCHESTRATION SUITE', async (t) 
     assert.ok(localStatus, 'Local VFS provider reported');
     assert.strictEqual(localStatus.status, 'operational');
   });
+
+  await t.test('11. Central Brain Chat Turn: POST /api/conversations/:id/chat executes turn with decision receipt', async () => {
+    // 1. Create a thread
+    const createRes = await request('/api/conversations', {
+      method: 'POST',
+      body: { title: 'Test Brain Chat Session' }
+    });
+    assert.strictEqual(createRes.status, 200);
+    const convId = createRes.body.id;
+
+    // 2. Execute chat turn
+    const chatRes = await request(`/api/conversations/${convId}/chat`, {
+      method: 'POST',
+      body: { content: 'Please review security boundaries and access controls for our microservices' }
+    });
+    assert.strictEqual(chatRes.status, 200);
+    assert.ok(chatRes.body.userMessage, 'returns user message');
+    assert.strictEqual(chatRes.body.userMessage.role, 'user');
+    assert.ok(chatRes.body.assistantMessage, 'returns assistant message');
+    assert.strictEqual(chatRes.body.assistantMessage.role, 'assistant');
+    assert.ok(chatRes.body.decision, 'returns decision receipt');
+    assert.strictEqual(chatRes.body.decision.detectedDomain, 'security');
+    assert.ok(chatRes.body.decision.id.startsWith('route_'));
+
+    // 3. Verify messages are persisted in thread
+    const msgsRes = await request(`/api/conversations/${convId}/messages`);
+    assert.strictEqual(msgsRes.status, 200);
+    assert.strictEqual(msgsRes.body.messages.length, 2);
+  });
 });

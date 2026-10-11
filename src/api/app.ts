@@ -28,6 +28,7 @@ import { terminalExecutionService } from '../services/terminal/terminalExecution
 import { knowledgeLearningService } from '../services/learning/knowledgeLearningService';
 import { autonomousEvolutionEngine } from '../services/evolution/evolutionEngine';
 import { centralBrainService } from '../services/brain/centralBrainService';
+import { continuityEngine } from '../services/continuity/continuityEngine';
 
 dotenv.config();
 
@@ -1373,6 +1374,17 @@ export function createExpressApp(): express.Express {
     }
   });
 
+  apiRouter.post('/conversations/:id/chat', async (req: Request, res: Response) => {
+    try {
+      const { content, model } = req.body || {};
+      if (!content) return res.status(400).json({ error: 'content is required' });
+      const result = await centralBrainService.processChatTurn(req.params.id, content, model);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // =========================================================================
   // TASK CHECKPOINTS ROUTES
   // =========================================================================
@@ -1433,6 +1445,172 @@ export function createExpressApp(): express.Express {
       if (!email) return res.status(400).json({ error: 'email is required' });
       const result = centralBrainService.switchGoogleAccount(email);
       res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // CONTINUITY & INTELLIGENCE ENGINE ROUTES
+  // =========================================================================
+
+  apiRouter.get('/continuity/dashboard', (req: Request, res: Response) => {
+    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const projectId = (req.query.project_id as string) || 'proj_ai_heaven_core';
+    res.json(continuityEngine.getDashboardData(tenantId, projectId));
+  });
+
+  apiRouter.get('/continuity/memories', (req: Request, res: Response) => {
+    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const projectId = req.query.project_id !== undefined ? (req.query.project_id as string) : undefined;
+    const domain = req.query.domain as string | undefined;
+    const category = req.query.category as any;
+    const status = req.query.status as any;
+    const search = req.query.q as string | undefined;
+    const includeGlobal = req.query.include_global !== 'false';
+
+    const memories = continuityEngine.queryMemories({
+      tenantId,
+      projectId,
+      domain,
+      category,
+      status,
+      search,
+      includeGlobal
+    });
+    res.json({ memories, total: memories.length });
+  });
+
+  apiRouter.post('/continuity/memories', async (req: Request, res: Response) => {
+    try {
+      const body = req.body || {};
+      if (!body.title || !body.content || !body.category || !body.sourceType) {
+        return res.status(400).json({ error: 'title, content, category, and sourceType are required' });
+      }
+      const tenantId = body.tenantId || 'tenant_default';
+      const memory = await continuityEngine.storeMemory({
+        tenantId,
+        projectId: body.projectId,
+        projectName: body.projectName,
+        title: body.title,
+        domain: body.domain || 'general',
+        category: body.category,
+        content: body.content,
+        tags: body.tags,
+        evidenceStatus: body.evidenceStatus,
+        confidenceScore: body.confidenceScore,
+        sourceType: body.sourceType,
+        sourceReference: body.sourceReference || 'manual_entry',
+        isGlobalApproved: body.isGlobalApproved,
+        evidencePayload: body.evidencePayload,
+        influencingTasks: body.influencingTasks
+      });
+      res.status(201).json(memory);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.put('/continuity/memories/:id', (req: Request, res: Response) => {
+    try {
+      const tenantId = (req.body?.tenantId as string) || (req.query.tenant_id as string) || 'tenant_default';
+      const updated = continuityEngine.updateMemory(req.params.id, tenantId, req.body || {}, req.body?.reason);
+      if (!updated) return res.status(404).json({ error: 'Memory not found or unauthorized' });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.delete('/continuity/memories/:id', async (req: Request, res: Response) => {
+    try {
+      const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+      const deleted = await continuityEngine.deleteMemory(req.params.id, tenantId);
+      if (!deleted) return res.status(404).json({ error: 'Memory not found or unauthorized' });
+      res.json({ success: true, id: req.params.id });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/continuity/memories/:id/revalidate', (req: Request, res: Response) => {
+    try {
+      const tenantId = (req.body?.tenantId as string) || 'tenant_default';
+      const { newStatus, reason } = req.body || {};
+      if (!newStatus) return res.status(400).json({ error: 'newStatus is required' });
+      const revalidated = continuityEngine.revalidateMemory(req.params.id, tenantId, newStatus, reason || 'Operator revalidation');
+      if (!revalidated) return res.status(404).json({ error: 'Memory not found or unauthorized' });
+      res.json(revalidated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/continuity/memories/:id/promote', (req: Request, res: Response) => {
+    try {
+      const tenantId = (req.body?.tenantId as string) || 'tenant_default';
+      const promoted = continuityEngine.promoteToGlobalApproved(req.params.id, tenantId);
+      if (!promoted) return res.status(404).json({ error: 'Memory not found or unauthorized' });
+      res.json(promoted);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/continuity/memories/export', (req: Request, res: Response) => {
+    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const projectId = req.query.project_id as string | undefined;
+    const format = (req.query.format as 'json' | 'csv') || 'json';
+    const exported = continuityEngine.exportMemories(tenantId, projectId, format);
+    if (format === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="engineering_memories.csv"');
+      return res.send(exported);
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.send(exported);
+  });
+
+  apiRouter.get('/continuity/stale-conflicts', (req: Request, res: Response) => {
+    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const projectId = req.query.project_id as string | undefined;
+    res.json({ anomalies: continuityEngine.detectStaleOrContradictoryKnowledge(tenantId, projectId) });
+  });
+
+  apiRouter.get('/continuity/trends', (req: Request, res: Response) => {
+    const modelId = req.query.model_id as string | undefined;
+    res.json({ trends: continuityEngine.getModelImprovementTrends(modelId) });
+  });
+
+  apiRouter.post('/continuity/resurrect/prepare', (req: Request, res: Response) => {
+    try {
+      const { taskId, checkpointId } = req.body || {};
+      if (!taskId) return res.status(400).json({ error: 'taskId is required' });
+      const plan = continuityEngine.prepareTaskResurrection(taskId, checkpointId);
+      if (!plan) return res.status(404).json({ error: `Task ${taskId} not found for resurrection` });
+      res.json(plan);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/continuity/resurrect/execute', async (req: Request, res: Response) => {
+    try {
+      const { taskId, checkpointId } = req.body || {};
+      if (!taskId) return res.status(400).json({ error: 'taskId is required' });
+      const result = await continuityEngine.executeTaskResurrection(taskId, checkpointId);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/continuity/learn', async (req: Request, res: Response) => {
+    try {
+      const { task, testResults } = req.body || {};
+      if (!task || !task.id || !task.goal) return res.status(400).json({ error: 'Valid task object is required' });
+      const learned = await continuityEngine.extractReusableTechniqueFromCompletedTask(task, testResults);
+      res.json({ learned, success: Boolean(learned) });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

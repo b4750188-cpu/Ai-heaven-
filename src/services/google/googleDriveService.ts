@@ -193,8 +193,8 @@ class GoogleDriveService {
       }
     }
 
-    // Local Verified Backup Receipt (Authoritative persistence preserved)
-    const fileId = `drive_file_${Date.now()}`;
+    // Local Verified Backup Receipt (Authoritative persistence preserved locally; remote Drive unverified without OAuth token)
+    const fileId = `local_vault_${Date.now()}`;
     const receipt: DriveSyncReceipt = {
       id: `sync_${Date.now()}`,
       timestamp,
@@ -203,9 +203,9 @@ class GoogleDriveService {
       fileId,
       fileName,
       bytesTransferred,
-      details: `Saved ${bytesTransferred} bytes to persistent backup vault with verified checksum.`,
+      details: `Saved ${bytesTransferred} bytes to local persistent vault (sha256: ${localChecksum.slice(0, 10)}...). Remote Google Drive cloud upload is unverified in local mode without live Google OAuth token.`,
       localChecksum,
-      remoteChecksum: localChecksum
+      remoteChecksum: undefined
     };
     this.syncReceipts.unshift(receipt);
     this.saveReceipts();

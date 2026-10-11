@@ -32,6 +32,7 @@ const CentralBrainView = lazy(() => import('./components/brain/CentralBrainView'
 const ConversationsView = lazy(() => import('./components/memory/ConversationsView').then(m => ({ default: m.ConversationsView })));
 const EvolutionView = lazy(() => import('./components/evolution/EvolutionView').then(m => ({ default: m.EvolutionView })));
 const GoogleIntegrationView = lazy(() => import('./components/google/GoogleIntegrationView').then(m => ({ default: m.GoogleIntegrationView })));
+const ContinuityCenter = lazy(() => import('./components/continuity/ContinuityCenter').then(m => ({ default: m.ContinuityCenter })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -261,6 +262,10 @@ export default function App() {
 
         {currentView === 'brain' && (
           <CentralBrainView />
+        )}
+
+        {currentView === 'continuity' && (
+          <ContinuityCenter />
         )}
 
         {currentView === 'memory' && (

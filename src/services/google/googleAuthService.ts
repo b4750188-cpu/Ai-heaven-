@@ -174,9 +174,9 @@ class GoogleAuthService {
 
     // Developer Workspace Connection (when Google Cloud Client ID is being configured)
     const devProfile: GoogleUserProfile = {
-      email: 'sherayubkhan25@gmail.com',
-      name: 'Sher Ayub Khan',
-      sub: 'google_oauth_verified_dev_959964077611'
+      email: 'operator@aiheaven.local',
+      name: 'AI Heaven Operator',
+      sub: 'local_dev_workspace_session'
     };
 
     this.session = {

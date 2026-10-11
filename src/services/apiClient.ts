@@ -1498,6 +1498,21 @@ class AIHeavenApiClient {
     return await res.json();
   }
 
+  public async chatInConversation(id: string, content: string, model?: string): Promise<{
+    userMessage: any;
+    assistantMessage: any;
+    decision: any;
+    isLiveProvider: boolean;
+  }> {
+    const res = await fetch(`${this.baseUrl}/conversations/${encodeURIComponent(id)}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ content, model })
+    });
+    if (!res.ok) throw new Error(`Chat processing failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
   // --- Checkpoints & Resumption ---
   public async getCheckpoints(taskId?: string): Promise<any[]> {
     try {
@@ -1575,6 +1590,158 @@ class AIHeavenApiClient {
       body: JSON.stringify({ email })
     });
     if (!res.ok) throw new Error(`Account switch failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Continuity & Intelligence Engine ---
+  public async getContinuityDashboard(tenantId?: string, projectId?: string): Promise<any> {
+    try {
+      const q = new URLSearchParams();
+      if (tenantId) q.set('tenant_id', tenantId);
+      if (projectId) q.set('project_id', projectId);
+      const res = await fetch(`${this.baseUrl}/continuity/dashboard?${q.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  public async queryEngineeringMemories(params: {
+    tenantId?: string;
+    projectId?: string | null;
+    domain?: string;
+    category?: string;
+    status?: string;
+    search?: string;
+    includeGlobal?: boolean;
+  } = {}): Promise<any[]> {
+    try {
+      const q = new URLSearchParams();
+      if (params.tenantId) q.set('tenant_id', params.tenantId);
+      if (params.projectId !== undefined && params.projectId !== null) q.set('project_id', params.projectId);
+      if (params.domain) q.set('domain', params.domain);
+      if (params.category) q.set('category', params.category);
+      if (params.status) q.set('status', params.status);
+      if (params.search) q.set('q', params.search);
+      if (params.includeGlobal === false) q.set('include_global', 'false');
+
+      const res = await fetch(`${this.baseUrl}/continuity/memories?${q.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.memories || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async createEngineeringMemory(memory: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/memories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(memory)
+    });
+    if (!res.ok) throw new Error(`Failed to store memory: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async updateEngineeringMemory(id: string, updates: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/memories/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (!res.ok) throw new Error(`Failed to update memory: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async deleteEngineeringMemory(id: string, tenantId?: string): Promise<boolean> {
+    const q = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+    const res = await fetch(`${this.baseUrl}/continuity/memories/${encodeURIComponent(id)}${q}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    return res.ok;
+  }
+
+  public async revalidateEngineeringMemory(id: string, newStatus: string, reason: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/memories/${encodeURIComponent(id)}/revalidate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ newStatus, reason })
+    });
+    if (!res.ok) throw new Error(`Failed to revalidate memory: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async promoteMemoryToGlobal(id: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/memories/${encodeURIComponent(id)}/promote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Failed to promote memory: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getStaleAndConflictingKnowledge(projectId?: string): Promise<any[]> {
+    try {
+      const q = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+      const res = await fetch(`${this.baseUrl}/continuity/stale-conflicts${q}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.anomalies || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getModelTrends(modelId?: string): Promise<any[]> {
+    try {
+      const q = modelId ? `?model_id=${encodeURIComponent(modelId)}` : '';
+      const res = await fetch(`${this.baseUrl}/continuity/trends${q}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.trends || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async prepareTaskResurrection(taskId: string, checkpointId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/resurrect/prepare`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ taskId, checkpointId })
+    });
+    if (!res.ok) throw new Error(`Failed to prepare resurrection: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async executeTaskResurrection(taskId: string, checkpointId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/resurrect/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ taskId, checkpointId })
+    });
+    if (!res.ok) throw new Error(`Failed to execute resurrection: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async learnFromCompletedTask(task: any, testResults?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/continuity/learn`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ task, testResults })
+    });
+    if (!res.ok) return null;
     return await res.json();
   }
 }
