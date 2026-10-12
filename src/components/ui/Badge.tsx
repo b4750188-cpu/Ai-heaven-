@@ -21,21 +21,21 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
-    neutral: 'bg-slate-800/80 text-slate-300 border-slate-700/60',
-    default: 'bg-slate-900 text-slate-200 border-slate-800',
-    success: 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60',
-    warning: 'bg-amber-950/60 text-amber-300 border-amber-800/60',
-    danger: 'bg-rose-950/60 text-rose-300 border-rose-800/60',
-    info: 'bg-blue-950/60 text-blue-300 border-blue-800/60'
+    neutral: 'bg-[#121822] text-[#9AA6B7] border-[#283242]',
+    default: 'bg-[#171F2B] text-[#F1F4F8] border-[#283242]',
+    success: 'bg-[#34D399]/10 text-[#34D399] border-[#34D399]/30',
+    warning: 'bg-[#FBBF24]/10 text-[#FBBF24] border-[#FBBF24]/30',
+    danger: 'bg-[#F87171]/10 text-[#F87171] border-[#F87171]/30',
+    info: 'bg-[#42D9F5]/10 text-[#42D9F5] border-[#42D9F5]/30'
   };
 
   const dotColors = {
-    neutral: 'bg-slate-400',
-    default: 'bg-slate-400',
-    success: 'bg-emerald-400',
-    warning: 'bg-amber-400',
-    danger: 'bg-rose-400',
-    info: 'bg-blue-400'
+    neutral: 'bg-[#9AA6B7]',
+    default: 'bg-[#F1F4F8]',
+    success: 'bg-[#34D399]',
+    warning: 'bg-[#FBBF24]',
+    danger: 'bg-[#F87171]',
+    info: 'bg-[#42D9F5]'
   };
 
   return (

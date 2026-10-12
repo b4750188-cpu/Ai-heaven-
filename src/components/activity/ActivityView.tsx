@@ -58,7 +58,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-150">
       {/* Header */}
-      <div className="border-b border-slate-800/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="border-b border-[#283242]/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
@@ -66,10 +66,10 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             <span className="text-slate-600">/</span>
             <span>OBSERVABILITY & AUDIT</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 font-mono tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F4F8] font-mono tracking-tight">
             Real-Time Activity & Audit Feed
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl">
+          <p className="text-xs text-[#9AA6B7] mt-1 max-w-xl">
             Live telemetry capturing agent planner events, sandbox executions, human authorization checkpoints, and kill switch activations.
           </p>
         </div>
@@ -87,13 +87,13 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
       {/* Filter and Search Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9AA6B7]/70" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search by event ID, agent, or task..."
-            className="w-full pl-9 pr-3 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-mono"
+            className="w-full pl-9 pr-3 py-1.5 rounded border border-[#283242] bg-[#121822]/60 text-xs text-[#F1F4F8] placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-mono"
           />
         </div>
 
@@ -103,7 +103,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'all'
                 ? 'bg-blue-600/20 text-blue-300 font-medium border border-blue-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             All Events ({events.length})
@@ -113,7 +113,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'approval'
                 ? 'bg-amber-600/20 text-amber-300 font-medium border border-amber-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             Approvals
@@ -123,7 +123,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'execution'
                 ? 'bg-blue-600/20 text-blue-300 font-medium border border-blue-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             Executions
@@ -133,7 +133,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'task'
                 ? 'bg-emerald-600/20 text-emerald-300 font-medium border border-emerald-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             Tasks
@@ -143,7 +143,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             className={`px-2.5 py-1 rounded transition-colors ${
               filterType === 'kill'
                 ? 'bg-rose-600/20 text-rose-300 font-medium border border-rose-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             Kill Switch
@@ -152,11 +152,11 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
       </div>
 
       {/* Events Stream Table */}
-      <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+      <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-500">
+              <tr className="border-b border-[#283242] bg-[#080B10]/60 text-[#9AA6B7]/70">
                 <th className="py-2.5 px-4 font-medium">Timestamp</th>
                 <th className="py-2.5 px-4 font-medium">Event Type</th>
                 <th className="py-2.5 px-4 font-medium">Event ID</th>
@@ -167,7 +167,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
             <tbody className="divide-y divide-slate-800/60">
               {filteredEvents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                  <td colSpan={5} className="py-8 text-center text-[#9AA6B7]/70">
                     No activity recorded in this view.
                   </td>
                 </tr>
@@ -191,7 +191,7 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
                           : ''
                       }`}
                     >
-                      <td className="py-3 px-4 text-slate-400 whitespace-nowrap">
+                      <td className="py-3 px-4 text-[#9AA6B7] whitespace-nowrap">
                         {new Date(ev.timestamp).toLocaleTimeString()}
                       </td>
                       <td className="py-3 px-4">
@@ -210,14 +210,14 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
                           {ev.event_type.replace(/_/g, ' ')}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-slate-300">{ev.id}</td>
-                      <td className="py-3 px-4 text-slate-400">
+                      <td className="py-3 px-4 text-[#F1F4F8]">{ev.id}</td>
+                      <td className="py-3 px-4 text-[#9AA6B7]">
                         {ev.agent_id ? (
                           <span>Agent: {ev.agent_id}</span>
                         ) : ev.task_id ? (
                           <span>Task: {ev.task_id}</span>
                         ) : (
-                          <span className="text-slate-500">System Core</span>
+                          <span className="text-[#9AA6B7]/70">System Core</span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -234,24 +234,24 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
 
       {/* Inspect Modal / Drawer for Event Payload */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/80 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-[#283242] bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#283242]">
               <div>
-                <h3 className="text-sm font-semibold text-slate-100">
+                <h3 className="text-sm font-semibold text-[#F1F4F8]">
                   {selectedEvent.event_type.toUpperCase()}
                 </h3>
-                <span className="text-slate-500 text-[11px]">{selectedEvent.id}</span>
+                <span className="text-[#9AA6B7]/70 text-[11px]">{selectedEvent.id}</span>
               </div>
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-[#9AA6B7] hover:text-[#F1F4F8]"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300 max-h-72 overflow-y-auto whitespace-pre-wrap">
+            <div className="p-3 rounded bg-[#080B10] border border-[#283242] text-[#F1F4F8] max-h-72 overflow-y-auto whitespace-pre-wrap">
               {JSON.stringify(selectedEvent, null, 2)}
             </div>
 

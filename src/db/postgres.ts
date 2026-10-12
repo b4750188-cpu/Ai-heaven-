@@ -319,6 +319,60 @@ class PostgresManager {
           );
         `);
 
+        // 11. Autonomous Bug Hunt Campaigns table
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_bughunt_jobs (
+            id VARCHAR(128) PRIMARY KEY,
+            user_id VARCHAR(128) NOT NULL,
+            tenant_id VARCHAR(128) NOT NULL,
+            title VARCHAR(256) NOT NULL,
+            target VARCHAR(512) NOT NULL,
+            status VARCHAR(64) NOT NULL,
+            progress_percent INTEGER DEFAULT 0,
+            current_droid VARCHAR(128),
+            scope_snapshot_checksum VARCHAR(128),
+            cancellation_reason TEXT,
+            resumed_from_phase VARCHAR(64),
+            config JSONB NOT NULL,
+            logs JSONB DEFAULT '[]'::jsonb,
+            report_markdown TEXT,
+            started_at TIMESTAMPTZ DEFAULT NOW(),
+            completed_at TIMESTAMPTZ
+          );
+        `);
+
+        // 12. Vulnerability Findings table
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_vulnerability_findings (
+            id VARCHAR(128) PRIMARY KEY,
+            hunt_id VARCHAR(128) NOT NULL,
+            user_id VARCHAR(128) NOT NULL,
+            tenant_id VARCHAR(128) NOT NULL,
+            title VARCHAR(256) NOT NULL,
+            cwe_id VARCHAR(32) NOT NULL,
+            cwe_name VARCHAR(256) NOT NULL,
+            cvss_score REAL NOT NULL,
+            cvss_vector VARCHAR(128) NOT NULL,
+            severity VARCHAR(32) NOT NULL,
+            category VARCHAR(64) NOT NULL,
+            target_url TEXT NOT NULL,
+            affected_component VARCHAR(256) NOT NULL,
+            description TEXT NOT NULL,
+            reproduction_steps JSONB DEFAULT '[]'::jsonb,
+            curl_command TEXT NOT NULL,
+            raw_request TEXT NOT NULL,
+            raw_response TEXT NOT NULL,
+            evidence_hash VARCHAR(128) NOT NULL,
+            verification_status VARCHAR(64) NOT NULL,
+            verified_by_droid_id VARCHAR(128) NOT NULL,
+            false_positive_review_notes TEXT,
+            is_data_redacted BOOLEAN DEFAULT TRUE,
+            remediation TEXT NOT NULL,
+            discovered_at TIMESTAMPTZ DEFAULT NOW(),
+            verified_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
         // Create indexes for query speed
         await client.query(`
           CREATE INDEX IF NOT EXISTS idx_tasks_agent_proj ON aiheaven_tasks(agent_id, project_id);
@@ -329,6 +383,9 @@ class PostgresManager {
           CREATE INDEX IF NOT EXISTS idx_memories_tenant_proj ON aiheaven_engineering_memories(tenant_id, project_id);
           CREATE INDEX IF NOT EXISTS idx_memories_status ON aiheaven_engineering_memories(evidence_status);
           CREATE INDEX IF NOT EXISTS idx_outcomes_proj_task ON aiheaven_task_outcomes(project_id, task_id);
+          CREATE INDEX IF NOT EXISTS idx_bughunt_tenant_user ON aiheaven_bughunt_jobs(tenant_id, user_id);
+          CREATE INDEX IF NOT EXISTS idx_findings_tenant_user ON aiheaven_vulnerability_findings(tenant_id, user_id);
+          CREATE INDEX IF NOT EXISTS idx_findings_status ON aiheaven_vulnerability_findings(verification_status);
         `);
 
         await client.query('COMMIT');

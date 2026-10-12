@@ -31,6 +31,7 @@ import { centralBrainService } from '../services/brain/centralBrainService';
 import { continuityEngine } from '../services/continuity/continuityEngine';
 import { authService } from '../services/auth/authService';
 import { bugHuntService } from '../services/bughunt/bugHuntService';
+import { hackerOneService } from '../services/bughunt/hackerOneService';
 
 dotenv.config();
 
@@ -689,6 +690,61 @@ export function createExpressApp(): express.Express {
     res.json({ logged_out: true });
   });
 
+  apiRouter.post('/auth/request-verification', (req: Request, res: Response) => {
+    try {
+      const { email } = req.body || {};
+      if (!email) return res.status(400).json({ error: 'Email address is required' });
+      const record = authService.requestEmailVerification(email);
+      res.json(record);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/verify-email', (req: Request, res: Response) => {
+    try {
+      const { token } = req.body || {};
+      if (!token) return res.status(400).json({ error: 'Verification token is required' });
+      const result = authService.verifyEmailToken(token);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/request-reset', (req: Request, res: Response) => {
+    try {
+      const { email } = req.body || {};
+      if (!email) return res.status(400).json({ error: 'Email address is required' });
+      const record = authService.requestPasswordReset(email);
+      res.json(record);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/confirm-reset', (req: Request, res: Response) => {
+    try {
+      const { token, newPassword } = req.body || {};
+      if (!token || !newPassword) return res.status(400).json({ error: 'Token and newPassword are required' });
+      const result = authService.confirmPasswordReset(token, newPassword);
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/oauth-state', (req: Request, res: Response) => {
+    try {
+      const { provider } = req.body || {};
+      if (!provider) return res.status(400).json({ error: 'Provider is required' });
+      const state = authService.generateOAuthState(provider);
+      res.json({ state });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // User verification
   apiRouter.get('/auth/me', (req: Request, res: Response) => {
     const user = getRequestUser(req);
@@ -724,6 +780,31 @@ export function createExpressApp(): express.Express {
       res.json({ findings });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.put('/bughunt/findings/:id/status', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { status, notes } = req.body || {};
+      if (!status) return res.status(400).json({ error: 'status is required' });
+      const updated = bugHuntService.updateFindingStatus(req.params.id, user.id, user.tenantId, status, notes);
+      res.json(updated);
+    } catch (err: any) {
+      const isForbidden = err.message?.includes('Tenant boundary');
+      res.status(isForbidden ? 403 : 404).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/findings/:id/submit-hackerone', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { programHandle = 'aiheaven-sandbox' } = req.body || {};
+      const result = await bugHuntService.submitFindingToHackerOne(req.params.id, user.id, user.tenantId, programHandle);
+      res.json(result);
+    } catch (err: any) {
+      const isForbidden = err.message?.includes('Tenant boundary');
+      res.status(isForbidden ? 403 : 400).json({ error: err.message });
     }
   });
 
@@ -769,6 +850,52 @@ export function createExpressApp(): express.Express {
       if (!target) return res.status(400).json({ error: 'Target is required' });
       const check = bugHuntService.isTargetAuthorized(target, programId);
       res.json(check);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/cancel', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { huntId, reason } = req.body || {};
+      if (!huntId) return res.status(400).json({ error: 'huntId is required' });
+      const job = bugHuntService.cancelBugHunt(huntId, user.id, user.tenantId, reason);
+      res.json(job);
+    } catch (err: any) {
+      const isForbidden = err.message?.includes('Tenant boundary');
+      res.status(isForbidden ? 403 : 404).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/bughunt/resume', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { huntId } = req.body || {};
+      if (!huntId) return res.status(400).json({ error: 'huntId is required' });
+      const job = await bugHuntService.resumeBugHunt(huntId, user.id, user.tenantId);
+      res.json(job);
+    } catch (err: any) {
+      const isForbidden = err.message?.includes('Tenant boundary');
+      res.status(isForbidden ? 403 : 400).json({ error: err.message });
+    }
+  });
+
+  // HackerOne Dedicated Integration Endpoints
+  apiRouter.get('/bughunt/hackerone/status', (_req: Request, res: Response) => {
+    res.json(hackerOneService.getStatus());
+  });
+
+  apiRouter.get('/bughunt/hackerone/programs', async (_req: Request, res: Response) => {
+    const programs = await hackerOneService.getAccessiblePrograms();
+    res.json({ programs });
+  });
+
+  apiRouter.post('/bughunt/hackerone/snapshot', async (req: Request, res: Response) => {
+    try {
+      const { programHandle = 'aiheaven-sandbox' } = req.body || {};
+      const snapshot = await hackerOneService.captureScopeSnapshot(programHandle);
+      res.json(snapshot);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

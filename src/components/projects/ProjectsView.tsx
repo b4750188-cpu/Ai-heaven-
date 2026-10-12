@@ -58,7 +58,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-150">
       {/* Header */}
-      <div className="border-b border-slate-800/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="border-b border-[#283242]/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
@@ -66,10 +66,10 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             <span className="text-slate-600">/</span>
             <span>PROJECTS & WORKSPACES</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 font-mono tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F4F8] font-mono tracking-tight">
             Tenant Project Isolation
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl">
+          <p className="text-xs text-[#9AA6B7] mt-1 max-w-xl">
             Logical project isolation boundaries and sandboxed workspace filesystems for autonomous execution.
           </p>
         </div>
@@ -88,7 +88,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Project Selector (4 cols) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+          <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#9AA6B7]">
             Projects ({projects.length})
           </div>
 
@@ -103,20 +103,20 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                   onClick={() => setSelectedProjectId(proj.id)}
                   className={`p-3.5 rounded-lg border transition-all cursor-pointer ${
                     isSelected
-                      ? 'border-blue-500/50 bg-blue-950/20 text-slate-100'
-                      : 'border-slate-800/80 bg-slate-900/40 text-slate-300 hover:border-slate-700 hover:bg-slate-900/70'
+                      ? 'border-blue-500/50 bg-blue-950/20 text-[#F1F4F8]'
+                      : 'border-[#283242]/80 bg-[#121822]/40 text-[#F1F4F8] hover:border-[#283242] hover:bg-[#121822]/70'
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-mono mb-1">
-                    <span className="font-semibold text-slate-100">{proj.name}</span>
+                    <span className="font-semibold text-[#F1F4F8]">{proj.name}</span>
                     <Badge variant={isSelected ? 'info' : 'neutral'} size="xs">
                       {proj.status}
                     </Badge>
                   </div>
-                  <p className="text-xs text-slate-400 line-clamp-2 mt-1">
+                  <p className="text-xs text-[#9AA6B7] line-clamp-2 mt-1">
                     {proj.description || 'Tenant isolated engineering workspace.'}
                   </p>
-                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 mt-3 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[#9AA6B7]/70 mt-3 pt-2 border-t border-[#283242]/60">
                     <span>ID: {proj.id}</span>
                     <span>{count} workspace{count !== 1 ? 's' : ''}</span>
                   </div>
@@ -129,21 +129,21 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         {/* Right Column: Workspaces Table (8 cols) */}
         <div className="lg:col-span-8 space-y-3">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold uppercase tracking-wider text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
               Sandboxed Workspaces ({projectWorkspaces.length})
             </span>
             {selectedProject && (
-              <span className="text-slate-500">
-                Project: <strong className="text-slate-300">{selectedProject.name}</strong>
+              <span className="text-[#9AA6B7]/70">
+                Project: <strong className="text-[#F1F4F8]">{selectedProject.name}</strong>
               </span>
             )}
           </div>
 
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+          <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-500">
+                  <tr className="border-b border-[#283242] bg-[#080B10]/60 text-[#9AA6B7]/70">
                     <th className="py-2.5 px-4 font-medium">Workspace Name</th>
                     <th className="py-2.5 px-4 font-medium">Filesystem Reference</th>
                     <th className="py-2.5 px-4 font-medium">Isolation Status</th>
@@ -153,7 +153,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <tbody className="divide-y divide-slate-800/60">
                   {projectWorkspaces.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-500">
+                      <td colSpan={4} className="py-8 text-center text-[#9AA6B7]/70">
                         No workspaces found for this project.
                       </td>
                     </tr>
@@ -161,12 +161,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     projectWorkspaces.map(ws => (
                       <tr key={ws.id} className="hover:bg-slate-850/40 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-200 font-sans">{ws.name}</div>
-                          <div className="text-[11px] text-slate-500 font-mono">{ws.id}</div>
+                          <div className="font-semibold text-[#F1F4F8] font-sans">{ws.name}</div>
+                          <div className="text-[11px] text-[#9AA6B7]/70 font-mono">{ws.id}</div>
                         </td>
-                        <td className="py-3 px-4 text-slate-300">
+                        <td className="py-3 px-4 text-[#F1F4F8]">
                           <div className="flex items-center gap-1.5 text-blue-400/90 font-mono text-[11px]">
-                            <HardDrive className="h-3 w-3 text-slate-500 shrink-0" />
+                            <HardDrive className="h-3 w-3 text-[#9AA6B7]/70 shrink-0" />
                             <span>{ws.filesystem_ref}</span>
                           </div>
                         </td>
@@ -175,7 +175,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                             {ws.status}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-slate-400 text-[11px]">
+                        <td className="py-3 px-4 text-[#9AA6B7] text-[11px]">
                           {new Date(ws.created_at).toLocaleDateString()}
                         </td>
                       </tr>
@@ -190,32 +190,32 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
       {/* Modal: New Project */}
       {isNewProjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl">
-            <h3 className="text-sm font-semibold text-slate-100 font-mono">Create Isolated Project</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/80 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-xl border border-[#283242] bg-[#0B0F19] p-6 space-y-4 shadow-2xl">
+            <h3 className="text-sm font-semibold text-[#F1F4F8] font-mono">Create Isolated Project</h3>
             <form onSubmit={handleCreateProjectSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Project Name:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Project Name:</label>
                 <input
                   type="text"
                   value={projectName}
                   onChange={e => setProjectName(e.target.value)}
                   placeholder="e.g., Core Engine Workspace"
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Description:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Description:</label>
                 <textarea
                   value={projectDesc}
                   onChange={e => setProjectDesc(e.target.value)}
                   placeholder="Autonomous pipeline testing and deployment sandbox"
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                   rows={3}
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#283242]">
                 <Button variant="secondary" size="xs" onClick={() => setIsNewProjectModalOpen(false)}>
                   Cancel
                 </Button>

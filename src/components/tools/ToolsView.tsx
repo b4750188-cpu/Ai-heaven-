@@ -42,7 +42,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-150">
       {/* Header */}
-      <div className="border-b border-slate-800/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="border-b border-[#283242]/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
@@ -50,10 +50,10 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
             <span className="text-slate-600">/</span>
             <span>TOOL REGISTRY</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 font-mono tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F4F8] font-mono tracking-tight">
             Registered Sandbox Tools
           </h1>
-          <p className="text-xs text-slate-400 mt-1 max-w-xl">
+          <p className="text-xs text-[#9AA6B7] mt-1 max-w-xl">
             Controlled execution boundary tools authorized for autonomous agents, enforcing allow/deny policies, timeout guards, and output caps.
           </p>
         </div>
@@ -71,13 +71,13 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
       {/* Filter / Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9AA6B7]/70" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search tools by capability or ID..."
-            className="w-full pl-9 pr-3 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-mono"
+            className="w-full pl-9 pr-3 py-1.5 rounded border border-[#283242] bg-[#121822]/60 text-xs text-[#F1F4F8] placeholder:text-slate-600 focus:outline-none focus:border-blue-500 font-mono"
           />
         </div>
 
@@ -87,7 +87,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
             className={`px-2.5 py-1 rounded transition-colors ${
               selectedCapability === 'all'
                 ? 'bg-blue-600/20 text-blue-300 font-medium border border-blue-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
             }`}
           >
             All ({tools.length})
@@ -99,7 +99,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
               className={`px-2.5 py-1 rounded transition-colors uppercase ${
                 selectedCapability === cap
                   ? 'bg-blue-600/20 text-blue-300 font-medium border border-blue-500/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/50'
               }`}
             >
               {cap}
@@ -109,11 +109,11 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
       </div>
 
       {/* Tools Table (Dense, Clean, Linear-Style) */}
-      <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+      <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-500">
+              <tr className="border-b border-[#283242] bg-[#080B10]/60 text-[#9AA6B7]/70">
                 <th className="py-2.5 px-4 font-medium">Tool ID & Name</th>
                 <th className="py-2.5 px-4 font-medium">Capability</th>
                 <th className="py-2.5 px-4 font-medium">Permissions Required</th>
@@ -126,7 +126,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
             <tbody className="divide-y divide-slate-800/60">
               {filteredTools.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-500">
+                  <td colSpan={7} className="py-8 text-center text-[#9AA6B7]/70">
                     No tools match your query.
                   </td>
                 </tr>
@@ -134,9 +134,9 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
                 filteredTools.map(tool => (
                   <tr key={tool.id} className="hover:bg-slate-850/40 transition-colors">
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-200 font-sans">{tool.name}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">{tool.id}</div>
-                      <div className="text-[11px] text-slate-400 font-sans mt-0.5 line-clamp-1">
+                      <div className="font-semibold text-[#F1F4F8] font-sans">{tool.name}</div>
+                      <div className="text-[11px] text-[#9AA6B7]/70 font-mono">{tool.id}</div>
+                      <div className="text-[11px] text-[#9AA6B7] font-sans mt-0.5 line-clamp-1">
                         {tool.description}
                       </div>
                     </td>
@@ -150,17 +150,17 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
                         {tool.permission_requirements.map(req => (
                           <span
                             key={req}
-                            className="px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-300 text-[10px]"
+                            className="px-1.5 py-0.5 rounded bg-[#171F2B]/80 text-[#F1F4F8] text-[10px]"
                           >
                             {req}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-slate-300">
+                    <td className="py-3 px-4 text-[#F1F4F8]">
                       {tool.execution_policy.timeout_seconds}s
                     </td>
-                    <td className="py-3 px-4 text-slate-400 tabular-nums">
+                    <td className="py-3 px-4 text-[#9AA6B7] tabular-nums">
                       {(tool.execution_policy.max_output_bytes / 1024 / 1024).toFixed(1)} MB
                     </td>
                     <td className="py-3 px-4">

@@ -1,0 +1,424 @@
+{
+  "audit_version": "1.0.0",
+  "audit_date": "2026-10-12T09:05:00.000Z",
+  "project_name": "AI Heaven",
+  "phase": "MASTER UPGRADE — PART 1/12: EXISTING PROJECT AUDIT, FEATURE INVENTORY, AND NON-DESTRUCTIVE IMPLEMENTATION PLAN",
+  "architecture_confirmation": {
+    "runtime": "Node.js v22 (LTS) / Express 4.21 / TypeScript 7.0 / Vite 8.3 / React 19",
+    "serverless_entry": "api/index.ts -> src/api/app.ts (Pure serverless handler with zero Vite runtime coupling)",
+    "local_fullstack_entry": "server.ts (Express API + Vite Dev Middleware / Static dist on port 3000)",
+    "database": "PostgreSQL with connection pooling, automated 10-table schema migrations, and durable in-memory fallback",
+    "deployment_config": "vercel.json (V2 builder, CSP/CORS security headers, sensitive path blocking, API rewrites)"
+  },
+  "verified_baseline_metrics": {
+    "type_check_errors": 0,
+    "unit_and_integration_tests_passed": 73,
+    "adversarial_reality_checks_passed": 37,
+    "api_security_smoke_checks_passed": 35,
+    "total_verified_test_assertions": 145,
+    "failed_tests": 0,
+    "production_build_duration_ms": 927
+  },
+  "feature_inventory": [
+    {
+      "id": "feat_central_brain",
+      "name": "Central Brain & Model Router",
+      "implementation_files": [
+        "src/services/brain/centralBrainService.ts",
+        "src/components/brain/CentralBrainView.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/brain/models",
+        "GET /api/brain/decisions",
+        "POST /api/brain/classify",
+        "POST /api/brain/orchestrate",
+        "GET /api/brain/plans/:planId",
+        "POST /api/brain/plans/:planId/advance"
+      ],
+      "database_dependencies": [
+        "aiheaven_tasks",
+        "aiheaven_engineering_memories",
+        "aiheaven_task_outcomes"
+      ],
+      "authentication_requirements": "Optional for read; Tenant-isolated token for orchestration plans",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/central_brain_orchestration.test.ts verifies domain classification (coding vs terminal), calibrated capability scoring, DAG dependency generation, architectural constraints injection, and automatic fallback routing."
+    },
+    {
+      "id": "feat_bughunt_platform",
+      "name": "Autonomous Bug-Bounty Hunting Platform",
+      "implementation_files": [
+        "src/services/bughunt/bugHuntService.ts",
+        "src/services/bughunt/hackerOneService.ts",
+        "src/components/bughunt/BugHuntWorkspace.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/bughunt/workspace",
+        "GET /api/bughunt/programs",
+        "GET /api/bughunt/droids",
+        "GET /api/bughunt/findings",
+        "GET /api/bughunt/hunts/:id",
+        "POST /api/bughunt/start",
+        "POST /api/bughunt/custom",
+        "POST /api/bughunt/verify-scope",
+        "POST /api/bughunt/cancel",
+        "POST /api/bughunt/resume",
+        "GET /api/bughunt/hackerone/status",
+        "GET /api/bughunt/hackerone/programs",
+        "POST /api/bughunt/hackerone/snapshot"
+      ],
+      "database_dependencies": [
+        "aiheaven_tasks",
+        "aiheaven_audit_events"
+      ],
+      "authentication_requirements": "Authenticated researcher token bound to strict tenantId",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/bughunt_platform.test.ts verifies 1-Click START BUG HUNTING, CUSTOM BUG HUNT with scoped droids, 6 specialized security droids (Argus, Hydra, Aegis, Vulcan, Specter, Cerberus), scope whitelist/blacklist enforcement, cURL PoCs, SHA-256 evidence hashing, and HackerOne/Bugcrowd Markdown report generation."
+    },
+    {
+      "id": "feat_multi_provider_auth",
+      "name": "Multi-Provider Authentication & Tenant Isolation",
+      "implementation_files": [
+        "src/services/auth/authService.ts",
+        "src/components/auth/AuthModal.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/auth/providers",
+        "POST /api/auth/register",
+        "POST /api/auth/login",
+        "POST /api/auth/oauth",
+        "GET /api/auth/users",
+        "POST /api/auth/switch",
+        "POST /api/auth/link",
+        "POST /api/auth/unlink",
+        "POST /api/auth/logout",
+        "POST /api/auth/request-verification",
+        "POST /api/auth/verify-email",
+        "POST /api/auth/request-reset",
+        "POST /api/auth/reset-password",
+        "GET /api/auth/me"
+      ],
+      "database_dependencies": [
+        "aiheaven_audit_events",
+        "PostgreSQL users table in schema migrations"
+      ],
+      "authentication_requirements": "Bearer JWT with tenant_id claims; PBKDF2 SHA-512 password hash",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/bughunt_platform.test.ts verifies PBKDF2 100,000-iteration hashing, provider matrix status auditing, tenant boundary enforcement on workspace queries, and cross-account switching."
+    },
+    {
+      "id": "feat_continuity_engine",
+      "name": "Continuity & Engineering Memory Engine",
+      "implementation_files": [
+        "src/services/continuity/continuityEngine.ts",
+        "src/components/continuity/ContinuityCenter.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/continuity/dashboard",
+        "GET /api/continuity/memories",
+        "POST /api/continuity/memories",
+        "PUT /api/continuity/memories/:id",
+        "DELETE /api/continuity/memories/:id",
+        "POST /api/continuity/memories/:id/revalidate",
+        "POST /api/continuity/memories/:id/promote",
+        "GET /api/continuity/memories/export",
+        "GET /api/continuity/stale-conflicts",
+        "GET /api/continuity/trends",
+        "POST /api/continuity/resurrect/prepare",
+        "POST /api/continuity/resurrect/execute",
+        "POST /api/continuity/learn"
+      ],
+      "database_dependencies": [
+        "aiheaven_engineering_memories",
+        "aiheaven_task_outcomes"
+      ],
+      "authentication_requirements": "Tenant ID isolation with sanitized global knowledge promotion",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/continuity_intelligence.test.ts verifies durable memories with 4-tier evidence statuses (VERIFIED, INFERRED, UNVERIFIED, OUTDATED), checkpoint resumption without duplicate side effects, empirical routing calibration, and CSV/JSON exports."
+    },
+    {
+      "id": "feat_agent_runtime",
+      "name": "Sandboxed Agent Runtime & Execution Manager",
+      "implementation_files": [
+        "src/services/sandbox/agentRuntimeService.ts",
+        "src/services/sandbox/sandboxExecutor.ts",
+        "src/services/sandbox/executionManager.ts",
+        "src/services/sandbox/workspaceFs.ts",
+        "src/components/agents/AgentRuntimeConsole.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/workers",
+        "GET /api/tasks",
+        "POST /api/tasks",
+        "GET /api/tasks/:taskId",
+        "POST /api/tasks/:taskId/execute",
+        "POST /api/tasks/:taskId/pause",
+        "POST /api/tasks/:taskId/resume",
+        "POST /api/tasks/:taskId/cancel",
+        "GET /api/tasks/:taskId/receipt",
+        "GET /api/approvals",
+        "POST /api/approvals/:approvalId/decide",
+        "GET /api/kill-switch",
+        "POST /api/kill-switch/trigger",
+        "POST /api/kill-switch/reset",
+        "GET /api/events"
+      ],
+      "database_dependencies": [
+        "aiheaven_workers",
+        "aiheaven_tasks",
+        "aiheaven_approvals",
+        "aiheaven_execution_jobs",
+        "aiheaven_kill_switch"
+      ],
+      "authentication_requirements": "Admin / operator / researcher RBAC roles",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/phase1b.test.ts, tests/phase1c.test.ts, tests/phase1d.test.ts, tests/phase1f.test.ts, and tests/reality_audit.ts verify path traversal defense, timeout limits, human-in-the-loop approvals for destructive operations, global kill-switch, and execution receipts."
+    },
+    {
+      "id": "feat_terminal_workspace",
+      "name": "Universal Isolated Terminal & Workspace VFS",
+      "implementation_files": [
+        "src/services/terminal/terminalExecutionService.ts",
+        "src/components/terminal/TerminalWorkspace.tsx"
+      ],
+      "api_endpoints": [
+        "POST /api/terminal/execute",
+        "POST /api/terminal/cancel",
+        "GET /api/terminal/history",
+        "GET /api/terminal/workspace/files",
+        "GET /api/terminal/workspace/file",
+        "POST /api/terminal/workspace/file",
+        "POST /api/terminal/workspace/import-repo"
+      ],
+      "database_dependencies": [
+        "aiheaven_execution_jobs",
+        "aiheaven_audit_events"
+      ],
+      "authentication_requirements": "Workspace authorization check; dangerous host commands (exit 126) permanently forbidden",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/universal_terminal_knowledge.test.ts verifies shell execution inside isolated VFS, immediate rejection of host escalation commands, approval gating for destructive commands, and audit trail persistence."
+    },
+    {
+      "id": "feat_open_source_discovery",
+      "name": "Open-Source Resource Discovery & Learning Engine",
+      "implementation_files": [
+        "src/services/discovery/openSourceDiscoveryService.ts",
+        "src/services/learning/knowledgeLearningService.ts",
+        "src/components/explorer/ResourceExplorer.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/discovery/search",
+        "GET /api/discovery/repo/:owner/:repo",
+        "GET /api/discovery/rate-limit",
+        "GET /api/learning/guide/:slugOrName"
+      ],
+      "database_dependencies": [
+        "In-memory registry + database resources table"
+      ],
+      "authentication_requirements": "Public discovery with rate-limit tracking; GitHub token for extended quotas",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/universal_terminal_knowledge.test.ts verifies multi-source discovery (GitHub, Hugging Face, npm), license extraction, rate limit auditing, and official doc-grounded learning paths."
+    },
+    {
+      "id": "feat_evolution_lab",
+      "name": "Autonomous Model & Pipeline Evolution Lab",
+      "implementation_files": [
+        "src/services/evolution/evolutionEngine.ts",
+        "src/components/evolution/EvolutionView.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/evolution/state",
+        "GET /api/evolution/candidates",
+        "GET /api/evolution/history",
+        "POST /api/evolution/experiments/run",
+        "POST /api/evolution/candidates/:id/promote",
+        "POST /api/evolution/rollback"
+      ],
+      "database_dependencies": [
+        "aiheaven_task_outcomes"
+      ],
+      "authentication_requirements": "Operator / administrator role required for model promotion/rollback",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/universal_terminal_knowledge.test.ts verifies benchmark execution, candidate comparison, canary promotion, and safe rollback."
+    },
+    {
+      "id": "feat_review_center",
+      "name": "Review Center, QA Metrics & Security Headers",
+      "implementation_files": [
+        "src/services/review/reviewService.ts",
+        "src/components/review/ReviewCenter.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/review/latest",
+        "POST /api/review/run",
+        "GET /api/review/reports",
+        "GET /api/review/reports/:id",
+        "GET /api/review/fixes",
+        "POST /api/review/fixes/:fixId/apply",
+        "POST /api/review/tests/run"
+      ],
+      "database_dependencies": [
+        "aiheaven_audit_events"
+      ],
+      "authentication_requirements": "Requires confirmation flag before applying safe remediation patches",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/review_center.test.ts and tests/api_smoke.test.ts verify Google AI Studio iframe embedding restoration (frame-ancestors), clickjacking protection, automated fix dispatch, and test execution triggers."
+    },
+    {
+      "id": "feat_google_integrations",
+      "name": "Google Workspace & Identity Services Integration",
+      "implementation_files": [
+        "src/services/google/googleAuthService.ts",
+        "src/services/google/googleDriveService.ts",
+        "src/components/google/GoogleIntegrationView.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/accounts/google",
+        "POST /api/accounts/google/switch"
+      ],
+      "database_dependencies": [
+        "aiheaven_audit_events"
+      ],
+      "authentication_requirements": "Client-side Google Identity Services (GIS) token; zero server-side secret leakage",
+      "classification": "Partially implemented / Blocked by user interactive consent",
+      "verification_evidence": "Client-side GIS tokenClient initialized cleanly. Requires browser interaction with VITE_GOOGLE_CLIENT_ID for interactive token generation."
+    },
+    {
+      "id": "feat_knowledge_graph",
+      "name": "Knowledge Graph & Resource Relationships",
+      "implementation_files": [
+        "src/data/database.ts",
+        "src/components/graph/KnowledgeGraphView.tsx"
+      ],
+      "api_endpoints": [
+        "GET /api/resources",
+        "GET /api/resources/:slug",
+        "GET /api/resources/:slug/relationships",
+        "GET /api/providers",
+        "GET /api/graph"
+      ],
+      "database_dependencies": [
+        "Local authoritative dataset + Postgres resources"
+      ],
+      "authentication_requirements": "Public read",
+      "classification": "Implemented and verified",
+      "verification_evidence": "tests/phase1d.test.ts and tests/reality_audit.ts verify zero dangling graph relationships and strict demarcation between verified resources and unverified demo data."
+    },
+    {
+      "id": "feat_postgresql_persistence",
+      "name": "PostgreSQL Persistence & Serverless Pool",
+      "implementation_files": [
+        "src/db/postgres.ts"
+      ],
+      "api_endpoints": [
+        "GET /api/health/db"
+      ],
+      "database_dependencies": [
+        "10 AI Heaven Postgres tables with automated migrations"
+      ],
+      "authentication_requirements": "DATABASE_URL connection string with SSL support",
+      "classification": "Implemented and verified (with In-Memory Fallback when unconfigured)",
+      "verification_evidence": "tests/phase1f.test.ts verifies unconfigured and invalid DATABASE_URL diagnostics, credential redaction in errors, and schema migration SQL queries."
+    }
+  ],
+  "implementation_plan_parts_2_to_12": {
+    "part_2_central_brain": {
+      "focus": "Capability registry, natural language constraints, dynamic model selection, and durable state machine (QUEUED, PLANNING, RUNNING, WAITING_APPROVAL, PAUSED, VERIFYING, COMPLETED, FAILED, CANCELLED).",
+      "target_files": [
+        "src/services/brain/centralBrainService.ts",
+        "src/components/brain/CentralBrainView.tsx"
+      ],
+      "regression_risks": "Ensuring pre-task constraints injection does not alter existing task outcome telemetry.",
+      "required_tests": "Run tests/central_brain_orchestration.test.ts and tests/continuity_intelligence.test.ts."
+    },
+    "part_3_authentication": {
+      "focus": "Expanding OAuth flows (GitHub, Hugging Face, Google) with secure server-side state/CSRF validation, account linking, and dedicated AI Accounts view.",
+      "target_files": [
+        "src/services/auth/authService.ts",
+        "src/components/auth/AuthModal.tsx"
+      ],
+      "regression_risks": "Preventing token invalidation or cross-tenant leakage during multi-provider identity linking.",
+      "required_tests": "Run tests/bughunt_platform.test.ts (Auth suite) and tests/api_smoke.test.ts."
+    },
+    "part_4_droidization": {
+      "focus": "Scaling agent workers dynamically beyond 2 workers, adding specialized task workers (Hunt Commander, Recon, SAST, Droidization for websites), and shared task context.",
+      "target_files": [
+        "src/services/sandbox/agentRuntimeService.ts",
+        "src/components/agents/AgentRuntimeConsole.tsx"
+      ],
+      "regression_risks": "Resource starvation or task queue deadlocks under high worker concurrency.",
+      "required_tests": "Run tests/phase1b.test.ts, tests/phase1c.test.ts, and tests/reality_audit.ts."
+    },
+    "part_5_hackerone_discovery": {
+      "focus": "Official HackerOne API capabilities, program discovery, rule parsing, scope snapshots, and bounty filter constraints.",
+      "target_files": [
+        "src/services/bughunt/hackerOneService.ts",
+        "src/components/bughunt/BugHuntWorkspace.tsx"
+      ],
+      "regression_risks": "Graceful handling of unconfigured API credentials without crashing autonomous hunt launches.",
+      "required_tests": "Run tests/bughunt_platform.test.ts."
+    },
+    "part_6_vulnerability_discovery": {
+      "focus": "Advanced security testing engine, 15 vulnerability categories, rate limits, execution boundaries, and explicit target authorization enforcement.",
+      "target_files": [
+        "src/services/bughunt/bugHuntService.ts"
+      ],
+      "regression_risks": "Scope bypass or out-of-scope probes if URL parsing is non-deterministic.",
+      "required_tests": "Run tests/bughunt_platform.test.ts scope enforcement test cases."
+    },
+    "part_7_execution_engine": {
+      "focus": "Tool registry schema validation, isolated virtual containers, bounded logs, and emergency kill-switch.",
+      "target_files": [
+        "src/services/sandbox/sandboxExecutor.ts",
+        "src/services/terminal/terminalExecutionService.ts"
+      ],
+      "regression_risks": "Filesystem boundary escape or command injection in VFS.",
+      "required_tests": "Run tests/universal_terminal_knowledge.test.ts and tests/phase1b.test.ts."
+    },
+    "part_8_independent_verification": {
+      "focus": "8-tier finding classification, cryptographic evidence proofs (SHA-256), curl reproduction traces, sensitive data redaction, and Markdown report export.",
+      "target_files": [
+        "src/services/bughunt/bugHuntService.ts"
+      ],
+      "regression_risks": "Leaking credentials in curl reproduction traces if redaction regex is incomplete.",
+      "required_tests": "Run tests/bughunt_platform.test.ts and tests/reality_audit.ts."
+    },
+    "part_9_resource_discovery": {
+      "focus": "Knowledge graph integration with GitHub, Hugging Face, npm, and crates.io; license extraction, and provenance tracking.",
+      "target_files": [
+        "src/services/discovery/openSourceDiscoveryService.ts",
+        "src/components/explorer/ResourceExplorer.tsx"
+      ],
+      "regression_risks": "Upstream rate-limit exhaustion causing empty explorer responses.",
+      "required_tests": "Run tests/universal_terminal_knowledge.test.ts."
+    },
+    "part_10_database_reliability": {
+      "focus": "PostgreSQL schema validation, durable job persistence, lease ownership, and restart recovery.",
+      "target_files": [
+        "src/db/postgres.ts",
+        "src/services/sandbox/executionManager.ts"
+      ],
+      "regression_risks": "Database lock contention during automated schema migrations.",
+      "required_tests": "Run tests/phase1f.test.ts and tests/reality_audit.ts."
+    },
+    "part_11_gui_rework": {
+      "focus": "Restrained engineering aesthetic (#080B10, #121822, #42D9F5), zero-pill typographic discipline, responsive mobile navigation (320px-1440px), and clear action mappings for every button.",
+      "target_files": [
+        "src/components/shell/AppShell.tsx",
+        "src/components/home/HomeView.tsx",
+        "src/index.css"
+      ],
+      "regression_risks": "Breaking modal or view navigation routes.",
+      "required_tests": "Run npm run lint and compile_applet."
+    },
+    "part_12_production_readiness": {
+      "focus": "Final end-to-end audit, defect triage, full test suite pass, and zero-defect deployment validation.",
+      "target_files": [
+        "data/audit_checkpoint.json",
+        "vercel.json"
+      ],
+      "regression_risks": "Discrepancy between staging environment and serverless production runtime.",
+      "required_tests": "Run npm test, npm run lint, and npm run build."
+    }
+  }
+}

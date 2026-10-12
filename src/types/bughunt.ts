@@ -1,19 +1,36 @@
 /**
  * AI HEAVEN - Autonomous Bug-Bounty Hunting Platform Contracts
- * Rigorous evidence-driven models for targets, droids, scope enforcement,
- * cryptographic evidence verification, and tenant-isolated workspaces.
+ * Rigorous evidence-driven models for targets, 11 specialized droids,
+ * scope snapshots, cryptographic evidence verification, and tenant-isolated workspaces.
  */
 
 export type VulnerabilitySeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
-export type EvidenceStatus = 'VERIFIED' | 'INFERRED' | 'UNVERIFIED' | 'REJECTED';
+
+export type FindingReviewStatus =
+  | 'SUSPECTED'
+  | 'NEEDS REVIEW'
+  | 'VERIFIED'
+  | 'FALSE POSITIVE'
+  | 'NOT REPRODUCIBLE'
+  | 'BLOCKED';
+
+// Backward compatible alias
+export type EvidenceStatus = FindingReviewStatus | 'INFERRED' | 'UNVERIFIED' | 'REJECTED';
 
 export type SecurityDroidType =
+  | 'commander_droid'
   | 'recon_droid'
+  | 'research_droid'
+  | 'source_code_droid'
   | 'api_fuzzer_droid'
   | 'auth_bypass_droid'
+  | 'dependency_droid'
   | 'injection_droid'
   | 'secrets_droid'
-  | 'verifier_droid';
+  | 'verifier_droid'
+  | 'adversarial_review_droid'
+  | 'remediation_droid'
+  | 'reporting_droid';
 
 export interface SecurityDroid {
   id: string;
@@ -60,6 +77,7 @@ export interface BugHuntScope {
   disallowedPaths: string[];
   authorizationHeader?: string;
   rateLimitPerSecond?: number;
+  scopeSnapshotId?: string;
 }
 
 export interface BugHuntConfig {
@@ -72,6 +90,8 @@ export interface BugHuntConfig {
     | 'auth_boundary_probing'
     | 'safe_injection_testing'
     | 'secret_leak_scanning'
+    | 'sast_code_audit'
+    | 'dependency_audit'
   >;
   verificationDepth: 'fast_triage' | 'deep_evidence' | 'dual_droid_consensus';
   reportingStyle: 'hackerone' | 'bugcrowd' | 'executive';
@@ -97,9 +117,11 @@ export interface VulnerabilityFinding {
   rawRequest: string;
   rawResponse: string;
   evidenceHash: string; // SHA-256 of payload & response evidence
-  verificationStatus: EvidenceStatus;
+  verificationStatus: FindingReviewStatus;
   verifiedByDroidId: string;
   remediation: string;
+  falsePositiveReviewNotes?: string;
+  isDataRedacted: boolean;
   discoveredAt: string;
   verifiedAt?: string;
 }
@@ -110,6 +132,7 @@ export type BugHuntStatus =
   | 'probing'
   | 'analyzing'
   | 'verifying'
+  | 'in_progress'
   | 'completed'
   | 'failed'
   | 'cancelled';
@@ -135,8 +158,11 @@ export interface BugHuntJob {
   findings: VulnerabilityFinding[];
   reportMarkdown?: string;
   receiptId?: string;
+  scopeSnapshotChecksum?: string;
   startedAt: string;
   completedAt?: string;
+  cancellationReason?: string;
+  resumedFromPhase?: string;
 }
 
 export interface UserBugHuntWorkspace {

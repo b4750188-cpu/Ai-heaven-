@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed select-none shrink-0';
+    'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#42D9F5] disabled:opacity-50 disabled:cursor-not-allowed select-none shrink-0 cursor-pointer';
 
   const sizeStyles = {
     xs: 'px-2 py-1 text-[11px] rounded gap-1.5',
@@ -30,15 +30,15 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-xs border border-blue-500/30',
+      'bg-[#42D9F5] hover:bg-[#38c4de] active:bg-[#2ab3cd] text-[#080B10] font-semibold shadow-xs border border-[#42D9F5]/40',
     secondary:
-      'border border-slate-800 bg-slate-900/80 hover:bg-slate-850 hover:border-slate-700 text-slate-200 active:bg-slate-800',
+      'border border-[#283242] bg-[#121822] hover:bg-[#171F2B] hover:border-[#3a475d] text-[#F1F4F8] active:bg-[#171F2B]',
     destructive:
-      'border border-rose-800/80 bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 active:bg-rose-900',
+      'border border-[#F87171]/40 bg-[#F87171]/10 hover:bg-[#F87171]/20 text-[#F87171] active:bg-[#F87171]/30',
     success:
-      'border border-emerald-800/80 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-200 active:bg-emerald-900',
+      'border border-[#34D399]/40 bg-[#34D399]/10 hover:bg-[#34D399]/20 text-[#34D399] active:bg-[#34D399]/30',
     ghost:
-      'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 active:bg-slate-800'
+      'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B] active:bg-[#121822]'
   };
 
   return (

@@ -1951,6 +1951,28 @@ class AIHeavenApiClient {
     }
   }
 
+  public async updateFindingStatus(findingId: string, status: string, notes?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/findings/${encodeURIComponent(findingId)}/status`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ status, notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update finding status');
+    return data;
+  }
+
+  public async submitFindingToHackerOne(findingId: string, programHandle?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/findings/${encodeURIComponent(findingId)}/submit-hackerone`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ programHandle })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to submit finding to HackerOne');
+    return data;
+  }
+
   public async getBugHuntJob(huntId: string): Promise<any> {
     const res = await fetch(`${this.baseUrl}/bughunt/hunts/${encodeURIComponent(huntId)}`, {
       headers: this.getAuthHeaders({ Accept: 'application/json' })
@@ -1992,6 +2014,117 @@ class AIHeavenApiClient {
     });
     if (!res.ok) return { authorized: false, reason: 'Failed to verify scope' };
     return await res.json();
+  }
+
+  public async cancelBugHunt(huntId: string, reason?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/cancel`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ huntId, reason })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to cancel bug hunt');
+    return data;
+  }
+
+  public async resumeBugHunt(huntId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/resume`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ huntId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to resume bug hunt');
+    return data;
+  }
+
+  public async getHackerOneStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/hackerone/status`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  public async getHackerOnePrograms(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/hackerone/programs`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.programs || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async captureScopeSnapshot(programHandle?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/hackerone/snapshot`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ programHandle })
+    });
+    if (!res.ok) throw new Error('Failed to capture scope snapshot');
+    return await res.json();
+  }
+
+  public async requestEmailVerification(email: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/request-verification`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to request verification');
+    return data;
+  }
+
+  public async verifyEmail(token: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/verify-email`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Email verification failed');
+    return data;
+  }
+
+  public async requestPasswordReset(email: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/request-reset`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to request password reset');
+    return data;
+  }
+
+  public async confirmPasswordReset(token: string, newPassword: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/confirm-reset`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ token, newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Password reset failed');
+    return data;
+  }
+
+  public async generateOAuthState(provider: string): Promise<string> {
+    const res = await fetch(`${this.baseUrl}/auth/oauth-state`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ provider })
+    });
+    const data = await res.json();
+    return data.state;
   }
 }
 

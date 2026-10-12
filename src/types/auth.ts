@@ -1,10 +1,17 @@
 /**
  * AI HEAVEN - Multi-Provider Authentication, Identity, and Session Types
  * Compliant with enterprise security standards: PBKDF2 hashing, OAuth 2.0,
- * account linking/switching, tenant isolation, and CSRF protection.
+ * account linking/switching, tenant isolation, CSRF protection, and cost transparency.
  */
 
-export type AuthProviderType = 'local' | 'google' | 'github' | 'microsoft' | 'apple';
+export type AuthProviderType =
+  | 'local'
+  | 'google'
+  | 'github'
+  | 'facebook'
+  | 'microsoft'
+  | 'apple'
+  | 'discord';
 
 export interface LinkedIdentity {
   provider: AuthProviderType;
@@ -42,16 +49,35 @@ export interface AuthenticatedUser {
   updatedAt: string;
 }
 
+export interface ProviderCostTransparency {
+  costModel: 'Free Tier Available' | 'Free with Usage Limits' | 'Requires Paid Developer Program' | 'Enterprise Subscription';
+  freeTierDetails: string;
+  knownCostsDescription: string;
+  isThirdPartyBillingRequired: boolean;
+}
+
+export interface ProviderCredentialRequirements {
+  publicClientIdentifiers: string[];
+  confidentialSecrets: string[];
+  authorizedCallbackUrl: string;
+  developerConsoleUrl: string;
+  requiredPermissions: string[];
+  domainVerificationRequired: boolean;
+}
+
 export interface AuthProviderStatus {
   provider: AuthProviderType;
   name: string;
   isConfigured: boolean;
   isEnabled: boolean;
+  statusLabel: 'READY' | 'CONFIGURED' | 'SETUP_REQUIRED' | 'BLOCKED_MISSING_CREDENTIALS';
   missingEnvVars: string[];
   setupGuideUrl?: string;
   setupInstructions: string;
   clientIdPreview?: string;
   isConnectedForUser: boolean;
+  credentials: ProviderCredentialRequirements;
+  costTransparency: ProviderCostTransparency;
 }
 
 export interface AuthTokens {
@@ -77,13 +103,27 @@ export interface RegisterRequest {
   fullName: string;
 }
 
-export interface LinkAccountRequest {
-  provider: AuthProviderType;
-  providerUserId: string;
+export interface PasswordResetTokenRecord {
+  token: string;
   email: string;
-  tokenOrCode?: string;
+  userId: string;
+  expiresAt: string;
+  createdAt: string;
+  isConsumed: boolean;
 }
 
-export interface AccountSwitchRequest {
-  targetUserId: string;
+export interface EmailVerificationTokenRecord {
+  token: string;
+  email: string;
+  userId: string;
+  expiresAt: string;
+  createdAt: string;
+  isConsumed: boolean;
+}
+
+export interface OAuthStateRecord {
+  state: string;
+  provider: AuthProviderType;
+  expiresAt: string;
+  createdAt: string;
 }

@@ -439,7 +439,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       )}
 
       {/* 3. Header & Controls */}
-      <div className="border-b border-slate-800/80 pb-5">
+      <div className="border-b border-[#283242]/80 pb-5">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
@@ -448,10 +448,10 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               <span className="text-slate-600">/</span>
               <span>AGENT CONSOLE</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-100 font-mono tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#F1F4F8] font-mono tracking-tight">
               Personal AI Agent Runtime
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-xl">
+            <p className="text-xs text-[#9AA6B7] mt-1 max-w-xl">
               Persistent worker lifecycle management, multi-step task planner, short-term memory layer, and emergency halt protocol.
             </p>
           </div>
@@ -488,19 +488,19 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         </div>
 
         {/* 4. Sub-Tab Navigation Bar */}
-        <div className="flex border-b border-slate-800 mt-6 gap-2 text-xs font-mono">
+        <div className="flex border-b border-[#283242] mt-6 gap-2 text-xs font-mono">
           <button
             onClick={() => setActiveTab('workspace')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'workspace'
-                ? 'border-blue-500 text-slate-100 font-semibold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-500 text-[#F1F4F8] font-semibold'
+                : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
             }`}
           >
             <ListTodo className="h-4 w-4" />
             <span>Task Execution</span>
             {tasks.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded bg-[#171F2B] text-[#9AA6B7] text-[10px]">
                 {tasks.length}
               </span>
             )}
@@ -510,13 +510,13 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             onClick={() => setActiveTab('fleet')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'fleet'
-                ? 'border-blue-500 text-slate-100 font-semibold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-500 text-[#F1F4F8] font-semibold'
+                : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
             }`}
           >
             <Bot className="h-4 w-4" />
             <span>Agent Fleet</span>
-            <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 text-[10px]">
+            <span className="px-1.5 py-0.2 rounded bg-[#171F2B] text-[#9AA6B7] text-[10px]">
               {workers.length}
             </span>
           </button>
@@ -525,8 +525,8 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             onClick={() => setActiveTab('approvals')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'approvals'
-                ? 'border-blue-500 text-slate-100 font-semibold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-500 text-[#F1F4F8] font-semibold'
+                : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
             }`}
           >
             <ShieldAlert className="h-4 w-4" />
@@ -542,8 +542,8 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             onClick={() => setActiveTab('memory')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'memory'
-                ? 'border-blue-500 text-slate-100 font-semibold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-500 text-[#F1F4F8] font-semibold'
+                : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
             }`}
           >
             <Brain className="h-4 w-4" />
@@ -554,8 +554,8 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             onClick={() => setActiveTab('logs')}
             className={`pb-2.5 px-3 border-b-2 flex items-center gap-2 transition-colors ${
               activeTab === 'logs'
-                ? 'border-blue-500 text-slate-100 font-semibold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-500 text-[#F1F4F8] font-semibold'
+                : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
             }`}
           >
             <Activity className="h-4 w-4" />
@@ -572,7 +572,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
           {/* Left Column: Task Selector (4 cols) */}
           <div className="lg:col-span-4 space-y-3">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="font-semibold uppercase tracking-wider text-slate-400">
+              <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
                 Active Tasks ({tasks.length})
               </span>
               <button
@@ -585,7 +585,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             </div>
 
             {tasks.length === 0 ? (
-              <div className="p-6 rounded-lg border border-slate-800 bg-slate-900/30 text-center text-xs font-mono text-slate-500">
+              <div className="p-6 rounded-lg border border-[#283242] bg-[#121822]/30 text-center text-xs font-mono text-[#9AA6B7]/70">
                 No tasks queued.
                 <div className="mt-2">
                   <Button variant="secondary" size="xs" onClick={() => setIsNewTaskModalOpen(true)}>
@@ -607,12 +607,12 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                       onClick={() => handleSelectTask(task)}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-blue-500/50 bg-blue-950/20 text-slate-100'
-                          : 'border-slate-800/80 bg-slate-900/40 text-slate-300 hover:border-slate-700'
+                          ? 'border-blue-500/50 bg-blue-950/20 text-[#F1F4F8]'
+                          : 'border-[#283242]/80 bg-[#121822]/40 text-[#F1F4F8] hover:border-[#283242]'
                       }`}
                     >
-                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
-                        <span className="truncate max-w-[140px] text-slate-300 font-medium">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-[#9AA6B7] mb-1">
+                        <span className="truncate max-w-[140px] text-[#F1F4F8] font-medium">
                           {assignedAgent?.name || task.agent_id}
                         </span>
                         <Badge
@@ -632,10 +632,10 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                           {task.status}
                         </Badge>
                       </div>
-                      <p className="text-xs font-medium text-slate-200 line-clamp-2">
+                      <p className="text-xs font-medium text-[#F1F4F8] line-clamp-2">
                         {task.goal}
                       </p>
-                      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1.5 border-t border-slate-800/40">
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-[#9AA6B7]/70 font-mono pt-1.5 border-t border-[#283242]/40">
                         <span>
                           Step {completedSteps} / {totalSteps}
                         </span>
@@ -651,12 +651,12 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
           {/* Right Column: Execution Console (8 cols) */}
           <div className="lg:col-span-8 space-y-4">
             {selectedTask ? (
-              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-5 space-y-5">
+              <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 p-5 space-y-5">
                 {/* Task Header & Execution Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-800">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#283242]">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#171F2B] text-[#F1F4F8]">
                         {selectedTask.id}
                       </span>
                       <Badge
@@ -674,14 +674,14 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                       >
                         {selectedTask.status}
                       </Badge>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#171F2B] text-[#9AA6B7]">
                         {selectedTask.priority} priority
                       </span>
                     </div>
-                    <h2 className="text-sm sm:text-base font-semibold text-slate-100 font-mono">
+                    <h2 className="text-sm sm:text-base font-semibold text-[#F1F4F8] font-mono">
                       {selectedTask.goal}
                     </h2>
-                    <div className="text-xs text-slate-400 font-mono flex items-center gap-4">
+                    <div className="text-xs text-[#9AA6B7] font-mono flex items-center gap-4">
                       <span>Agent: {agents.find(a => a.id === selectedTask.agent_id)?.name || selectedTask.agent_id}</span>
                       <span>Workspace: {selectedTask.workspace_id}</span>
                     </div>
@@ -739,7 +739,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
                 {/* Progress Strip */}
                 <div>
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-1.5">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7] mb-1.5">
                     <span>
                       Progression: {selectedTask.current_action_index} of {selectedTask.plan.length} actions complete
                     </span>
@@ -747,7 +747,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                       {Math.round((selectedTask.current_action_index / Math.max(selectedTask.plan.length, 1)) * 100)}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 transition-all duration-300"
                       style={{
@@ -759,15 +759,15 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
                 {/* Plan Steps Table */}
                 <div className="space-y-3">
-                  <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+                  <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#9AA6B7]">
                     Plan Execution Sequence ({selectedTask.plan.length} Steps)
                   </div>
 
-                  <div className="rounded-lg border border-slate-800/80 bg-slate-950/60 overflow-hidden">
+                  <div className="rounded-lg border border-[#283242]/80 bg-[#080B10]/60 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs font-mono">
                         <thead>
-                          <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-500">
+                          <tr className="border-b border-[#283242] bg-[#121822]/60 text-[#9AA6B7]/70">
                             <th className="py-2.5 px-3 font-medium">#</th>
                             <th className="py-2.5 px-3 font-medium">Action Purpose</th>
                             <th className="py-2.5 px-3 font-medium">Command</th>
@@ -783,18 +783,18 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                               <tr
                                 key={action.id}
                                 className={`transition-colors ${
-                                  isCurrent ? 'bg-blue-950/20' : 'hover:bg-slate-900/40'
+                                  isCurrent ? 'bg-blue-950/20' : 'hover:bg-[#121822]/40'
                                 }`}
                               >
-                                <td className="py-2.5 px-3 font-bold text-slate-400">
+                                <td className="py-2.5 px-3 font-bold text-[#9AA6B7]">
                                   {action.step_number}
                                 </td>
-                                <td className="py-2.5 px-3 font-sans text-slate-200">
+                                <td className="py-2.5 px-3 font-sans text-[#F1F4F8]">
                                   {action.purpose}
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <div className="flex items-center gap-1.5 text-blue-400/90 font-mono text-[11px]">
-                                    <Terminal className="h-3 w-3 text-slate-500 shrink-0" />
+                                    <Terminal className="h-3 w-3 text-[#9AA6B7]/70 shrink-0" />
                                     <span>{action.command}</span>
                                   </div>
                                 </td>
@@ -852,15 +852,15 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                 {/* Output Inspection Box (if results exist) */}
                 {selectedTask.plan.some(p => p.result || p.error) && (
                   <div className="space-y-2">
-                    <div className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-400">
+                    <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#9AA6B7]">
                       Step Outputs & Logs
                     </div>
-                    <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 max-h-48 overflow-y-auto font-mono text-xs text-slate-300 whitespace-pre-wrap space-y-2">
+                    <div className="rounded-lg border border-[#283242] bg-[#080B10] p-3 max-h-48 overflow-y-auto font-mono text-xs text-[#F1F4F8] whitespace-pre-wrap space-y-2">
                       {selectedTask.plan.map(p => {
                         if (!p.result && !p.error) return null;
                         return (
                           <div key={p.id} className="border-b border-slate-900 pb-2 last:border-0 last:pb-0">
-                            <div className="text-slate-500 text-[10px] mb-0.5">
+                            <div className="text-[#9AA6B7]/70 text-[10px] mb-0.5">
                               Step {p.step_number}: {p.command}
                             </div>
                             {p.result && <div className="text-emerald-300/90">{p.result}</div>}
@@ -887,28 +887,28 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
                       <div>
-                        <span className="text-slate-500 block">Receipt ID</span>
-                        <span className="text-slate-200 font-semibold">{selectedReceipt.receipt_id}</span>
+                        <span className="text-[#9AA6B7]/70 block">Receipt ID</span>
+                        <span className="text-[#F1F4F8] font-semibold">{selectedReceipt.receipt_id}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Duration</span>
-                        <span className="text-slate-200">{selectedReceipt.duration_ms} ms</span>
+                        <span className="text-[#9AA6B7]/70 block">Duration</span>
+                        <span className="text-[#F1F4F8]">{selectedReceipt.duration_ms} ms</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Correlation ID</span>
-                        <span className="text-slate-200 truncate block">{selectedReceipt.correlation_id}</span>
+                        <span className="text-[#9AA6B7]/70 block">Correlation ID</span>
+                        <span className="text-[#F1F4F8] truncate block">{selectedReceipt.correlation_id}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">Sandbox Engine</span>
-                        <span className="text-slate-200">{selectedReceipt.provenance.engine}</span>
+                        <span className="text-[#9AA6B7]/70 block">Sandbox Engine</span>
+                        <span className="text-[#F1F4F8]">{selectedReceipt.provenance.engine}</span>
                       </div>
                     </div>
 
                     <div className="text-[11px] space-y-1 pt-1">
-                      <span className="text-slate-500 block">Tools Authorized & Used:</span>
+                      <span className="text-[#9AA6B7]/70 block">Tools Authorized & Used:</span>
                       <div className="flex flex-wrap gap-1">
                         {selectedReceipt.tools_used.map(t => (
-                          <code key={t} className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 text-[10px]">
+                          <code key={t} className="px-1.5 py-0.5 rounded bg-[#121822] border border-[#283242] text-[#F1F4F8] text-[10px]">
                             {t}
                           </code>
                         ))}
@@ -929,7 +929,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                 )}
               </div>
             ) : (
-              <div className="rounded-lg border border-slate-800/80 bg-slate-900/30 p-12 text-center text-slate-500 font-mono text-xs">
+              <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/30 p-12 text-center text-[#9AA6B7]/70 font-mono text-xs">
                 Select a task on the left or create a new goal.
               </div>
             )}
@@ -943,7 +943,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {activeTab === 'fleet' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold uppercase tracking-wider text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
               Agent Fleet Directory ({workers.length} Droids)
             </span>
             <Button
@@ -956,11 +956,11 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             </Button>
           </div>
 
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 overflow-hidden">
+          <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-500">
+                  <tr className="border-b border-[#283242] bg-[#080B10]/60 text-[#9AA6B7]/70">
                     <th className="py-2.5 px-4 font-medium">Agent / Role</th>
                     <th className="py-2.5 px-4 font-medium">State</th>
                     <th className="py-2.5 px-4 font-medium">Health</th>
@@ -976,9 +976,9 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                     return (
                       <tr key={agent.id} className="hover:bg-slate-850/40 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-200 font-sans">{agent.name}</div>
-                          <div className="text-[11px] text-slate-500">{agent.id}</div>
-                          <div className="text-[11px] text-slate-400 font-sans mt-0.5 line-clamp-1">
+                          <div className="font-semibold text-[#F1F4F8] font-sans">{agent.name}</div>
+                          <div className="text-[11px] text-[#9AA6B7]/70">{agent.id}</div>
+                          <div className="text-[11px] text-[#9AA6B7] font-sans mt-0.5 line-clamp-1">
                             {agent.description}
                           </div>
                         </td>
@@ -1001,17 +1001,17 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                             {worker?.state || 'OFFLINE'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-slate-300">
+                        <td className="py-3 px-4 text-[#F1F4F8]">
                           {worker?.health || 'healthy'}
                         </td>
-                        <td className="py-3 px-4 text-slate-400">
+                        <td className="py-3 px-4 text-[#9AA6B7]">
                           {worker?.current_task_id ? (
                             <span className="text-blue-400">{worker.current_task_id}</span>
                           ) : (
                             <span className="text-slate-600">None</span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-slate-400 text-[11px]">
+                        <td className="py-3 px-4 text-[#9AA6B7] text-[11px]">
                           {worker?.heartbeat_at
                             ? new Date(worker.heartbeat_at).toLocaleTimeString()
                             : 'Recent'}
@@ -1021,7 +1021,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                             {agent.permissions.allowed_tools.map(t => (
                               <span
                                 key={t}
-                                className="px-1.5 py-0.5 rounded bg-slate-800/80 text-[10px] text-slate-300"
+                                className="px-1.5 py-0.5 rounded bg-[#171F2B]/80 text-[10px] text-[#F1F4F8]"
                               >
                                 {t.replace('tool_', '')}
                               </span>
@@ -1075,19 +1075,19 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-mono">
             <div>
-              <span className="font-semibold uppercase tracking-wider text-slate-400">
+              <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
                 Human Authorization Queue ({pendingApprovals.length} Pending)
               </span>
-              <p className="text-slate-500 mt-0.5 text-[11px]">
+              <p className="text-[#9AA6B7]/70 mt-0.5 text-[11px]">
                 High-risk operations are quarantined at the sandbox boundary pending explicit operator sign-off.
               </p>
             </div>
           </div>
 
           {pendingApprovals.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-12 text-center text-xs font-mono text-slate-500">
+            <div className="rounded-lg border border-[#283242] bg-[#121822]/30 p-12 text-center text-xs font-mono text-[#9AA6B7]/70">
               <ShieldCheck className="h-8 w-8 mx-auto text-emerald-400 mb-2" />
-              <div className="text-slate-300 font-semibold">Queue is Clear</div>
+              <div className="text-[#F1F4F8] font-semibold">Queue is Clear</div>
               <p className="mt-1">All agent operations comply with auto-authorization policies.</p>
             </div>
           ) : (
@@ -1105,15 +1105,15 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                           <Badge variant="danger" size="xs">
                             DESTRUCTIVE
                           </Badge>
-                          <span className="text-slate-400 font-medium">Approval: {approval.id}</span>
+                          <span className="text-[#9AA6B7] font-medium">Approval: {approval.id}</span>
                         </div>
-                        <div className="text-slate-200 mt-1 font-semibold">
+                        <div className="text-[#F1F4F8] mt-1 font-semibold">
                           Target Execution: {approval.execution_id}
                         </div>
                         <div className="text-amber-400/90 text-[11px] mt-0.5">
-                          Command: <code className="bg-slate-950 px-1.5 py-0.5 rounded text-rose-300">{approval.command}</code>
+                          Command: <code className="bg-[#080B10] px-1.5 py-0.5 rounded text-rose-300">{approval.command}</code>
                         </div>
-                        <div className="text-slate-500 text-[10px] mt-1">
+                        <div className="text-[#9AA6B7]/70 text-[10px] mt-1">
                           Workspace: {approval.workspace_id} • Created: {new Date(approval.created_at).toLocaleTimeString()}
                         </div>
                       </div>
@@ -1148,7 +1148,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                           value={rejectionReason}
                           onChange={e => setRejectionReason(e.target.value)}
                           placeholder="e.g., Command would purge production workspace assets"
-                          className="w-full rounded bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500"
+                          className="w-full rounded bg-[#080B10] border border-[#283242] px-3 py-1.5 text-xs text-[#F1F4F8] focus:outline-none focus:border-rose-500"
                         />
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="xs" onClick={() => setRejectingApprovalId(null)}>
@@ -1179,10 +1179,10 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-mono">
             <div>
-              <span className="font-semibold uppercase tracking-wider text-slate-400">
+              <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
                 Short-Term Working Memory
               </span>
-              <p className="text-slate-500 mt-0.5 text-[11px]">
+              <p className="text-[#9AA6B7]/70 mt-0.5 text-[11px]">
                 Strict tenant scoping: Owner → Project → Workspace → Agent → Task
               </p>
             </div>
@@ -1195,40 +1195,40 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
           {selectedMemory ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-4 space-y-3 font-mono text-xs">
-                <div className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+              <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 p-4 space-y-3 font-mono text-xs">
+                <div className="text-[#9AA6B7] font-semibold uppercase tracking-wider text-[11px]">
                   Memory Scope & Goal
                 </div>
-                <div className="p-3 rounded bg-slate-950 border border-slate-800/80 space-y-1">
-                  <div className="text-slate-500">Current Goal:</div>
-                  <div className="text-slate-200 font-medium font-sans">{selectedMemory.current_goal}</div>
+                <div className="p-3 rounded bg-[#080B10] border border-[#283242]/80 space-y-1">
+                  <div className="text-[#9AA6B7]/70">Current Goal:</div>
+                  <div className="text-[#F1F4F8] font-medium font-sans">{selectedMemory.current_goal}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
-                    <span className="text-slate-500 block">Agent ID:</span>
-                    <span className="text-slate-300">{selectedMemory.agent_id}</span>
+                  <div className="p-2 rounded bg-[#080B10] border border-[#283242]/80">
+                    <span className="text-[#9AA6B7]/70 block">Agent ID:</span>
+                    <span className="text-[#F1F4F8]">{selectedMemory.agent_id}</span>
                   </div>
-                  <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
-                    <span className="text-slate-500 block">Workspace:</span>
-                    <span className="text-slate-300">{selectedMemory.workspace_id}</span>
+                  <div className="p-2 rounded bg-[#080B10] border border-[#283242]/80">
+                    <span className="text-[#9AA6B7]/70 block">Workspace:</span>
+                    <span className="text-[#F1F4F8]">{selectedMemory.workspace_id}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-4 space-y-3 font-mono text-xs">
-                <div className="text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+              <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 p-4 space-y-3 font-mono text-xs">
+                <div className="text-[#9AA6B7] font-semibold uppercase tracking-wider text-[11px]">
                   Observations Log ({selectedMemory.observations.length})
                 </div>
                 {selectedMemory.observations.length === 0 ? (
-                  <div className="text-slate-500 py-6 text-center">No observations recorded yet.</div>
+                  <div className="text-[#9AA6B7]/70 py-6 text-center">No observations recorded yet.</div>
                 ) : (
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {selectedMemory.observations.map((obs, idx) => (
                       <div
                         key={idx}
-                        className="p-2 rounded bg-slate-950 border border-slate-800/80 text-emerald-300/90 text-xs flex items-start gap-2"
+                        className="p-2 rounded bg-[#080B10] border border-[#283242]/80 text-emerald-300/90 text-xs flex items-start gap-2"
                       >
-                        <span className="text-slate-500">[{idx + 1}]</span>
+                        <span className="text-[#9AA6B7]/70">[{idx + 1}]</span>
                         <span>{obs}</span>
                       </div>
                     ))}
@@ -1237,7 +1237,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/30 p-12 text-center text-xs font-mono text-slate-500">
+            <div className="rounded-lg border border-[#283242] bg-[#121822]/30 p-12 text-center text-xs font-mono text-[#9AA6B7]/70">
               No memory loaded. Select a task from the Task Execution tab to inspect its working memory layer.
             </div>
           )}
@@ -1250,7 +1250,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {activeTab === 'logs' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-semibold uppercase tracking-wider text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[#9AA6B7]">
               Runtime Telemetry Stream ({events.length} Events)
             </span>
             <Button variant="secondary" size="xs" icon={<RefreshCw className="h-3 w-3" />} onClick={refreshAll}>
@@ -1258,25 +1258,25 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
             </Button>
           </div>
 
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 p-3 space-y-2 max-h-[550px] overflow-y-auto font-mono text-xs">
+          <div className="rounded-lg border border-[#283242]/80 bg-[#121822]/40 p-3 space-y-2 max-h-[550px] overflow-y-auto font-mono text-xs">
             {events.length === 0 ? (
-              <div className="py-8 text-center text-slate-500">No events logged yet.</div>
+              <div className="py-8 text-center text-[#9AA6B7]/70">No events logged yet.</div>
             ) : (
               events.map(ev => (
                 <div
                   key={ev.id}
-                  className="p-2.5 rounded bg-slate-950 border border-slate-800/80 text-slate-300 flex items-center justify-between gap-4"
+                  className="p-2.5 rounded bg-[#080B10] border border-[#283242]/80 text-[#F1F4F8] flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-slate-500 text-[11px] whitespace-nowrap">
+                    <span className="text-[#9AA6B7]/70 text-[11px] whitespace-nowrap">
                       {new Date(ev.timestamp).toLocaleTimeString()}
                     </span>
                     <Badge variant="info" size="xs">
                       {ev.event_type.replace(/_/g, ' ')}
                     </Badge>
-                    <span className="text-slate-400 truncate max-w-xs">{ev.id}</span>
+                    <span className="text-[#9AA6B7] truncate max-w-xs">{ev.id}</span>
                   </div>
-                  <div className="text-slate-500 text-[11px] shrink-0">
+                  <div className="text-[#9AA6B7]/70 text-[11px] shrink-0">
                     {ev.agent_id ? `Agent: ${ev.agent_id}` : 'System'}
                   </div>
                 </div>
@@ -1290,25 +1290,25 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {/* MODAL: NEW TASK DEFINITION                                            */}
       {/* ===================================================================== */}
       {isNewTaskModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/80 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-[#283242] bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#283242]">
+              <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
                 <ListTodo className="h-4 w-4 text-blue-400" />
                 <span>Define Task Goal</span>
               </h3>
-              <button onClick={() => setIsNewTaskModalOpen(false)} className="text-slate-400 hover:text-slate-200">
+              <button onClick={() => setIsNewTaskModalOpen(false)} className="text-[#9AA6B7] hover:text-[#F1F4F8]">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Assign Droid Worker:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Assign Droid Worker:</label>
                 <select
                   value={newTaskAgentId}
                   onChange={e => setNewTaskAgentId(e.target.value)}
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                 >
                   {agents.map(a => (
                     <option key={a.id} value={a.id}>
@@ -1319,11 +1319,11 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Target Workspace:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Target Workspace:</label>
                 <select
                   value={newTaskWorkspaceId}
                   onChange={e => setNewTaskWorkspaceId(e.target.value)}
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                 >
                   {workspaces.map(w => (
                     <option key={w.id} value={w.id}>
@@ -1334,11 +1334,11 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Priority:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Priority:</label>
                 <select
                   value={newTaskPriority}
                   onChange={e => setNewTaskPriority(e.target.value as any)}
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -1348,18 +1348,18 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Goal Description:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Goal Description:</label>
                 <textarea
                   value={newTaskGoal}
                   onChange={e => setNewTaskGoal(e.target.value)}
                   rows={3}
                   placeholder="e.g., Audit workspace filesystem dependencies and run compiler verification"
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#283242]">
                 <Button variant="secondary" size="xs" onClick={() => setIsNewTaskModalOpen(false)}>
                   Cancel
                 </Button>
@@ -1376,48 +1376,48 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {/* MODAL: REGISTER NEW AGENT DROID                                       */}
       {/* ===================================================================== */}
       {isNewAgentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/80 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-[#283242] bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#283242]">
+              <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
                 <Bot className="h-4 w-4 text-emerald-400" />
                 <span>Register Droid Worker</span>
               </h3>
-              <button onClick={() => setIsNewAgentModalOpen(false)} className="text-slate-400 hover:text-slate-200">
+              <button onClick={() => setIsNewAgentModalOpen(false)} className="text-[#9AA6B7] hover:text-[#F1F4F8]">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreateAgent} className="space-y-4">
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Droid Name:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Droid Name:</label>
                 <input
                   type="text"
                   value={newAgentName}
                   onChange={e => setNewAgentName(e.target.value)}
                   placeholder="e.g., AI Heaven Droid Beta"
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Description:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Description:</label>
                 <input
                   type="text"
                   value={newAgentDesc}
                   onChange={e => setNewAgentDesc(e.target.value)}
                   placeholder="Autonomous testing and sandbox compiler worker"
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium block mb-1">Assign Project:</label>
+                <label className="text-[#F1F4F8] font-medium block mb-1">Assign Project:</label>
                 <select
                   value={newAgentProjectId}
                   onChange={e => setNewAgentProjectId(e.target.value)}
-                  className="w-full rounded bg-slate-950 border border-slate-800 p-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full rounded bg-[#080B10] border border-[#283242] p-2 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500"
                 >
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>
@@ -1427,15 +1427,15 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                 </select>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <label className="text-slate-300 font-medium block">Tool Permissions:</label>
+              <div className="space-y-2 pt-2 border-t border-[#283242]">
+                <label className="text-[#F1F4F8] font-medium block">Tool Permissions:</label>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   {tools.map(tool => {
                     const isChecked = newAgentTools.includes(tool.id);
                     return (
                       <label
                         key={tool.id}
-                        className="flex items-center gap-2 p-2 rounded bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700"
+                        className="flex items-center gap-2 p-2 rounded bg-[#080B10] border border-[#283242] cursor-pointer hover:border-[#283242]"
                       >
                         <input
                           type="checkbox"
@@ -1449,14 +1449,14 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                           }}
                           className="rounded text-blue-600 focus:ring-0"
                         />
-                        <span className="text-slate-300">{tool.name}</span>
+                        <span className="text-[#F1F4F8]">{tool.name}</span>
                       </label>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#283242]">
                 <Button variant="secondary" size="xs" onClick={() => setIsNewAgentModalOpen(false)}>
                   Cancel
                 </Button>
@@ -1473,7 +1473,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {/* MODAL: EMERGENCY KILL SWITCH TRIGGER                                  */}
       {/* ===================================================================== */}
       {isKillSwitchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/85 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-xl border border-rose-600 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs">
             <div className="flex items-center gap-3 pb-3 border-b border-rose-900/60">
               <div className="p-2 rounded bg-rose-600 text-white shrink-0">
@@ -1495,7 +1495,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                 <select
                   value={killScope}
                   onChange={e => setKillScope(e.target.value as any)}
-                  className="w-full rounded bg-slate-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
+                  className="w-full rounded bg-[#080B10] border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
                 >
                   <option value="global">Global (All Platform Agents & Workspaces)</option>
                   <option value="project">Project Scope</option>
@@ -1511,7 +1511,7 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
                   type="text"
                   value={killReason}
                   onChange={e => setKillReason(e.target.value)}
-                  className="w-full rounded bg-slate-950 border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
+                  className="w-full rounded bg-[#080B10] border border-rose-800 p-2 text-xs text-rose-100 focus:outline-none focus:border-rose-500"
                   required
                 />
               </div>
@@ -1533,18 +1533,18 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
       {/* MODAL: DROID IDENTITY & CAPABILITY MANIFEST (Phase 1D)                */}
       {/* ===================================================================== */}
       {isManifestModalOpen && selectedManifest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs">
-          <div className="w-full max-w-xl rounded-xl border border-slate-700 bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/85 backdrop-blur-xs">
+          <div className="w-full max-w-xl rounded-xl border border-[#283242] bg-[#0B0F19] p-6 space-y-4 shadow-2xl font-mono text-xs max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#283242]">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded bg-blue-950 text-blue-400 border border-blue-800/40">
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wide">
+                  <h3 className="text-sm font-bold text-[#F1F4F8] uppercase tracking-wide">
                     {selectedManifest.name}
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-[#9AA6B7]">
                     Machine-Readable Capability Manifest (v{selectedManifest.version})
                   </p>
                 </div>
@@ -1556,44 +1556,44 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
 
             <div className="space-y-3 text-[11px]">
               <div>
-                <span className="text-slate-500 uppercase tracking-wider block text-[10px]">Description</span>
-                <p className="text-slate-200 mt-0.5">{selectedManifest.description}</p>
+                <span className="text-[#9AA6B7]/70 uppercase tracking-wider block text-[10px]">Description</span>
+                <p className="text-[#F1F4F8] mt-0.5">{selectedManifest.description}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 p-3 rounded bg-slate-900/60 border border-slate-800">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded bg-[#121822]/60 border border-[#283242]">
                 <div>
-                  <span className="text-slate-500 block">Droid ID:</span>
-                  <span className="text-slate-200">{selectedManifest.droid_id}</span>
+                  <span className="text-[#9AA6B7]/70 block">Droid ID:</span>
+                  <span className="text-[#F1F4F8]">{selectedManifest.droid_id}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Health:</span>
+                  <span className="text-[#9AA6B7]/70 block">Health:</span>
                   <span className="text-emerald-400 capitalize">{selectedManifest.health}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Filesystem Scope:</span>
-                  <span className="text-slate-200 uppercase">{selectedManifest.capabilities.filesystem_scope}</span>
+                  <span className="text-[#9AA6B7]/70 block">Filesystem Scope:</span>
+                  <span className="text-[#F1F4F8] uppercase">{selectedManifest.capabilities.filesystem_scope}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Network Scope:</span>
-                  <span className="text-slate-200 uppercase">{selectedManifest.capabilities.network_scope}</span>
+                  <span className="text-[#9AA6B7]/70 block">Network Scope:</span>
+                  <span className="text-[#F1F4F8] uppercase">{selectedManifest.capabilities.network_scope}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Max Execution Time:</span>
-                  <span className="text-slate-200">{selectedManifest.capabilities.max_execution_time_seconds}s</span>
+                  <span className="text-[#9AA6B7]/70 block">Max Execution Time:</span>
+                  <span className="text-[#F1F4F8]">{selectedManifest.capabilities.max_execution_time_seconds}s</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Max Memory:</span>
-                  <span className="text-slate-200">{selectedManifest.capabilities.max_memory_mb} MB</span>
+                  <span className="text-[#9AA6B7]/70 block">Max Memory:</span>
+                  <span className="text-[#F1F4F8]">{selectedManifest.capabilities.max_memory_mb} MB</span>
                 </div>
               </div>
 
               <div>
-                <span className="text-slate-500 uppercase tracking-wider block text-[10px] mb-1">
+                <span className="text-[#9AA6B7]/70 uppercase tracking-wider block text-[10px] mb-1">
                   Authorized Tool Whitelist ({selectedManifest.capabilities.allowed_tools.length})
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedManifest.capabilities.allowed_tools.map(tool => (
-                    <span key={tool} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-blue-300">
+                    <span key={tool} className="px-2 py-0.5 rounded bg-[#121822] border border-[#283242] text-blue-300">
                       {tool}
                     </span>
                   ))}
@@ -1601,34 +1601,34 @@ export const AgentRuntimeConsole: React.FC<AgentRuntimeConsoleProps> = ({
               </div>
 
               <div>
-                <span className="text-slate-500 uppercase tracking-wider block text-[10px] mb-1">
+                <span className="text-[#9AA6B7]/70 uppercase tracking-wider block text-[10px] mb-1">
                   Approval Gates Policy
                 </span>
-                <div className="space-y-1 bg-slate-900/40 p-2.5 rounded border border-slate-800/80">
+                <div className="space-y-1 bg-[#121822]/40 p-2.5 rounded border border-[#283242]/80">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Destructive Shell Operations:</span>
-                    <span className={selectedManifest.capabilities.approval_requirements.destructive_operations ? 'text-amber-400' : 'text-slate-400'}>
+                    <span className="text-[#F1F4F8]">Destructive Shell Operations:</span>
+                    <span className={selectedManifest.capabilities.approval_requirements.destructive_operations ? 'text-amber-400' : 'text-[#9AA6B7]'}>
                       {selectedManifest.capabilities.approval_requirements.destructive_operations ? 'Requires Human Approval' : 'Auto-Permitted'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-300">Direct Network Access:</span>
-                    <span className={selectedManifest.capabilities.approval_requirements.network_access ? 'text-amber-400' : 'text-slate-400'}>
+                    <span className="text-[#F1F4F8]">Direct Network Access:</span>
+                    <span className={selectedManifest.capabilities.approval_requirements.network_access ? 'text-amber-400' : 'text-[#9AA6B7]'}>
                       {selectedManifest.capabilities.approval_requirements.network_access ? 'Requires Approval' : 'Policy Governed'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 text-[10px] text-slate-500 space-y-0.5">
-                <div>Provenance Author: <span className="text-slate-300">{selectedManifest.provenance.author}</span></div>
-                <div>Organization: <span className="text-slate-300">{selectedManifest.provenance.organization}</span></div>
-                <div>RFC Specification: <span className="text-slate-300">{selectedManifest.provenance.specification_version}</span></div>
-                <div>Engine: <span className="text-slate-300">{selectedManifest.provenance.runtime_engine}</span></div>
+              <div className="pt-2 border-t border-[#283242] text-[10px] text-[#9AA6B7]/70 space-y-0.5">
+                <div>Provenance Author: <span className="text-[#F1F4F8]">{selectedManifest.provenance.author}</span></div>
+                <div>Organization: <span className="text-[#F1F4F8]">{selectedManifest.provenance.organization}</span></div>
+                <div>RFC Specification: <span className="text-[#F1F4F8]">{selectedManifest.provenance.specification_version}</span></div>
+                <div>Engine: <span className="text-[#F1F4F8]">{selectedManifest.provenance.runtime_engine}</span></div>
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-800">
+            <div className="flex justify-end pt-3 border-t border-[#283242]">
               <Button
                 variant="secondary"
                 size="sm"

@@ -621,13 +621,13 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
       className={`flex flex-col select-none transition-all duration-200 ${
         isFullscreen
           ? 'fixed inset-0 z-50 bg-[#070A11] p-3'
-          : 'relative w-full rounded-xl border border-slate-800/80 bg-[#080B12] shadow-2xl'
+          : 'relative w-full rounded-xl border border-[#283242]/80 bg-[#080B12] shadow-2xl'
       }`}
     >
       {/* ===================================================================== */}
       {/* 1. KNOWLEDGE GRAPH COMMAND HEADER                                     */}
       {/* ===================================================================== */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 border-b border-slate-800/80 bg-[#0A0E18]/90 backdrop-blur-md rounded-t-xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 border-b border-[#283242]/80 bg-[#0A0E18]/90 backdrop-blur-md rounded-t-xl">
         <div className="flex items-start gap-3">
           <div className="h-10 w-10 rounded-lg border border-blue-500/30 bg-blue-950/40 flex items-center justify-center shrink-0 shadow-inner">
             <Network className="h-5 w-5 text-blue-400" />
@@ -637,13 +637,13 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
               <span className="font-semibold tracking-wider uppercase">AI HEAVEN KNOWLEDGE ENGINE</span>
               <span className="text-slate-600">·</span>
-              <span className="text-slate-400">AUTHORITATIVE ONTOLOGY</span>
+              <span className="text-[#9AA6B7]">AUTHORITATIVE ONTOLOGY</span>
               <span className="text-slate-600">·</span>
               <span className="text-emerald-400 font-mono">{visibleNodes.length} NODES</span>
               <span className="text-slate-600">·</span>
               <span className="text-cyan-400 font-mono">{visibleEdges.length} RELATIONSHIPS</span>
             </div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2 font-mono">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#F1F4F8] flex items-center gap-2 font-mono">
               <span>Universal AI Knowledge Graph</span>
               {isIsolateMode && (
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300">
@@ -651,7 +651,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                 </span>
               )}
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
+            <p className="text-xs text-[#9AA6B7] mt-0.5 line-clamp-1 sm:line-clamp-none">
               Living topological map of foundation models, platform runtimes, APIs, MCP servers, autonomous droids, and verification proofs.
             </p>
           </div>
@@ -661,18 +661,18 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           {/* Quick Node Search */}
           <div className="relative min-w-[200px] sm:min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9AA6B7]/70" />
             <input
               type="text"
               value={nodeSearch}
               onChange={e => setNodeSearch(e.target.value)}
               placeholder="Search nodes, models, APIs..."
-              className="w-full rounded-md border border-slate-800 bg-slate-900/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all font-mono"
+              className="w-full rounded-md border border-[#283242] bg-[#121822]/80 py-1.5 pl-9 pr-3 text-xs text-[#F1F4F8] placeholder:text-[#9AA6B7]/70 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 transition-all font-mono"
             />
             {nodeSearch && (
               <button
                 onClick={() => setNodeSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9AA6B7]/70 hover:text-[#F1F4F8]"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -683,7 +683,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
           <select
             value={selectedResourceType}
             onChange={e => setSelectedResourceType(e.target.value)}
-            className="rounded-md border border-slate-800 bg-slate-900/80 py-1.5 px-2.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500/60 font-mono"
+            className="rounded-md border border-[#283242] bg-[#121822]/80 py-1.5 px-2.5 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500/60 font-mono"
             aria-label="Filter entity category"
           >
             <option value="all">All Entities ({data.nodes.length})</option>
@@ -701,7 +701,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
           <select
             value={selectedRelType}
             onChange={e => setSelectedRelType(e.target.value)}
-            className="rounded-md border border-slate-800 bg-slate-900/80 py-1.5 px-2.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500/60 font-mono"
+            className="rounded-md border border-[#283242] bg-[#121822]/80 py-1.5 px-2.5 text-xs text-[#F1F4F8] focus:outline-none focus:border-blue-500/60 font-mono"
             aria-label="Filter relationship edge type"
           >
             <option value="all">All Relationships</option>
@@ -722,19 +722,19 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               isIsolateMode
                 ? 'bg-amber-600/20 border-amber-500/50 text-amber-300'
                 : selectedNodeId
-                ? 'bg-slate-900/80 border-slate-800 text-slate-300 hover:text-slate-100 hover:border-slate-700'
-                : 'bg-slate-900/40 border-slate-800/40 text-slate-600 cursor-not-allowed'
+                ? 'bg-[#121822]/80 border-[#283242] text-[#F1F4F8] hover:text-[#F1F4F8] hover:border-[#283242]'
+                : 'bg-[#121822]/40 border-[#283242]/40 text-slate-600 cursor-not-allowed'
             }`}
             title={selectedNodeId ? 'Isolate 1-hop neighborhood' : 'Select a node first to isolate'}
           >
-            {isIsolateMode ? <EyeOff className="h-3.5 w-3.5 text-amber-400" /> : <Eye className="h-3.5 w-3.5 text-slate-400" />}
+            {isIsolateMode ? <EyeOff className="h-3.5 w-3.5 text-amber-400" /> : <Eye className="h-3.5 w-3.5 text-[#9AA6B7]" />}
             <span>{isIsolateMode ? 'Isolated' : 'Isolate'}</span>
           </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setIsFullscreen(prev => !prev)}
-            className="p-1.5 rounded-md border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-slate-100 hover:border-slate-700 transition-colors"
+            className="p-1.5 rounded-md border border-[#283242] bg-[#121822]/80 text-[#9AA6B7] hover:text-[#F1F4F8] hover:border-[#283242] transition-colors"
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -751,74 +751,74 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         }`}
       >
         {/* Floating Controls HUD (Top Left) */}
-        <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 rounded-lg border border-slate-800/80 bg-[#0B0F19]/90 p-1.5 shadow-xl backdrop-blur-md">
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 rounded-lg border border-[#283242]/80 bg-[#0B0F19]/90 p-1.5 shadow-xl backdrop-blur-md">
           <button
             onClick={handleZoomIn}
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 rounded transition-colors"
+            className="p-2 text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/80 rounded transition-colors"
             title="Zoom In (or Scroll Wheel)"
           >
             <Plus className="h-4 w-4" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 rounded transition-colors"
+            className="p-2 text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/80 rounded transition-colors"
             title="Zoom Out (or Scroll Wheel)"
           >
             <Minus className="h-4 w-4" />
           </button>
           <button
             onClick={handleFitReset}
-            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 rounded transition-colors"
+            className="p-2 text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B]/80 rounded transition-colors"
             title="Fit to Center / Reset View"
           >
             <RotateCcw className="h-4 w-4" />
           </button>
-          <div className="h-px bg-slate-800 my-0.5" />
-          <div className="px-1 text-[10px] font-mono text-center text-slate-500 font-semibold">
+          <div className="h-px bg-[#171F2B] my-0.5" />
+          <div className="px-1 text-[10px] font-mono text-center text-[#9AA6B7]/70 font-semibold">
             {Math.round(zoom * 100)}%
           </div>
         </div>
 
         {/* Legend Panel (Bottom Left) */}
-        <div className="absolute bottom-4 left-4 z-20 hidden md:flex flex-col gap-1.5 rounded-lg border border-slate-800/80 bg-[#0B0F19]/90 p-3 shadow-xl backdrop-blur-md max-w-xs text-xs font-mono">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 pb-1 border-b border-slate-800">
+        <div className="absolute bottom-4 left-4 z-20 hidden md:flex flex-col gap-1.5 rounded-lg border border-[#283242]/80 bg-[#0B0F19]/90 p-3 shadow-xl backdrop-blur-md max-w-xs text-xs font-mono">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9AA6B7]/70 pb-1 border-b border-[#283242]">
             Ontology Legend
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-1 text-[11px]">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.6)]" />
-              <span className="text-slate-300">Provider Hub</span>
+              <span className="text-[#F1F4F8]">Provider Hub</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-              <span className="text-slate-300">Foundation Model</span>
+              <span className="text-[#F1F4F8]">Foundation Model</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              <span className="text-slate-300">Platform / IDE</span>
+              <span className="text-[#F1F4F8]">Platform / IDE</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
-              <span className="text-slate-300">API Gateway</span>
+              <span className="text-[#F1F4F8]">API Gateway</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-              <span className="text-slate-300">Autonomous Droid</span>
+              <span className="text-[#F1F4F8]">Autonomous Droid</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-              <span className="text-slate-300">Platform Tool</span>
+              <span className="text-[#F1F4F8]">Platform Tool</span>
             </div>
           </div>
         </div>
 
         {/* Floating Mini-Map (Bottom Right) */}
-        <div className="absolute bottom-4 right-4 z-20 hidden lg:block rounded-lg border border-slate-800 bg-[#0A0D16]/95 p-2 shadow-2xl backdrop-blur-md">
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 mb-1 px-1">
+        <div className="absolute bottom-4 right-4 z-20 hidden lg:block rounded-lg border border-[#283242] bg-[#0A0D16]/95 p-2 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between text-[10px] font-mono text-[#9AA6B7]/70 mb-1 px-1">
             <span>NETWORK RADAR</span>
-            <span className="text-slate-400 font-bold">{visibleNodes.length}</span>
+            <span className="text-[#9AA6B7] font-bold">{visibleNodes.length}</span>
           </div>
-          <div className="relative w-40 h-28 bg-[#06080F] rounded border border-slate-800/80 overflow-hidden">
+          <div className="relative w-40 h-28 bg-[#06080F] rounded border border-[#283242]/80 overflow-hidden">
             {/* Minimap Node Blips */}
             <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet">
               {minimapNodes.map(m => (
@@ -868,7 +868,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               <radialGradient id="graph-ambient" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.12" />
                 <stop offset="60%" stopColor="#0f172a" stopOpacity="0.04" />
-                <stop offset="100%" stopColor="#070a11" stopOpacity="0" />
+                <stop offset="100%" stopColor="#080B10" stopOpacity="0" />
               </radialGradient>
 
               {/* Node Glow Filters */}
@@ -1200,9 +1200,9 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         {/* 3. PROFESSIONAL NODE & EDGE INSPECTOR (Right Side Drawer / Floating)  */}
         {/* ===================================================================== */}
         {selectedNode && (
-          <div className="absolute top-3 right-3 bottom-3 w-80 sm:w-96 z-30 rounded-xl border border-slate-800/90 bg-[#0A0E18]/95 p-4 shadow-2xl backdrop-blur-xl flex flex-col text-xs font-mono overflow-hidden animate-in fade-in-50 duration-150">
+          <div className="absolute top-3 right-3 bottom-3 w-80 sm:w-96 z-30 rounded-xl border border-[#283242]/90 bg-[#0A0E18]/95 p-4 shadow-2xl backdrop-blur-xl flex flex-col text-xs font-mono overflow-hidden animate-in fade-in-50 duration-150">
             {/* Inspector Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-start justify-between pb-3 border-b border-[#283242]">
               <div className="flex items-center gap-2.5">
                 <div
                   className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 border"
@@ -1223,7 +1223,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#9AA6B7]">
                       {NODE_TYPE_CONFIG[selectedNode.resource_type]?.label || selectedNode.resource_type}
                     </span>
                     {selectedNode.verification_status === 'verified' && (
@@ -1233,7 +1233,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm font-bold text-slate-100 truncate max-w-[200px]" title={selectedNode.name}>
+                  <h3 className="text-sm font-bold text-[#F1F4F8] truncate max-w-[200px]" title={selectedNode.name}>
                     {selectedNode.name}
                   </h3>
                 </div>
@@ -1242,14 +1242,14 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleCenterOnNode(selectedNode.id)}
-                  className="p-1 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+                  className="p-1 rounded text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B] transition-colors"
                   title="Focus & Center"
                 >
                   <Compass className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setSelectedNodeId(null)}
-                  className="p-1 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+                  className="p-1 rounded text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#171F2B] transition-colors"
                   title="Close Inspector"
                 >
                   <X className="h-4 w-4" />
@@ -1258,7 +1258,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
             </div>
 
             {/* Inspector Navigation Tabs */}
-            <div className="flex items-center gap-1 py-2 border-b border-slate-800 text-[11px]">
+            <div className="flex items-center gap-1 py-2 border-b border-[#283242] text-[11px]">
               {(['metadata', 'contract', 'connections', 'provenance'] as const).map(tab => (
                 <button
                   key={tab}
@@ -1266,7 +1266,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                   className={`flex-1 py-1 rounded text-center capitalize transition-colors ${
                     activeInspectorTab === tab
                       ? 'bg-blue-600/20 text-blue-300 font-semibold border border-blue-500/30'
-                      : 'text-slate-400 hover:text-slate-200'
+                      : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
                   }`}
                 >
                   {tab}
@@ -1280,10 +1280,10 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               {activeInspectorTab === 'metadata' && (
                 <div className="space-y-3">
                   <div>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">
+                    <span className="text-[10px] text-[#9AA6B7]/70 uppercase tracking-wider block mb-1">
                       Summary Description
                     </span>
-                    <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
+                    <p className="text-xs text-[#F1F4F8] leading-relaxed bg-[#121822]/60 p-2.5 rounded border border-[#283242]/80">
                       {selectedNode.summary || selectedNode.description || 'No descriptive overview recorded.'}
                     </p>
                   </div>
@@ -1291,14 +1291,14 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                   {/* Capabilities List */}
                   {selectedNode.capabilities && selectedNode.capabilities.length > 0 && (
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">
+                      <span className="text-[10px] text-[#9AA6B7]/70 uppercase tracking-wider block mb-1">
                         Verified Capabilities ({selectedNode.capabilities.length})
                       </span>
                       <div className="flex flex-wrap gap-1">
                         {selectedNode.capabilities.map((cap, i) => (
                           <span
                             key={i}
-                            className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 text-[10px]"
+                            className="px-2 py-0.5 rounded bg-[#121822] border border-[#283242] text-[#F1F4F8] text-[10px]"
                           >
                             {cap.replace(/_/g, ' ')}
                           </span>
@@ -1309,15 +1309,15 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
 
                   {/* Trust Score & Verification Invariant */}
                   <div className="grid grid-cols-2 gap-2 pt-1">
-                    <div className="p-2 rounded bg-slate-900/50 border border-slate-800/80">
-                      <span className="text-[10px] text-slate-500 block">Trust Score</span>
+                    <div className="p-2 rounded bg-[#121822]/50 border border-[#283242]/80">
+                      <span className="text-[10px] text-[#9AA6B7]/70 block">Trust Score</span>
                       <span className="text-base font-bold text-emerald-400 font-mono">
                         {selectedNode.trust_score}/100
                       </span>
                     </div>
-                    <div className="p-2 rounded bg-slate-900/50 border border-slate-800/80">
-                      <span className="text-[10px] text-slate-500 block">Audit Status</span>
-                      <span className="text-xs font-semibold text-slate-200 uppercase">
+                    <div className="p-2 rounded bg-[#121822]/50 border border-[#283242]/80">
+                      <span className="text-[10px] text-[#9AA6B7]/70 block">Audit Status</span>
+                      <span className="text-xs font-semibold text-[#F1F4F8] uppercase">
                         {selectedNode.verification_status}
                       </span>
                     </div>
@@ -1328,14 +1328,14 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               {/* TAB 2: AGENT CONTRACT */}
               {activeInspectorTab === 'contract' && (
                 <div className="space-y-2.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  <div className="text-[10px] text-[#9AA6B7]/70 uppercase tracking-wider">
                     Machine-Readable RFC Contract
                   </div>
                   {selectedNode.agent_contract ? (
                     <div className="space-y-2">
-                      <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 text-[10px] block">Authentication Type</span>
-                        <span className="text-slate-200 text-xs font-semibold">
+                      <div className="p-2 rounded bg-[#121822] border border-[#283242]">
+                        <span className="text-[#9AA6B7]/70 text-[10px] block">Authentication Type</span>
+                        <span className="text-[#F1F4F8] text-xs font-semibold">
                           {selectedNode.agent_contract.authentication?.type || 'None required'}
                         </span>
                         {selectedNode.agent_contract.authentication?.header_or_param && (
@@ -1345,29 +1345,29 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                         )}
                       </div>
 
-                      <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 text-[10px] block">Invocation Inputs</span>
-                        <span className="text-slate-300 text-[11px]">
+                      <div className="p-2 rounded bg-[#121822] border border-[#283242]">
+                        <span className="text-[#9AA6B7]/70 text-[10px] block">Invocation Inputs</span>
+                        <span className="text-[#F1F4F8] text-[11px]">
                           {selectedNode.agent_contract.inputs?.join(', ') || 'Standard JSON Payload'}
                         </span>
                       </div>
 
-                      <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 text-[10px] block">Deterministic Outputs</span>
-                        <span className="text-slate-300 text-[11px]">
+                      <div className="p-2 rounded bg-[#121822] border border-[#283242]">
+                        <span className="text-[#9AA6B7]/70 text-[10px] block">Deterministic Outputs</span>
+                        <span className="text-[#F1F4F8] text-[11px]">
                           {selectedNode.agent_contract.outputs?.join(', ') || 'Typed Return Object'}
                         </span>
                       </div>
 
-                      <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                        <span className="text-slate-500 text-[10px] block">Cost & Rate Limits</span>
-                        <span className="text-slate-400 text-[11px] block">
+                      <div className="p-2 rounded bg-[#121822] border border-[#283242]">
+                        <span className="text-[#9AA6B7]/70 text-[10px] block">Cost & Rate Limits</span>
+                        <span className="text-[#9AA6B7] text-[11px] block">
                           {selectedNode.agent_contract.rate_limits || 'Standard Platform Quota'}
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded bg-slate-900/60 border border-slate-800 text-slate-400 text-xs">
+                    <div className="p-3 rounded bg-[#121822]/60 border border-[#283242] text-[#9AA6B7] text-xs">
                       No explicit RFC contract schema required for this infrastructure entity.
                     </div>
                   )}
@@ -1377,7 +1377,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               {/* TAB 3: RELATIONSHIPS & CONNECTIONS */}
               {activeInspectorTab === 'connections' && (
                 <div className="space-y-2">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  <div className="text-[10px] text-[#9AA6B7]/70 uppercase tracking-wider">
                     Graph Links ({connectedNodeIds.size - 1} connected)
                   </div>
                   <div className="space-y-1.5">
@@ -1396,7 +1396,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                           <div
                             key={e.id}
                             onClick={() => handleCenterOnNode(otherNodeId)}
-                            className="p-2 rounded bg-slate-900/80 border border-slate-800 hover:border-blue-500/40 cursor-pointer flex items-center justify-between group transition-colors"
+                            className="p-2 rounded bg-[#121822]/80 border border-[#283242] hover:border-blue-500/40 cursor-pointer flex items-center justify-between group transition-colors"
                           >
                             <div className="flex items-center gap-2 overflow-hidden">
                               <span
@@ -1404,10 +1404,10 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                                 style={{ backgroundColor: relCfg.color }}
                               />
                               <div className="truncate">
-                                <span className="text-[10px] text-slate-500 mr-1.5">
+                                <span className="text-[10px] text-[#9AA6B7]/70 mr-1.5">
                                   {isOutgoing ? '→' : '←'} {e.relationship_type.replace('_', ' ')}:
                                 </span>
-                                <span className="text-xs text-slate-200 group-hover:text-blue-300 font-semibold">
+                                <span className="text-xs text-[#F1F4F8] group-hover:text-blue-300 font-semibold">
                                   {otherNode?.name || otherNodeId}
                                 </span>
                               </div>
@@ -1423,30 +1423,30 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
               {/* TAB 4: PROVENANCE & AUDIT */}
               {activeInspectorTab === 'provenance' && (
                 <div className="space-y-2.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  <div className="text-[10px] text-[#9AA6B7]/70 uppercase tracking-wider">
                     Provenance Audit Trail
                   </div>
-                  <div className="space-y-2 bg-slate-900/50 p-2.5 rounded border border-slate-800">
+                  <div className="space-y-2 bg-[#121822]/50 p-2.5 rounded border border-[#283242]">
                     <div>
-                      <span className="text-slate-500 text-[10px] block">Source Provider</span>
-                      <span className="text-slate-200 text-xs font-semibold">
+                      <span className="text-[#9AA6B7]/70 text-[10px] block">Source Provider</span>
+                      <span className="text-[#F1F4F8] text-xs font-semibold">
                         {selectedNode.provenance?.source_provider || selectedNode.provider_id || 'AI Heaven Registry'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500 text-[10px] block">Source Type</span>
-                      <span className="text-slate-300 text-xs">
+                      <span className="text-[#9AA6B7]/70 text-[10px] block">Source Type</span>
+                      <span className="text-[#F1F4F8] text-xs">
                         {selectedNode.provenance?.source_type || 'official_documentation'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500 text-[10px] block">Sync Timestamp</span>
-                      <span className="text-slate-400 text-[11px]">
+                      <span className="text-[#9AA6B7]/70 text-[10px] block">Sync Timestamp</span>
+                      <span className="text-[#9AA6B7] text-[11px]">
                         {selectedNode.provenance?.last_verified_at || new Date().toISOString()}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-500 text-[10px] block">Authoritative Classification</span>
+                      <span className="text-[#9AA6B7]/70 text-[10px] block">Authoritative Classification</span>
                       <span
                         className={`text-xs font-bold ${
                           selectedNode.is_demo_data ? 'text-amber-400' : 'text-emerald-400'
@@ -1461,13 +1461,13 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
             </div>
 
             {/* Inspector Footer Actions */}
-            <div className="pt-3 border-t border-slate-800 flex items-center gap-2">
+            <div className="pt-3 border-t border-[#283242] flex items-center gap-2">
               {selectedNode.documentation_url && (
                 <a
                   href={selectedNode.documentation_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded bg-[#171F2B]/80 hover:bg-slate-700 text-[#F1F4F8] text-xs transition-colors"
                 >
                   <ExternalLink className="h-3 w-3" />
                   <span>Docs</span>
@@ -1493,7 +1493,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
         {/* 4. EDGE INSPECTOR MODAL/CARD                                          */}
         {/* ===================================================================== */}
         {selectedEdge && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[90%] rounded-xl border border-slate-800 bg-[#0B0F19]/95 p-3.5 shadow-2xl backdrop-blur-xl flex items-start justify-between gap-3 text-xs font-mono animate-in slide-in-from-bottom duration-150">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 max-w-lg w-[90%] rounded-xl border border-[#283242] bg-[#0B0F19]/95 p-3.5 shadow-2xl backdrop-blur-xl flex items-start justify-between gap-3 text-xs font-mono animate-in slide-in-from-bottom duration-150">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
@@ -1503,10 +1503,10 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
                   Confidence: {Math.round(selectedEdge.confidence * 100)}%
                 </span>
               </div>
-              <div className="text-slate-100 font-bold mb-1">
+              <div className="text-[#F1F4F8] font-bold mb-1">
                 {selectedEdge.source} → {selectedEdge.relationship_type.replace('_', ' ')} → {selectedEdge.target}
               </div>
-              <p className="text-slate-300 text-[11px] leading-relaxed">
+              <p className="text-[#F1F4F8] text-[11px] leading-relaxed">
                 {selectedEdge.description || 'Authoritative relationship attested by provider architecture.'}
               </p>
               {selectedEdge.evidence_url && (
@@ -1523,7 +1523,7 @@ export const KnowledgeGraphView: React.FC<KnowledgeGraphViewProps> = ({
             </div>
             <button
               onClick={() => setSelectedEdgeId(null)}
-              className="text-slate-400 hover:text-slate-100 p-1"
+              className="text-[#9AA6B7] hover:text-[#F1F4F8] p-1"
             >
               <X className="h-4 w-4" />
             </button>

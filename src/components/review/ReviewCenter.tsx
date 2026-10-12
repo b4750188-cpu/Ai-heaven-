@@ -204,21 +204,20 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
   };
 
   return (
-    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 text-slate-100">
+    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 text-[#F1F4F8]">
       {/* 1. Header & Quality Assurance Pulse Banner */}
-      <div className="bg-[#0D121F] border border-slate-800/80 rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-[#121822] border border-[#283242] rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-950/80 border border-blue-600/40 flex items-center justify-center text-blue-400">
+              <div className="h-10 w-10 rounded-lg bg-[#42D9F5]/10 border border-[#42D9F5]/30 flex items-center justify-center text-[#42D9F5]">
                 <ClipboardCheck className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-white flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-[#F1F4F8] flex items-center gap-2">
                   Review & Quality Assurance Center
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400">
+                <p className="text-xs sm:text-sm text-[#9AA6B7]">
                   Real automated verification, security audits, live preview diagnostics, and operator fix workflow
                 </p>
               </div>
@@ -230,16 +229,16 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
             <button
               onClick={handleRunTestsOnly}
               disabled={isExecutingTests || isExecutingRun}
-              className="min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-mono font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-mono font-medium rounded-lg bg-[#171F2B] hover:bg-[#202b3c] border border-[#283242] text-[#F1F4F8] transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              <Terminal className={`h-4 w-4 text-emerald-400 ${isExecutingTests ? 'animate-spin' : ''}`} />
+              <Terminal className={`h-4 w-4 text-[#34D399] ${isExecutingTests ? 'animate-spin' : ''}`} />
               <span>{isExecutingTests ? 'Running Tests...' : 'Run Tests'}</span>
             </button>
 
             <button
               onClick={handleRunFullAudit}
               disabled={isExecutingRun || isExecutingTests}
-              className="min-h-[44px] px-4 py-2 text-xs sm:text-sm font-mono font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors flex items-center gap-2 shadow-lg shadow-blue-900/30 disabled:opacity-50"
+              className="min-h-[44px] px-4 py-2 text-xs sm:text-sm font-mono font-medium rounded-lg bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 ${isExecutingRun ? 'animate-spin' : ''}`} />
               <span>{isExecutingRun ? 'Running QA Audit...' : 'Run Complete Review'}</span>
@@ -249,18 +248,18 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
 
         {/* Status / Error Toast notification */}
         {statusMessage && (
-          <div className="mt-4 p-3 bg-blue-950/50 border border-blue-700/50 rounded-lg text-xs font-mono text-blue-300 flex items-center gap-2">
-            <RefreshCw className="h-4 w-4 animate-spin text-blue-400 shrink-0" />
+          <div className="mt-4 p-3 bg-[#42D9F5]/10 border border-[#42D9F5]/30 rounded-lg text-xs font-mono text-[#42D9F5] flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 animate-spin text-[#42D9F5] shrink-0" />
             <span>{statusMessage}</span>
           </div>
         )}
         {errorMessage && (
-          <div className="mt-4 p-3 bg-rose-950/50 border border-rose-700/50 rounded-lg text-xs font-mono text-rose-300 flex items-center justify-between">
+          <div className="mt-4 p-3 bg-[#F87171]/10 border border-[#F87171]/30 rounded-lg text-xs font-mono text-[#F87171] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+              <AlertCircle className="h-4 w-4 text-[#F87171] shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-white">
+            <button onClick={() => setErrorMessage(null)} className="text-[#F87171] hover:text-[#F1F4F8] cursor-pointer">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -268,7 +267,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
       </div>
 
       {/* 2. Primary Navigation Tabs (Segmented Control) */}
-      <div className="border-b border-slate-800 overflow-x-auto scrollbar-none">
+      <div className="border-b border-[#283242] overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-1 sm:gap-2 pb-px min-w-max">
           {[
             { id: 'overview' as ReviewTab, label: 'Overview', icon: ClipboardCheck },
@@ -285,16 +284,16 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[44px] px-3.5 py-2.5 text-xs sm:text-sm font-medium rounded-t-lg transition-colors flex items-center gap-2 border-b-2 ${
+                className={`min-h-[44px] px-3.5 py-2.5 text-xs sm:text-sm font-medium rounded-t-lg transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
                   isActive
-                    ? 'border-blue-500 text-blue-400 bg-slate-900/60 font-semibold'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
+                    ? 'border-[#42D9F5] text-[#42D9F5] bg-[#121822] font-semibold'
+                    : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#121822]/40'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-[#42D9F5]' : 'text-[#9AA6B7]'}`} />
                 <span>{tab.label}</span>
                 {tab.count !== undefined && (
-                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
+                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-[#171F2B] text-[#F1F4F8] border border-[#283242]">
                     {tab.count}
                   </span>
                 )}
@@ -307,7 +306,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
       {isLoading ? (
         <div className="p-12 text-center space-y-3">
           <RefreshCw className="h-8 w-8 text-blue-400 animate-spin mx-auto" />
-          <p className="text-sm font-mono text-slate-400">Loading verified quality assurance metrics...</p>
+          <p className="text-sm font-mono text-[#9AA6B7]">Loading verified quality assurance metrics...</p>
         </div>
       ) : (
         <>
@@ -316,8 +315,8 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
             <div className="space-y-6">
               {/* Score and High-Level Status Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7]">
                     <span>OVERALL SCORE</span>
                     <ShieldCheck className="h-4 w-4 text-emerald-400" />
                   </div>
@@ -325,7 +324,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     <span className="text-3xl font-mono font-bold text-white">
                       {report?.overallScore ?? '—'}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">/ 100</span>
+                    <span className="text-xs font-mono text-[#9AA6B7]">/ 100</span>
                   </div>
                   <div className="text-xs text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -333,8 +332,8 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   </div>
                 </div>
 
-                <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7]">
                     <span>AUTOMATED TESTS</span>
                     <Terminal className="h-4 w-4 text-blue-400" />
                   </div>
@@ -342,17 +341,17 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     <span className="text-3xl font-mono font-bold text-white">
                       {report?.metrics?.tests?.passed ?? 0}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-[#9AA6B7]">
                       / {report?.metrics?.tests?.total ?? 0} passed
                     </span>
                   </div>
-                  <div className="text-xs text-slate-400 font-mono">
+                  <div className="text-xs text-[#9AA6B7] font-mono">
                     Execution time: {report?.metrics?.tests?.durationMs ?? 0}ms
                   </div>
                 </div>
 
-                <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7]">
                     <span>API LATENCY</span>
                     <Zap className="h-4 w-4 text-amber-400" />
                   </div>
@@ -360,15 +359,15 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     <span className="text-3xl font-mono font-bold text-white">
                       {report?.metrics?.performance?.avgApiLatencyMs ?? '—'}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">ms avg</span>
+                    <span className="text-xs font-mono text-[#9AA6B7]">ms avg</span>
                   </div>
-                  <div className="text-xs text-slate-400 font-mono">
+                  <div className="text-xs text-[#9AA6B7] font-mono">
                     Heap memory: {report?.metrics?.performance?.memoryHeapMb ?? '—'} MB
                   </div>
                 </div>
 
-                <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7]">
                     <span>SECURITY SHIELD</span>
                     <Lock className="h-4 w-4 text-emerald-400" />
                   </div>
@@ -376,7 +375,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     <span className="text-3xl font-mono font-bold text-emerald-400">
                       {report?.metrics?.security?.blockedSensitivePaths ?? 0}
                     </span>
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-[#9AA6B7]">
                       / {report?.metrics?.security?.testedSensitivePaths ?? 0} blocked
                     </span>
                   </div>
@@ -387,7 +386,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Live Preview Diagnostic Card */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
                     <Smartphone className="h-5 w-5 text-blue-400" />
@@ -395,7 +394,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                       <h2 className="text-base font-semibold text-white">
                         Google AI Studio Website Preview Status
                       </h2>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-[#9AA6B7]">
                         Diagnostics for embedded frame preview in Google AI Studio
                       </p>
                     </div>
@@ -406,21 +405,21 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-800/80 space-y-1">
-                    <span className="text-slate-400">FRAME ANCESTORS CSP</span>
+                  <div className="p-3 bg-[#121822]/50 rounded-lg border border-[#283242]/80 space-y-1">
+                    <span className="text-[#9AA6B7]">FRAME ANCESTORS CSP</span>
                     <p className="text-emerald-300 truncate">
                       'self' *.google.com *.run.app aistudio.google.com
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-800/80 space-y-1">
-                    <span className="text-slate-400">X-FRAME-OPTIONS</span>
-                    <p className="text-slate-200">
+                  <div className="p-3 bg-[#121822]/50 rounded-lg border border-[#283242]/80 space-y-1">
+                    <span className="text-[#9AA6B7]">X-FRAME-OPTIONS</span>
+                    <p className="text-[#F1F4F8]">
                       Omitted on documents (allows frame) · SAMEORIGIN on API
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-800/80 space-y-1">
-                    <span className="text-slate-400">DEV SERVER BINDING</span>
-                    <p className="text-slate-200">
+                  <div className="p-3 bg-[#121822]/50 rounded-lg border border-[#283242]/80 space-y-1">
+                    <span className="text-[#9AA6B7]">DEV SERVER BINDING</span>
+                    <p className="text-[#F1F4F8]">
                       0.0.0.0:3000 (Express + Vite Middleware)
                     </p>
                   </div>
@@ -428,7 +427,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Recommended Fixes Ready to Apply */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Wrench className="h-5 w-5 text-amber-400" />
@@ -436,7 +435,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                       Operator Safe Fix Workflow
                     </h2>
                   </div>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[#9AA6B7]">
                     {availableFixes.filter(f => !f.applied).length} pending recommendations
                   </span>
                 </div>
@@ -445,11 +444,11 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {availableFixes.map(fix => (
                     <div
                       key={fix.fixId}
-                      className="p-4 bg-slate-900/40 border border-slate-800 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      className="p-4 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-slate-200">{fix.title}</span>
+                          <span className="text-sm font-semibold text-[#F1F4F8]">{fix.title}</span>
                           {fix.applied ? (
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/60 text-emerald-400">
                               APPLIED
@@ -460,8 +459,8 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400">{fix.description}</p>
-                        <p className="text-[11px] text-slate-500 font-mono">
+                        <p className="text-xs text-[#9AA6B7]">{fix.description}</p>
+                        <p className="text-[11px] text-[#9AA6B7]/70 font-mono">
                           Impact: {fix.impact}
                         </p>
                       </div>
@@ -493,9 +492,9 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {activeTab === 'code' && (
             <div className="space-y-6">
               {/* Filter controls */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-[#0B0F19] border border-slate-800 rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-[#0B0F19] border border-[#283242] rounded-xl">
                 <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-                  <span className="text-slate-400 flex items-center gap-1 mr-2">
+                  <span className="text-[#9AA6B7] flex items-center gap-1 mr-2">
                     <Filter className="h-3.5 w-3.5" />
                     SEVERITY:
                   </span>
@@ -506,7 +505,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                       className={`min-h-[36px] px-2.5 py-1 rounded transition-colors uppercase ${
                         severityFilter === sev
                           ? 'bg-blue-600 text-white'
-                          : 'bg-slate-850 text-slate-400 hover:text-white'
+                          : 'bg-slate-850 text-[#9AA6B7] hover:text-white'
                       }`}
                     >
                       {sev}
@@ -514,7 +513,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   ))}
                 </div>
 
-                <span className="text-xs font-mono text-slate-400">
+                <span className="text-xs font-mono text-[#9AA6B7]">
                   Showing {filteredFindings.length} of {report?.findings?.length || 0} findings
                 </span>
               </div>
@@ -522,7 +521,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               {/* Findings List */}
               <div className="space-y-3">
                 {filteredFindings.length === 0 ? (
-                  <div className="p-8 text-center bg-[#0B0F19] border border-slate-800 rounded-xl text-slate-400 text-sm">
+                  <div className="p-8 text-center bg-[#0B0F19] border border-[#283242] rounded-xl text-[#9AA6B7] text-sm">
                     No code issues matching selected filter.
                   </div>
                 ) : (
@@ -531,11 +530,11 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     return (
                       <div
                         key={finding.id}
-                        className="bg-[#0B0F19] border border-slate-800 rounded-xl overflow-hidden transition-all"
+                        className="bg-[#0B0F19] border border-[#283242] rounded-xl overflow-hidden transition-all"
                       >
                         <button
                           onClick={() => toggleFindingExpansion(finding.id)}
-                          className="w-full p-4 text-left flex items-start sm:items-center justify-between gap-4 hover:bg-slate-900/30 transition-colors"
+                          className="w-full p-4 text-left flex items-start sm:items-center justify-between gap-4 hover:bg-[#121822]/30 transition-colors"
                         >
                           <div className="space-y-1 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
@@ -546,33 +545,33 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                               >
                                 {finding.severity}
                               </span>
-                              <span className="text-sm font-semibold text-slate-200">
+                              <span className="text-sm font-semibold text-[#F1F4F8]">
                                 {finding.title}
                               </span>
                             </div>
-                            <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <div className="text-xs font-mono text-[#9AA6B7] flex items-center gap-2">
                               <span>{finding.filePath}</span>
                               {finding.line && <span>· line {finding.line}</span>}
                             </div>
                           </div>
 
-                          <div className="shrink-0 flex items-center gap-2 text-slate-400">
+                          <div className="shrink-0 flex items-center gap-2 text-[#9AA6B7]">
                             {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                           </div>
                         </button>
 
                         {isExpanded && (
-                          <div className="px-4 pb-4 pt-1 border-t border-slate-800/80 space-y-3 text-xs bg-slate-950/40">
+                          <div className="px-4 pb-4 pt-1 border-t border-[#283242]/80 space-y-3 text-xs bg-[#080B10]/40">
                             <div>
-                              <span className="text-[11px] font-mono text-slate-400">EVIDENCE</span>
-                              <div className="p-2.5 mt-1 bg-neutral-900 font-mono text-slate-300 rounded border border-slate-800">
+                              <span className="text-[11px] font-mono text-[#9AA6B7]">EVIDENCE</span>
+                              <div className="p-2.5 mt-1 bg-neutral-900 font-mono text-[#F1F4F8] rounded border border-[#283242]">
                                 {finding.evidence}
                               </div>
                             </div>
 
                             <div>
-                              <span className="text-[11px] font-mono text-slate-400">RECOMMENDATION</span>
-                              <p className="mt-1 text-slate-300 leading-relaxed">
+                              <span className="text-[11px] font-mono text-[#9AA6B7]">RECOMMENDATION</span>
+                              <p className="mt-1 text-[#F1F4F8] leading-relaxed">
                                 {finding.recommendation}
                               </p>
                             </div>
@@ -601,7 +600,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {/* TAB 3: UI REVIEW & LIVE PREVIEW */}
           {activeTab === 'ui' && (
             <div className="space-y-6">
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Eye className="h-5 w-5 text-blue-400" />
@@ -618,11 +617,11 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {(report?.metrics?.ui?.views || []).map(v => (
                     <div
                       key={v.id}
-                      className="p-3.5 bg-slate-900/40 border border-slate-800 rounded-lg flex items-center justify-between"
+                      className="p-3.5 bg-[#121822]/40 border border-[#283242] rounded-lg flex items-center justify-between"
                     >
                       <div>
-                        <div className="text-sm font-medium text-slate-200">{v.name}</div>
-                        <div className="text-[11px] font-mono text-slate-400">
+                        <div className="text-sm font-medium text-[#F1F4F8]">{v.name}</div>
+                        <div className="text-[11px] font-mono text-[#9AA6B7]">
                           Route: /{v.id === 'home' ? '' : v.id}
                         </div>
                       </div>
@@ -631,7 +630,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           <span>200 OK</span>
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500">
+                        <span className="text-[10px] font-mono text-[#9AA6B7]/70">
                           {v.latencyMs}ms
                         </span>
                       </div>
@@ -641,16 +640,16 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Accessibility & Mobile Responsiveness Checklist */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <Smartphone className="h-5 w-5 text-emerald-400" />
                   <span>Mobile & Accessibility Compliance Audit</span>
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                  <div className="p-3 bg-slate-900/30 border border-slate-800 rounded-lg space-y-2">
-                    <span className="text-slate-400 font-bold">TOUCH TARGET DISCIPLINE</span>
-                    <p className="text-slate-300">
+                  <div className="p-3 bg-[#121822]/30 border border-[#283242] rounded-lg space-y-2">
+                    <span className="text-[#9AA6B7] font-bold">TOUCH TARGET DISCIPLINE</span>
+                    <p className="text-[#F1F4F8]">
                       All interactive buttons enforce min-h-[44px] or min-h-[40px] touch targets compliant with mobile WCAG AA standards.
                     </p>
                     <div className="text-emerald-400 flex items-center gap-1">
@@ -659,9 +658,9 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-900/30 border border-slate-800 rounded-lg space-y-2">
-                    <span className="text-slate-400 font-bold">ZERO-PILL METADATA CONSTITUTION</span>
-                    <p className="text-slate-300">
+                  <div className="p-3 bg-[#121822]/30 border border-[#283242] rounded-lg space-y-2">
+                    <span className="text-[#9AA6B7] font-bold">ZERO-PILL METADATA CONSTITUTION</span>
+                    <p className="text-[#F1F4F8]">
                       Static metadata rendered with unboxed typographic separators (· / -). Tabs and filters remain functional button elements.
                     </p>
                     <div className="text-emerald-400 flex items-center gap-1">
@@ -678,13 +677,13 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {activeTab === 'performance' && (
             <div className="space-y-6">
               {/* Endpoint Latencies */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <Zap className="h-5 w-5 text-amber-400" />
                     <span>Real API Response Benchmarks</span>
                   </h2>
-                  <span className="text-xs font-mono text-slate-400">
+                  <span className="text-xs font-mono text-[#9AA6B7]">
                     Live measured on port 3000
                   </span>
                 </div>
@@ -692,7 +691,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                 <div className="divide-y divide-slate-800/80">
                   {(report?.metrics?.performance?.endpointLatencies || []).map(ep => (
                     <div key={ep.endpoint} className="py-2.5 flex items-center justify-between text-xs font-mono">
-                      <span className="text-slate-300">{ep.endpoint}</span>
+                      <span className="text-[#F1F4F8]">{ep.endpoint}</span>
                       <div className="flex items-center gap-4">
                         <span className="text-emerald-400">HTTP {ep.status}</span>
                         <span className="text-white font-bold">{ep.latencyMs} ms</span>
@@ -703,7 +702,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Bundle Size Distribution */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <HardDrive className="h-5 w-5 text-blue-400" />
@@ -718,13 +717,13 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {(report?.metrics?.performance?.bundleFiles || []).slice(0, 12).map(file => (
                     <div
                       key={file.name}
-                      className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg flex items-center justify-between text-xs font-mono"
+                      className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg flex items-center justify-between text-xs font-mono"
                     >
                       <div className="truncate mr-2">
-                        <div className="text-slate-200 truncate">{file.name}</div>
-                        <div className="text-[10px] text-slate-500">{file.type}</div>
+                        <div className="text-[#F1F4F8] truncate">{file.name}</div>
+                        <div className="text-[10px] text-[#9AA6B7]/70">{file.type}</div>
                       </div>
-                      <span className="text-slate-300 font-bold shrink-0">{file.sizeKb} KB</span>
+                      <span className="text-[#F1F4F8] font-bold shrink-0">{file.sizeKb} KB</span>
                     </div>
                   ))}
                 </div>
@@ -736,7 +735,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {activeTab === 'security' && (
             <div className="space-y-6">
               {/* Sensitive Path Exposure Test */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <Shield className="h-5 w-5 text-emerald-400" />
@@ -760,9 +759,9 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   ].map(p => (
                     <div
                       key={p}
-                      className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg flex items-center justify-between"
+                      className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg flex items-center justify-between"
                     >
-                      <span className="text-slate-300">{p}</span>
+                      <span className="text-[#F1F4F8]">{p}</span>
                       <span className="text-emerald-400 flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span>Blocked (404 Text)</span>
@@ -773,7 +772,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Security Headers Audit */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <Lock className="h-5 w-5 text-blue-400" />
                   <span>Security Headers Configuration</span>
@@ -783,9 +782,9 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {(report?.metrics?.security?.headersConfigured || []).map(h => (
                     <div
                       key={h}
-                      className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg flex items-center justify-between"
+                      className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg flex items-center justify-between"
                     >
-                      <span className="text-slate-300 uppercase">{h}</span>
+                      <span className="text-[#F1F4F8] uppercase">{h}</span>
                       <span className="text-emerald-400 flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         <span>Active</span>
@@ -800,14 +799,14 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {/* TAB 6: TESTS */}
           {activeTab === 'tests' && (
             <div className="space-y-6">
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h2 className="text-base font-semibold text-white flex items-center gap-2">
                       <Terminal className="h-5 w-5 text-emerald-400" />
                       <span>Automated Test Suites Execution Trail</span>
                     </h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#9AA6B7]">
                       Executed via tsx test runner with adversarial reality verification
                     </p>
                   </div>
@@ -825,15 +824,15 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {(report?.metrics?.tests?.suites || []).map(suite => (
                     <div
                       key={suite.name}
-                      className="p-4 bg-slate-900/40 border border-slate-800 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                      className="p-4 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                     >
                       <div className="space-y-1">
-                        <div className="text-sm font-medium text-slate-200">{suite.name}</div>
+                        <div className="text-sm font-medium text-[#F1F4F8]">{suite.name}</div>
                         <div className="text-xs font-mono text-emerald-400">
                           {suite.passed} checks passed · 0 failures
                         </div>
                       </div>
-                      <div className="text-xs font-mono text-slate-400">
+                      <div className="text-xs font-mono text-[#9AA6B7]">
                         {suite.durationMs}ms duration
                       </div>
                     </div>
@@ -846,32 +845,32 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {/* TAB 7: DEPLOYMENT */}
           {activeTab === 'deployment' && (
             <div className="space-y-6">
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <h2 className="text-base font-semibold text-white flex items-center gap-2">
                   <Server className="h-5 w-5 text-blue-400" />
                   <span>Vercel Serverless & Production Readiness Review</span>
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg space-y-1">
-                    <span className="text-slate-400">VERCEL.JSON REWRITES</span>
+                  <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1">
+                    <span className="text-[#9AA6B7]">VERCEL.JSON REWRITES</span>
                     <p className="text-emerald-400 flex items-center gap-1">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       <span>Validated & Ready</span>
                     </p>
                   </div>
 
-                  <div className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg space-y-1">
-                    <span className="text-slate-400">API/INDEX.TS ADAPTER</span>
+                  <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1">
+                    <span className="text-[#9AA6B7]">API/INDEX.TS ADAPTER</span>
                     <p className="text-emerald-400 flex items-center gap-1">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       <span>Serverless Ready</span>
                     </p>
                   </div>
 
-                  <div className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg space-y-1">
-                    <span className="text-slate-400">POSTGRESQL STATUS</span>
-                    <p className="text-slate-200">
+                  <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1">
+                    <span className="text-[#9AA6B7]">POSTGRESQL STATUS</span>
+                    <p className="text-[#F1F4F8]">
                       {report?.metrics?.deployment?.isPostgresConnected
                         ? 'Connected (Pool Ready)'
                         : 'Authoritative In-Memory'}
@@ -881,7 +880,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
 
               {/* Environment Variables Table (Redacted) */}
-              <div className="bg-[#0B0F19] border border-slate-800 rounded-xl p-5 space-y-4">
+              <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <h3 className="text-sm font-semibold text-white">
                   Environment Configuration Status (Secrets Protected)
                 </h3>
@@ -890,14 +889,14 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
                   {(report?.metrics?.deployment?.requiredEnvVars || []).map(v => (
                     <div key={v.name} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-200 font-bold">{v.name}</span>
+                        <span className="text-[#F1F4F8] font-bold">{v.name}</span>
                         {v.isSecret && (
                           <span className="text-[10px] text-amber-400 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-800/60">
                             SECRET
                           </span>
                         )}
                       </div>
-                      <span className="text-slate-400 truncate max-w-md">
+                      <span className="text-[#9AA6B7] truncate max-w-md">
                         {v.redactedSample}
                       </span>
                     </div>
@@ -912,7 +911,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
       {/* 3. Operator Safe Fix Modal */}
       {selectedFixToApply && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0D121F] border border-slate-700 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-[#0D121F] border border-[#283242] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-400">
                 <Wrench className="h-5 w-5" />
@@ -920,16 +919,16 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               </div>
               <button
                 onClick={() => setSelectedFixToApply(null)}
-                className="text-slate-400 hover:text-white"
+                className="text-[#9AA6B7] hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-2 text-xs">
-              <h4 className="font-semibold text-slate-200">{selectedFixToApply.title}</h4>
-              <p className="text-slate-400">{selectedFixToApply.description}</p>
-              <div className="p-3 bg-slate-900 font-mono text-slate-300 rounded border border-slate-800">
+              <h4 className="font-semibold text-[#F1F4F8]">{selectedFixToApply.title}</h4>
+              <p className="text-[#9AA6B7]">{selectedFixToApply.description}</p>
+              <div className="p-3 bg-[#121822] font-mono text-[#F1F4F8] rounded border border-[#283242]">
                 Expected Impact: {selectedFixToApply.impact}
               </div>
             </div>
@@ -945,7 +944,7 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
               <button
                 onClick={() => setSelectedFixToApply(null)}
                 disabled={isApplyingFix}
-                className="min-h-[44px] px-4 py-2 text-xs font-mono text-slate-400 hover:text-white"
+                className="min-h-[44px] px-4 py-2 text-xs font-mono text-[#9AA6B7] hover:text-white"
               >
                 Cancel
               </button>

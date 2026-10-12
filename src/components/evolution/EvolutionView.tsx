@@ -102,20 +102,20 @@ export const EvolutionView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#283242] pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#9AA6B7] mb-1">
             <span>AI Operating System</span>
             <span aria-hidden="true">·</span>
             <span>Subsystem 06</span>
             <span aria-hidden="true">·</span>
             <span className="text-emerald-400 font-semibold">Autonomous Evolution Active</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#F1F4F8] flex items-center gap-2.5">
             <Flame className="h-6 w-6 text-amber-500" />
             Autonomous Evolution Engine & Benchmarks
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-3xl">
+          <p className="text-sm text-[#9AA6B7] mt-1 max-w-3xl">
             Controlled benchmarking, automated prompt & policy mutation testing, statistical candidate comparison, verified promotion, and zero-downtime rollback.
           </p>
         </div>
@@ -131,7 +131,7 @@ export const EvolutionView: React.FC = () => {
           <button
             onClick={loadEvolutionData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 rounded-md text-xs font-mono transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#121822] border border-[#283242] hover:bg-slate-850 text-[#F1F4F8] rounded-md text-xs font-mono transition-colors"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -140,38 +140,38 @@ export const EvolutionView: React.FC = () => {
       </div>
 
       {bannerMessage && (
-        <div className="p-3 bg-slate-900/80 border border-slate-700 rounded-md text-xs font-mono text-slate-200 flex items-center justify-between">
+        <div className="p-3 bg-[#121822]/80 border border-[#283242] rounded-md text-xs font-mono text-[#F1F4F8] flex items-center justify-between">
           <span>{bannerMessage}</span>
-          <button onClick={() => setBannerMessage(null)} className="text-slate-400 hover:text-slate-200 text-xs">✕</button>
+          <button onClick={() => setBannerMessage(null)} className="text-[#9AA6B7] hover:text-[#F1F4F8] text-xs">✕</button>
         </div>
       )}
 
       {/* Active Baseline Status */}
-      <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] font-mono text-slate-400 mb-0.5">CURRENT ACTIVE BASELINE</div>
-          <div className="text-lg font-semibold text-slate-100 flex items-center gap-2 font-mono">
+          <div className="text-[11px] font-mono text-[#9AA6B7] mb-0.5">CURRENT ACTIVE BASELINE</div>
+          <div className="text-lg font-semibold text-[#F1F4F8] flex items-center gap-2 font-mono">
             <span>{activeState?.active_version || 'v1.4.2-verified'}</span>
             <span className="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/80">
               PROMOTED
             </span>
           </div>
-          <div className="text-xs text-slate-400 mt-1">
-            Engine Model: <span className="text-slate-200 font-mono">{activeState?.active_model || 'gemini-2.5-pro'}</span>
+          <div className="text-xs text-[#9AA6B7] mt-1">
+            Engine Model: <span className="text-[#F1F4F8] font-mono">{activeState?.active_model || 'gemini-2.5-pro'}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3 text-center text-xs font-mono">
-          <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-            <div className="text-slate-500 text-[10px]">ACCURACY</div>
+          <div className="bg-[#080B10] p-2.5 rounded border border-[#283242]">
+            <div className="text-[#9AA6B7]/70 text-[10px]">ACCURACY</div>
             <div className="text-emerald-400 font-semibold mt-0.5">{activeState?.benchmark_scores?.accuracy || 95.8}%</div>
           </div>
-          <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-            <div className="text-slate-500 text-[10px]">LATENCY</div>
+          <div className="bg-[#080B10] p-2.5 rounded border border-[#283242]">
+            <div className="text-[#9AA6B7]/70 text-[10px]">LATENCY</div>
             <div className="text-blue-400 font-semibold mt-0.5">{activeState?.benchmark_scores?.latencyMs || 240}ms</div>
           </div>
-          <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-            <div className="text-slate-500 text-[10px]">SAFETY COMPLIANCE</div>
+          <div className="bg-[#080B10] p-2.5 rounded border border-[#283242]">
+            <div className="text-[#9AA6B7]/70 text-[10px]">SAFETY COMPLIANCE</div>
             <div className="text-purple-400 font-semibold mt-0.5">{activeState?.benchmark_scores?.safetyCompliance || 100}%</div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export const EvolutionView: React.FC = () => {
 
       {/* Candidate Evolution Pipeline */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
           <Award className="h-4 w-4 text-amber-400" />
           Evolution Candidates ({candidates.length})
         </h2>
@@ -192,31 +192,31 @@ export const EvolutionView: React.FC = () => {
             return (
               <div
                 key={cand.id}
-                className={`bg-slate-900/40 border rounded-lg p-4 flex flex-col justify-between transition-colors ${
-                  isActive ? 'border-emerald-800/80 bg-emerald-950/10' : 'border-slate-800 hover:border-slate-700'
+                className={`bg-[#121822]/40 border rounded-lg p-4 flex flex-col justify-between transition-colors ${
+                  isActive ? 'border-emerald-800/80 bg-emerald-950/10' : 'border-[#283242] hover:border-[#283242]'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="font-mono text-slate-400 text-[11px]">{cand.version}</span>
+                    <span className="font-mono text-[#9AA6B7] text-[11px]">{cand.version}</span>
                     <span className={`text-[11px] font-mono ${isActive ? 'text-emerald-400' : 'text-amber-400'}`}>
                       {cand.status.toUpperCase()}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-semibold text-slate-100">{cand.name}</h3>
-                  <div className="text-xs text-slate-400 mt-0.5 font-mono">
+                  <h3 className="text-base font-semibold text-[#F1F4F8]">{cand.name}</h3>
+                  <div className="text-xs text-[#9AA6B7] mt-0.5 font-mono">
                     Model: {cand.model}
                   </div>
 
                   {/* Benchmark Matrix */}
                   <div className="mt-4 space-y-2 text-xs">
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                      <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                         <span>Benchmark Accuracy</span>
-                        <span className="font-mono text-slate-200">{cand.benchmarkScores?.accuracy || 92}%</span>
+                        <span className="font-mono text-[#F1F4F8]">{cand.benchmarkScores?.accuracy || 92}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-emerald-500 rounded-full"
                           style={{ width: `${cand.benchmarkScores?.accuracy || 92}%` }}
@@ -225,11 +225,11 @@ export const EvolutionView: React.FC = () => {
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                      <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                         <span>Safety Compliance</span>
-                        <span className="font-mono text-slate-200">{cand.benchmarkScores?.safetyCompliance || 100}%</span>
+                        <span className="font-mono text-[#F1F4F8]">{cand.benchmarkScores?.safetyCompliance || 100}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full"
                           style={{ width: `${cand.benchmarkScores?.safetyCompliance || 100}%` }}
@@ -239,9 +239,9 @@ export const EvolutionView: React.FC = () => {
                   </div>
 
                   {/* Improvements list */}
-                  <div className="mt-4 pt-3 border-t border-slate-800/80">
-                    <div className="text-[11px] text-slate-500 font-mono mb-1">IMPROVEMENTS</div>
-                    <ul className="text-xs text-slate-300 space-y-1">
+                  <div className="mt-4 pt-3 border-t border-[#283242]/80">
+                    <div className="text-[11px] text-[#9AA6B7]/70 font-mono mb-1">IMPROVEMENTS</div>
+                    <ul className="text-xs text-[#F1F4F8] space-y-1">
                       {cand.improvements?.map((imp, idx) => (
                         <li key={idx} className="flex items-start gap-1.5">
                           <span className="text-emerald-400">✓</span>
@@ -253,11 +253,11 @@ export const EvolutionView: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                <div className="mt-5 pt-3 border-t border-[#283242] flex items-center justify-between gap-2">
                   <button
                     onClick={() => handleRunExperiment(cand.id)}
                     disabled={isEvaluating}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-mono transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded bg-[#171F2B] hover:bg-slate-750 text-[#F1F4F8] text-xs font-mono transition-colors"
                   >
                     <Play className="h-3 w-3 text-amber-400" />
                     {isEvaluating ? 'Running...' : 'Benchmark'}
@@ -280,29 +280,29 @@ export const EvolutionView: React.FC = () => {
       </div>
 
       {/* History Trail */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-lg p-5">
-        <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-          <History className="h-4 w-4 text-slate-400" />
+      <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
+        <h3 className="text-sm font-semibold text-[#F1F4F8] mb-3 flex items-center gap-2">
+          <History className="h-4 w-4 text-[#9AA6B7]" />
           Evolution & Promotion History
         </h3>
 
         <div className="space-y-2">
           {history.length === 0 ? (
-            <div className="text-xs text-slate-500 font-mono">No previous promotions recorded.</div>
+            <div className="text-xs text-[#9AA6B7]/70 font-mono">No previous promotions recorded.</div>
           ) : (
             history.map((h, i) => (
               <div
                 key={i}
-                className="p-3 bg-slate-950 border border-slate-800 rounded text-xs font-mono flex items-center justify-between text-slate-300"
+                className="p-3 bg-[#080B10] border border-[#283242] rounded text-xs font-mono flex items-center justify-between text-[#F1F4F8]"
               >
                 <div>
                   <span className="text-emerald-400 font-semibold">{h.candidate_id || h.version}</span>
                   <span className="text-slate-600 mx-2">·</span>
                   <span>{h.action || 'Promotion'}</span>
                   <span className="text-slate-600 mx-2">·</span>
-                  <span className="text-slate-400">{h.details || 'Passed automated benchmark suite'}</span>
+                  <span className="text-[#9AA6B7]">{h.details || 'Passed automated benchmark suite'}</span>
                 </div>
-                <span className="text-slate-500 text-[11px]">{new Date(h.timestamp || Date.now()).toLocaleTimeString()}</span>
+                <span className="text-[#9AA6B7]/70 text-[11px]">{new Date(h.timestamp || Date.now()).toLocaleTimeString()}</span>
               </div>
             ))
           )}

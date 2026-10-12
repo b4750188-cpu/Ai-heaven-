@@ -1,7 +1,8 @@
 /**
  * AI HEAVEN - Multi-Provider Authentication & Identity Service
  * Enterprise PBKDF2 password security, OAuth provider status auditing,
- * session management, account linking/switching, and tenant boundary enforcement.
+ * session management, account linking/switching, CSRF state protection,
+ * email verification, password reset, and cost/configuration transparency.
  */
 
 import crypto from 'node:crypto';
@@ -10,10 +11,12 @@ import {
   AuthProviderStatus,
   AuthProviderType,
   AuthTokens,
+  EmailVerificationTokenRecord,
   LinkedIdentity,
+  OAuthStateRecord,
+  PasswordResetTokenRecord,
   UserSession
 } from '../../types/auth';
-import { postgresManager } from '../../db/postgres';
 
 interface StoredUserAccount {
   id: string;
@@ -36,6 +39,9 @@ class AuthService {
   private usersByEmail: Map<string, string> = new Map();
   private sessions: Map<string, UserSession> = new Map();
   private tokenToUserId: Map<string, string> = new Map();
+  private passwordResetTokens: Map<string, PasswordResetTokenRecord> = new Map();
+  private emailVerificationTokens: Map<string, EmailVerificationTokenRecord> = new Map();
+  private oauthStates: Map<string, OAuthStateRecord> = new Map();
   private isInitialized = false;
 
   constructor() {
@@ -121,8 +127,13 @@ class AuthService {
     const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
     const githubClientId = process.env.GITHUB_CLIENT_ID || '';
     const githubClientSecret = process.env.GITHUB_CLIENT_SECRET || '';
+    const facebookAppId = process.env.FACEBOOK_APP_ID || '';
+    const facebookAppSecret = process.env.FACEBOOK_APP_SECRET || '';
     const msClientId = process.env.MICROSOFT_CLIENT_ID || '';
+    const msClientSecret = process.env.MICROSOFT_CLIENT_SECRET || '';
     const appleClientId = process.env.APPLE_CLIENT_ID || '';
+    const discordClientId = process.env.DISCORD_CLIENT_ID || '';
+    const discordClientSecret = process.env.DISCORD_CLIENT_SECRET || '';
 
     const user = userId ? this.users.get(userId) : undefined;
     const isLinked = (p: AuthProviderType) =>
@@ -134,28 +145,59 @@ class AuthService {
         name: 'Email & Password',
         isConfigured: true,
         isEnabled: true,
+        statusLabel: 'READY',
         missingEnvVars: [],
         setupInstructions: 'Native PBKDF2 with SHA-512 (100,000 iterations). Ready immediately with password reset and verification.',
-        isConnectedForUser: isLinked('local')
+        isConnectedForUser: isLinked('local'),
+        credentials: {
+          publicClientIdentifiers: [],
+          confidentialSecrets: ['JWT_SECRET_KEY'],
+          authorizedCallbackUrl: 'N/A (Direct REST API /api/auth/login)',
+          developerConsoleUrl: 'Self-hosted AI Heaven Engine',
+          requiredPermissions: ['Basic email & password verification'],
+          domainVerificationRequired: false
+        },
+        costTransparency: {
+          costModel: 'Free Tier Available',
+          freeTierDetails: 'Fully self-hosted; zero per-authentication or third-party license fees.',
+          knownCostsDescription: '$0.00 / month (native in-memory and PostgreSQL storage).',
+          isThirdPartyBillingRequired: false
+        }
       },
       {
         provider: 'google',
-        name: 'Google Identity Services (OAuth 2.0)',
+        name: 'Continue with Google (OAuth 2.0 / GIS)',
         isConfigured: Boolean(googleClientId.trim()),
         isEnabled: true,
+        statusLabel: googleClientId.trim() ? 'CONFIGURED' : 'SETUP_REQUIRED',
         missingEnvVars: googleClientId ? [] : ['VITE_GOOGLE_CLIENT_ID'],
         setupGuideUrl: 'https://developers.google.com/identity/gsi/web/guides/overview',
         setupInstructions: googleClientId
           ? 'Configured and active via Google Identity Services token flow.'
           : 'Set VITE_GOOGLE_CLIENT_ID in your environment and whitelist your domain in Google Cloud Console > Authorized JavaScript Origins.',
         clientIdPreview: googleClientId ? `${googleClientId.substring(0, 14)}...apps.googleusercontent.com` : undefined,
-        isConnectedForUser: isLinked('google')
+        isConnectedForUser: isLinked('google'),
+        credentials: {
+          publicClientIdentifiers: ['VITE_GOOGLE_CLIENT_ID'],
+          confidentialSecrets: [], // Client-side GIS flow strictly avoids client secrets in browser
+          authorizedCallbackUrl: 'Client-side postMessage or /api/auth/callback/google',
+          developerConsoleUrl: 'https://console.cloud.google.com/apis/credentials',
+          requiredPermissions: ['openid', 'email', 'profile'],
+          domainVerificationRequired: true
+        },
+        costTransparency: {
+          costModel: 'Free Tier Available',
+          freeTierDetails: 'Google Identity Services is free with unlimited authentications.',
+          knownCostsDescription: '$0.00 / month for standard consumer Google account sign-in.',
+          isThirdPartyBillingRequired: false
+        }
       },
       {
         provider: 'github',
-        name: 'GitHub OAuth',
+        name: 'Continue with GitHub (OAuth 2.0)',
         isConfigured: Boolean(githubClientId.trim() && githubClientSecret.trim()),
         isEnabled: true,
+        statusLabel: (githubClientId.trim() && githubClientSecret.trim()) ? 'CONFIGURED' : 'SETUP_REQUIRED',
         missingEnvVars: [
           ...(githubClientId ? [] : ['GITHUB_CLIENT_ID']),
           ...(githubClientSecret ? [] : ['GITHUB_CLIENT_SECRET'])
@@ -165,30 +207,290 @@ class AuthService {
           ? 'Configured and ready. Supports direct code exchange and personal token linking.'
           : 'Create an OAuth App on GitHub Developer Settings with Authorization Callback URL /api/auth/callback/github, then set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.',
         clientIdPreview: githubClientId ? `${githubClientId.substring(0, 8)}...` : undefined,
-        isConnectedForUser: isLinked('github')
+        isConnectedForUser: isLinked('github'),
+        credentials: {
+          publicClientIdentifiers: ['GITHUB_CLIENT_ID'],
+          confidentialSecrets: ['GITHUB_CLIENT_SECRET'],
+          authorizedCallbackUrl: '/api/auth/callback/github',
+          developerConsoleUrl: 'https://github.com/settings/developers',
+          requiredPermissions: ['read:user', 'user:email'],
+          domainVerificationRequired: false
+        },
+        costTransparency: {
+          costModel: 'Free Tier Available',
+          freeTierDetails: 'GitHub OAuth is 100% free with generous standard rate limits.',
+          knownCostsDescription: '$0.00 / month.',
+          isThirdPartyBillingRequired: false
+        }
+      },
+      {
+        provider: 'facebook',
+        name: 'Continue with Facebook (Meta Login)',
+        isConfigured: Boolean(facebookAppId.trim() && facebookAppSecret.trim()),
+        isEnabled: true,
+        statusLabel: (facebookAppId.trim() && facebookAppSecret.trim()) ? 'CONFIGURED' : 'BLOCKED_MISSING_CREDENTIALS',
+        missingEnvVars: [
+          ...(facebookAppId ? [] : ['FACEBOOK_APP_ID']),
+          ...(facebookAppSecret ? [] : ['FACEBOOK_APP_SECRET'])
+        ],
+        setupGuideUrl: 'https://developers.facebook.com/docs/facebook-login/web',
+        setupInstructions: facebookAppId && facebookAppSecret
+          ? 'Configured and active via Meta Graph API OAuth dialog.'
+          : 'Create an app in Meta for Developers, configure Facebook Login product, set Valid OAuth Redirect URIs to /api/auth/callback/facebook, and supply FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.',
+        clientIdPreview: facebookAppId ? `${facebookAppId.substring(0, 6)}...` : undefined,
+        isConnectedForUser: isLinked('facebook'),
+        credentials: {
+          publicClientIdentifiers: ['FACEBOOK_APP_ID'],
+          confidentialSecrets: ['FACEBOOK_APP_SECRET'],
+          authorizedCallbackUrl: '/api/auth/callback/facebook',
+          developerConsoleUrl: 'https://developers.facebook.com/apps/',
+          requiredPermissions: ['email', 'public_profile'],
+          domainVerificationRequired: true
+        },
+        costTransparency: {
+          costModel: 'Free Tier Available',
+          freeTierDetails: 'Facebook Login is completely free for consumer and business accounts.',
+          knownCostsDescription: '$0.00 / month.',
+          isThirdPartyBillingRequired: false
+        }
       },
       {
         provider: 'microsoft',
         name: 'Microsoft Entra ID (Azure AD)',
-        isConfigured: Boolean(msClientId.trim()),
+        isConfigured: Boolean(msClientId.trim() && msClientSecret.trim()),
         isEnabled: false,
-        missingEnvVars: msClientId ? [] : ['MICROSOFT_CLIENT_ID', 'MICROSOFT_CLIENT_SECRET'],
+        statusLabel: 'BLOCKED_MISSING_CREDENTIALS',
+        missingEnvVars: [
+          ...(msClientId ? [] : ['MICROSOFT_CLIENT_ID']),
+          ...(msClientSecret ? [] : ['MICROSOFT_CLIENT_SECRET'])
+        ],
         setupGuideUrl: 'https://learn.microsoft.com/en-us/entra/identity-platform/',
-        setupInstructions: 'Enterprise federated sign-in. To enable, configure Azure App Registration with Redirect URI and set MICROSOFT_CLIENT_ID.',
-        isConnectedForUser: isLinked('microsoft')
+        setupInstructions: 'Enterprise federated sign-in. Configure Azure Portal App Registration with Redirect URI and set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET.',
+        isConnectedForUser: isLinked('microsoft'),
+        credentials: {
+          publicClientIdentifiers: ['MICROSOFT_CLIENT_ID'],
+          confidentialSecrets: ['MICROSOFT_CLIENT_SECRET'],
+          authorizedCallbackUrl: '/api/auth/callback/microsoft',
+          developerConsoleUrl: 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
+          requiredPermissions: ['User.Read', 'openid', 'email', 'profile'],
+          domainVerificationRequired: true
+        },
+        costTransparency: {
+          costModel: 'Free with Usage Limits',
+          freeTierDetails: 'Microsoft Entra ID Free tier includes up to 50,000 monthly active users.',
+          knownCostsDescription: 'Free tier $0.00; P1/P2 licenses cost $6-$9/user/month if required by enterprise.',
+          isThirdPartyBillingRequired: false
+        }
       },
       {
         provider: 'apple',
         name: 'Sign in with Apple',
         isConfigured: Boolean(appleClientId.trim()),
         isEnabled: false,
-        missingEnvVars: appleClientId ? [] : ['APPLE_CLIENT_ID', 'APPLE_TEAM_ID', 'APPLE_KEY_ID'],
+        statusLabel: 'BLOCKED_MISSING_CREDENTIALS',
+        missingEnvVars: appleClientId ? [] : ['APPLE_CLIENT_ID', 'APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'],
         setupGuideUrl: 'https://developer.apple.com/sign-in-with-apple/',
-        setupInstructions: 'Requires Apple Developer Program Service ID, Team ID, and Private Key configured for web redirect authentication.',
-        isConnectedForUser: isLinked('apple')
+        setupInstructions: 'Requires Apple Developer Program Service ID, Team ID, Key ID, and Private Key configured for web redirect authentication.',
+        isConnectedForUser: isLinked('apple'),
+        credentials: {
+          publicClientIdentifiers: ['APPLE_CLIENT_ID'],
+          confidentialSecrets: ['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'],
+          authorizedCallbackUrl: '/api/auth/callback/apple',
+          developerConsoleUrl: 'https://developer.apple.com/account/resources/identifiers/list',
+          requiredPermissions: ['name', 'email'],
+          domainVerificationRequired: true
+        },
+        costTransparency: {
+          costModel: 'Requires Paid Developer Program',
+          freeTierDetails: 'No per-login usage fees from Apple.',
+          knownCostsDescription: 'Requires active Apple Developer Program membership ($99 USD/year).',
+          isThirdPartyBillingRequired: true
+        }
+      },
+      {
+        provider: 'discord',
+        name: 'Discord OAuth 2.0',
+        isConfigured: Boolean(discordClientId.trim() && discordClientSecret.trim()),
+        isEnabled: true,
+        statusLabel: (discordClientId.trim() && discordClientSecret.trim()) ? 'CONFIGURED' : 'BLOCKED_MISSING_CREDENTIALS',
+        missingEnvVars: [
+          ...(discordClientId ? [] : ['DISCORD_CLIENT_ID']),
+          ...(discordClientSecret ? [] : ['DISCORD_CLIENT_SECRET'])
+        ],
+        setupGuideUrl: 'https://discord.com/developers/docs/topics/oauth2',
+        setupInstructions: 'Community authentication. Register an application in Discord Developer Portal, configure OAuth2 Redirect URI, and set DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET.',
+        isConnectedForUser: isLinked('discord'),
+        credentials: {
+          publicClientIdentifiers: ['DISCORD_CLIENT_ID'],
+          confidentialSecrets: ['DISCORD_CLIENT_SECRET'],
+          authorizedCallbackUrl: '/api/auth/callback/discord',
+          developerConsoleUrl: 'https://discord.com/developers/applications',
+          requiredPermissions: ['identify', 'email'],
+          domainVerificationRequired: false
+        },
+        costTransparency: {
+          costModel: 'Free Tier Available',
+          freeTierDetails: 'Discord OAuth is completely free with standard API rate limits.',
+          knownCostsDescription: '$0.00 / month.',
+          isThirdPartyBillingRequired: false
+        }
       }
     ];
   }
+
+  // ==========================================
+  // OAUTH STATE & CSRF PROTECTION
+  // ==========================================
+
+  public generateOAuthState(provider: AuthProviderType): string {
+    const state = `aih_state_${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+
+    this.oauthStates.set(state, {
+      state,
+      provider,
+      expiresAt,
+      createdAt: new Date().toISOString()
+    });
+
+    return state;
+  }
+
+  public verifyOAuthState(state: string, provider: AuthProviderType): boolean {
+    if (!state) return false;
+    const record = this.oauthStates.get(state);
+    if (!record) return false;
+
+    // Check expiration
+    if (new Date(record.expiresAt) < new Date()) {
+      this.oauthStates.delete(state);
+      return false;
+    }
+
+    if (record.provider !== provider) {
+      return false;
+    }
+
+    // Single-use CSRF token
+    this.oauthStates.delete(state);
+    return true;
+  }
+
+  // ==========================================
+  // EMAIL VERIFICATION WORKFLOW
+  // ==========================================
+
+  public requestEmailVerification(email: string): { verificationToken: string; expiresAt: string } {
+    const normalized = email.trim().toLowerCase();
+    const userId = this.usersByEmail.get(normalized);
+    if (!userId) {
+      throw new Error('User not found.');
+    }
+
+    const token = `verify_${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+
+    this.emailVerificationTokens.set(token, {
+      token,
+      email: normalized,
+      userId,
+      expiresAt,
+      createdAt: new Date().toISOString(),
+      isConsumed: false
+    });
+
+    return { verificationToken: token, expiresAt };
+  }
+
+  public verifyEmailToken(token: string): { success: boolean; user: AuthenticatedUser } {
+    const record = this.emailVerificationTokens.get(token);
+    if (!record || record.isConsumed) {
+      throw new Error('Invalid or already consumed email verification token.');
+    }
+
+    if (new Date(record.expiresAt) < new Date()) {
+      this.emailVerificationTokens.delete(token);
+      throw new Error('Email verification token has expired.');
+    }
+
+    const user = this.users.get(record.userId);
+    if (!user) throw new Error('Associated user account not found.');
+
+    user.isEmailVerified = true;
+    user.updatedAt = new Date().toISOString();
+    record.isConsumed = true;
+
+    return { success: true, user: this.toAuthenticatedUser(user) };
+  }
+
+  // ==========================================
+  // PASSWORD RESET WORKFLOW
+  // ==========================================
+
+  public requestPasswordReset(email: string): { resetToken: string; expiresAt: string } {
+    const normalized = email.trim().toLowerCase();
+    const userId = this.usersByEmail.get(normalized);
+    if (!userId) {
+      // Return synthetic token to prevent email enumeration timing attacks
+      const syntheticToken = `reset_${crypto.randomUUID().replace(/-/g, '')}`;
+      return { resetToken: syntheticToken, expiresAt: new Date(Date.now() + 3600000).toISOString() };
+    }
+
+    const token = `reset_${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}`;
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    this.passwordResetTokens.set(token, {
+      token,
+      email: normalized,
+      userId,
+      expiresAt,
+      createdAt: new Date().toISOString(),
+      isConsumed: false
+    });
+
+    return { resetToken: token, expiresAt };
+  }
+
+  public confirmPasswordReset(token: string, newPassword: string): { success: boolean; user: AuthenticatedUser } {
+    if (!newPassword || newPassword.length < 8) {
+      throw new Error('New password must be at least 8 characters long.');
+    }
+
+    const record = this.passwordResetTokens.get(token);
+    if (!record || record.isConsumed) {
+      throw new Error('Invalid or expired password reset token.');
+    }
+
+    if (new Date(record.expiresAt) < new Date()) {
+      this.passwordResetTokens.delete(token);
+      throw new Error('Password reset token has expired.');
+    }
+
+    const user = this.users.get(record.userId);
+    if (!user) throw new Error('User account not found.');
+
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    const newHash = this.hashPassword(newPassword, newSalt);
+
+    user.passwordHash = newHash;
+    user.salt = newSalt;
+    user.updatedAt = new Date().toISOString();
+    record.isConsumed = true;
+
+    // Invalidate all existing sessions for security
+    for (const [sToken, session] of this.sessions.entries()) {
+      if (session.userId === user.id) {
+        this.sessions.delete(sToken);
+        this.tokenToUserId.delete(sToken);
+      }
+    }
+
+    return { success: true, user: this.toAuthenticatedUser(user) };
+  }
+
+  // ==========================================
+  // CORE AUTHENTICATION: REGISTER & LOGIN
+  // ==========================================
 
   public register(email: string, password: string, fullName: string): AuthTokens {
     const normalizedEmail = email.trim().toLowerCase();
@@ -250,7 +552,7 @@ class AuthService {
     }
 
     if (!user.passwordHash || !user.salt) {
-      throw new Error('This account uses external OAuth. Please continue with Google or GitHub.');
+      throw new Error('This account uses external OAuth. Please continue with Google, GitHub, or Facebook.');
     }
 
     const isMatch = this.verifyPassword(password, user.passwordHash, user.salt);

@@ -305,20 +305,20 @@ export const ConversationsView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#283242] pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#9AA6B7] mb-1">
             <span>AI Operating System</span>
             <span aria-hidden="true">·</span>
             <span>Universal AI Chat</span>
             <span aria-hidden="true">·</span>
             <span className="text-emerald-400 font-semibold">Stateful Context Retention</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#F1F4F8] flex items-center gap-2.5">
             <MessageSquare className="h-6 w-6 text-blue-400" />
             Universal AI Chat & Context Workspace
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-3xl">
+          <p className="text-sm text-[#9AA6B7] mt-1 max-w-3xl">
             Stateful multi-turn threads across Gemini, OpenAI, Claude & DeepSeek. Searchable history, project association, context preservation across model switches, and Google Drive backups.
           </p>
         </div>
@@ -327,7 +327,7 @@ export const ConversationsView: React.FC = () => {
           <button
             onClick={handleBackupToDrive}
             disabled={isSyncingDrive || !activeConversationId}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 border border-slate-700 hover:bg-slate-800 disabled:opacity-50 text-slate-200 rounded-md text-xs font-mono transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#121822] border border-[#283242] hover:bg-[#171F2B] disabled:opacity-50 text-[#F1F4F8] rounded-md text-xs font-mono transition-colors"
           >
             <Cloud className={`h-3.5 w-3.5 text-blue-400 ${isSyncingDrive ? 'animate-pulse' : ''}`} />
             {isSyncingDrive ? 'Syncing...' : 'Sync to Drive'}
@@ -353,29 +353,29 @@ export const ConversationsView: React.FC = () => {
             {notification.type === 'success' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <AlertTriangle className="h-4 w-4 text-rose-400" />}
             <span>{notification.message}</span>
           </div>
-          <button onClick={() => setNotification(null)} className="text-slate-400 hover:text-slate-200">✕</button>
+          <button onClick={() => setNotification(null)} className="text-[#9AA6B7] hover:text-[#F1F4F8]">✕</button>
         </div>
       )}
 
       {/* Main 2-Column Chat Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[720px]">
         {/* Left Column: Thread List with Search */}
-        <div className="lg:col-span-4 bg-slate-900/40 border border-slate-800 rounded-lg p-3 flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-4 bg-[#121822]/40 border border-[#283242] rounded-lg p-3 flex flex-col h-full overflow-hidden">
           {/* Search Box */}
           <div className="relative mb-3">
-            <Search className="h-3.5 w-3.5 text-slate-500 absolute left-3 top-2.5" />
+            <Search className="h-3.5 w-3.5 text-[#9AA6B7]/70 absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations & projects..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-200 font-mono placeholder:text-slate-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#080B10] border border-[#283242] rounded-md pl-8 pr-3 py-1.5 text-xs text-[#F1F4F8] font-mono placeholder:text-slate-600 focus:outline-none focus:border-blue-500"
             />
           </div>
 
-          <div className="text-xs font-semibold text-slate-300 px-2 py-1 mb-1 flex items-center justify-between">
+          <div className="text-xs font-semibold text-[#F1F4F8] px-2 py-1 mb-1 flex items-center justify-between">
             <span>Conversations</span>
-            <span className="font-mono text-slate-500">{filteredConversations.length}</span>
+            <span className="font-mono text-[#9AA6B7]/70">{filteredConversations.length}</span>
           </div>
 
           {/* Thread List */}
@@ -390,8 +390,8 @@ export const ConversationsView: React.FC = () => {
                   onClick={() => !isEditing && handleSelectConversation(conv.id)}
                   className={`group relative p-2.5 rounded-md transition-colors text-xs flex flex-col gap-1 cursor-pointer border ${
                     isActive
-                      ? 'bg-slate-800/80 border-slate-700 text-slate-100'
-                      : 'hover:bg-slate-850/60 text-slate-400 border-transparent'
+                      ? 'bg-[#171F2B]/80 border-[#283242] text-[#F1F4F8]'
+                      : 'hover:bg-slate-850/60 text-[#9AA6B7] border-transparent'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -401,26 +401,26 @@ export const ConversationsView: React.FC = () => {
                           type="text"
                           value={editingTitle}
                           onChange={(e) => setEditingTitle(e.target.value)}
-                          className="bg-slate-950 border border-blue-500 rounded px-1.5 py-0.5 text-xs text-slate-100 flex-1 font-mono focus:outline-none"
+                          className="bg-[#080B10] border border-blue-500 rounded px-1.5 py-0.5 text-xs text-[#F1F4F8] flex-1 font-mono focus:outline-none"
                           autoFocus
                         />
                         <button onClick={handleSaveRename} className="p-1 text-emerald-400 hover:text-emerald-300"><Check className="h-3 w-3" /></button>
-                        <button onClick={() => setEditingConvId(null)} className="p-1 text-slate-400 hover:text-slate-200"><X className="h-3 w-3" /></button>
+                        <button onClick={() => setEditingConvId(null)} className="p-1 text-[#9AA6B7] hover:text-[#F1F4F8]"><X className="h-3 w-3" /></button>
                       </div>
                     ) : (
                       <>
-                        <span className="font-medium text-slate-200 truncate flex-1">{conv.title}</span>
+                        <span className="font-medium text-[#F1F4F8] truncate flex-1">{conv.title}</span>
                         <div className="hidden group-hover:flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={(e) => handleStartRename(conv, e)}
-                            className="p-1 text-slate-400 hover:text-blue-400"
+                            className="p-1 text-[#9AA6B7] hover:text-blue-400"
                             title="Rename thread"
                           >
                             <Edit2 className="h-3 w-3" />
                           </button>
                           <button
                             onClick={(e) => handleDeleteConversation(conv.id, e)}
-                            className="p-1 text-slate-400 hover:text-rose-400"
+                            className="p-1 text-[#9AA6B7] hover:text-rose-400"
                             title="Delete thread"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -430,7 +430,7 @@ export const ConversationsView: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                  <div className="flex items-center justify-between text-[11px] text-[#9AA6B7]/70 font-mono">
                     <span>{conv.messageCount} msgs · {conv.isAutoRouting ? 'Auto' : conv.activeModel}</span>
                     {conv.projectName && (
                       <span className="text-blue-400 truncate max-w-[100px] flex items-center gap-1">
@@ -445,26 +445,26 @@ export const ConversationsView: React.FC = () => {
           </div>
 
           {/* Bottom Info Strip */}
-          <div className="mt-3 pt-3 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between px-2">
+          <div className="mt-3 pt-3 border-t border-[#283242] text-[11px] font-mono text-[#9AA6B7] flex items-center justify-between px-2">
             <span>Storage: Durable PG</span>
             <span>Checkpoints: {checkpoints.length}</span>
           </div>
         </div>
 
         {/* Right Column: Active Conversation */}
-        <div className="lg:col-span-8 bg-slate-900/40 border border-slate-800 rounded-lg flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-8 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col h-full overflow-hidden">
           {/* Active Conversation Control Strip */}
-          <div className="p-3 border-b border-slate-800 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-3 border-b border-[#283242] bg-[#080B10]/60 flex flex-wrap items-center justify-between gap-3">
             {/* Model Selector & Project Association */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
+              <div className="flex items-center gap-1.5 text-xs font-mono text-[#9AA6B7]">
                 <Cpu className="h-3.5 w-3.5 text-blue-400" />
                 <span>Model:</span>
               </div>
               <select
                 value={selectedModel}
                 onChange={(e) => handleModelChange(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500"
+                className="bg-[#121822] border border-[#283242] rounded px-2.5 py-1 text-xs text-[#F1F4F8] font-mono focus:outline-none focus:border-blue-500"
               >
                 <option value="auto">⚡ Central Brain (Automatic Routing)</option>
                 <option value="gemini-2.5-pro">Gemini 2.5 Pro (Architecture & Coding)</option>
@@ -476,14 +476,14 @@ export const ConversationsView: React.FC = () => {
               </select>
 
               {/* Project Link Selector */}
-              <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 ml-2">
+              <div className="flex items-center gap-1.5 text-xs font-mono text-[#9AA6B7] ml-2">
                 <FolderGit2 className="h-3.5 w-3.5 text-purple-400" />
                 <span>Project:</span>
               </div>
               <select
                 value={activeThread?.projectId || ''}
                 onChange={(e) => handleProjectLink(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500"
+                className="bg-[#121822] border border-[#283242] rounded px-2.5 py-1 text-xs text-[#F1F4F8] font-mono focus:outline-none focus:border-purple-500"
               >
                 <option value="">None (Standalone)</option>
                 {projects.map(p => (
@@ -493,11 +493,11 @@ export const ConversationsView: React.FC = () => {
             </div>
 
             {/* View Mode Tabs */}
-            <div className="flex items-center gap-1 p-0.5 bg-slate-900 border border-slate-800 rounded">
+            <div className="flex items-center gap-1 p-0.5 bg-[#121822] border border-[#283242] rounded">
               <button
                 onClick={() => setActiveTab('chat')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  activeTab === 'chat' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  activeTab === 'chat' ? 'bg-blue-600 text-white' : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
                 }`}
               >
                 Chat
@@ -505,7 +505,7 @@ export const ConversationsView: React.FC = () => {
               <button
                 onClick={() => setActiveTab('memory')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  activeTab === 'memory' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  activeTab === 'memory' ? 'bg-blue-600 text-white' : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
                 }`}
               >
                 Memory
@@ -513,7 +513,7 @@ export const ConversationsView: React.FC = () => {
               <button
                 onClick={() => setActiveTab('checkpoints')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  activeTab === 'checkpoints' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  activeTab === 'checkpoints' ? 'bg-blue-600 text-white' : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
                 }`}
               >
                 Checkpoints
@@ -521,7 +521,7 @@ export const ConversationsView: React.FC = () => {
               <button
                 onClick={() => setActiveTab('drive')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  activeTab === 'drive' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  activeTab === 'drive' ? 'bg-blue-600 text-white' : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
                 }`}
               >
                 Drive Sync
@@ -534,7 +534,7 @@ export const ConversationsView: React.FC = () => {
             <div className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center text-slate-500">
+                  <div className="flex flex-col items-center justify-center h-full text-center text-[#9AA6B7]/70">
                     <MessageSquare className="h-8 w-8 mb-2 text-slate-600" />
                     <p className="text-xs">No messages in this session yet.</p>
                     <p className="text-[11px] text-slate-600 mt-1">Submit your prompt below to start multi-turn reasoning.</p>
@@ -547,7 +547,7 @@ export const ConversationsView: React.FC = () => {
                         key={msg.id}
                         className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
                       >
-                        <div className="text-[11px] font-mono text-slate-500 mb-1 flex items-center gap-1.5">
+                        <div className="text-[11px] font-mono text-[#9AA6B7]/70 mb-1 flex items-center gap-1.5">
                           <span>{isUser ? 'Operator' : msg.agentName || 'Central Brain'}</span>
                           <span>·</span>
                           {msg.modelUsed && <span className="text-blue-400 font-semibold">{msg.modelUsed}</span>}
@@ -558,7 +558,7 @@ export const ConversationsView: React.FC = () => {
                           className={`max-w-[85%] rounded-md p-3 text-xs leading-relaxed font-sans ${
                             isUser
                               ? 'bg-blue-600 text-white'
-                              : 'bg-slate-950 border border-slate-800 text-slate-200 font-mono'
+                              : 'bg-[#080B10] border border-[#283242] text-[#F1F4F8] font-mono'
                           }`}
                         >
                           {msg.content}
@@ -570,13 +570,13 @@ export const ConversationsView: React.FC = () => {
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 bg-slate-950/60 flex gap-2">
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-[#283242] bg-[#080B10]/60 flex gap-2">
                 <input
                   type="text"
                   value={inputContent}
                   onChange={(e) => setInputContent(e.target.value)}
                   placeholder="Ask Central Brain or run multi-agent engineering workflow..."
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500"
+                  className="flex-1 bg-[#121822] border border-[#283242] rounded-md px-3 py-2 text-xs text-[#F1F4F8] font-mono focus:outline-none focus:border-blue-500"
                 />
                 <button
                   type="submit"
@@ -593,9 +593,9 @@ export const ConversationsView: React.FC = () => {
           {/* Tab 2: Memory Inspector */}
           {activeTab === 'memory' && (
             <div className="p-5 overflow-y-auto space-y-4 text-xs font-mono">
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-md">
-                <div className="text-[11px] text-slate-400 uppercase font-semibold mb-2">ACTIVE THREAD CONTEXT</div>
-                <div className="text-slate-300">
+              <div className="p-4 bg-[#080B10] border border-[#283242] rounded-md">
+                <div className="text-[11px] text-[#9AA6B7] uppercase font-semibold mb-2">ACTIVE THREAD CONTEXT</div>
+                <div className="text-[#F1F4F8]">
                   Thread ID: {activeThread?.id} <br />
                   Created: {activeThread?.createdAt} <br />
                   Model Configuration: {activeThread?.isAutoRouting ? 'Central Brain Auto' : activeThread?.activeModel} <br />
@@ -603,9 +603,9 @@ export const ConversationsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-md">
-                <div className="text-[11px] text-slate-400 uppercase font-semibold mb-2">WORKING MEMORY & SYSTEM PROMPT</div>
-                <div className="text-slate-300 leading-relaxed">
+              <div className="p-4 bg-[#080B10] border border-[#283242] rounded-md">
+                <div className="text-[11px] text-[#9AA6B7] uppercase font-semibold mb-2">WORKING MEMORY & SYSTEM PROMPT</div>
+                <div className="text-[#F1F4F8] leading-relaxed">
                   {activeThread?.systemPrompt || 'You are AI Heaven Central Brain orchestrator with persistent memory.'}
                 </div>
               </div>
@@ -615,15 +615,15 @@ export const ConversationsView: React.FC = () => {
           {/* Tab 3: Checkpoints */}
           {activeTab === 'checkpoints' && (
             <div className="p-5 overflow-y-auto space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
+              <div className="flex items-center justify-between text-xs text-[#9AA6B7] font-mono mb-2">
                 <span>Task Snapshots ({checkpoints.length})</span>
                 <span>Recoverable State Vault</span>
               </div>
               {checkpoints.map(cp => (
-                <div key={cp.id} className="p-3 bg-slate-950 border border-slate-800 rounded-md text-xs font-mono flex items-center justify-between">
+                <div key={cp.id} className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-xs font-mono flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-slate-200">{cp.title}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">Task: {cp.taskId} · Step {cp.stepIndex}</div>
+                    <div className="font-semibold text-[#F1F4F8]">{cp.title}</div>
+                    <div className="text-[11px] text-[#9AA6B7]/70 mt-0.5">Task: {cp.taskId} · Step {cp.stepIndex}</div>
                   </div>
                   <span className="text-emerald-400 text-[11px]">Resumable</span>
                 </div>
@@ -634,23 +634,23 @@ export const ConversationsView: React.FC = () => {
           {/* Tab 4: Drive Sync History */}
           {activeTab === 'drive' && (
             <div className="p-5 overflow-y-auto space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
+              <div className="flex items-center justify-between text-xs text-[#9AA6B7] font-mono mb-2">
                 <span>Google Drive Synchronization Trail</span>
                 <span>User-Approved Storage</span>
               </div>
               {driveReceipts.length === 0 ? (
-                <div className="text-xs text-slate-500 font-mono text-center py-8">
+                <div className="text-xs text-[#9AA6B7]/70 font-mono text-center py-8">
                   No Drive backups performed yet. Click "Sync to Drive" above to create a backup.
                 </div>
               ) : (
                 driveReceipts.map(rec => (
-                  <div key={rec.id} className="p-3 bg-slate-950 border border-slate-800 rounded-md text-xs font-mono space-y-1">
+                  <div key={rec.id} className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-xs font-mono space-y-1">
                     <div className="flex items-center justify-between text-emerald-400 font-semibold">
                       <span>SYNC RECEIPT: {rec.id}</span>
                       <span>{rec.status.toUpperCase()}</span>
                     </div>
-                    <div className="text-slate-300 text-[11px]">{rec.details}</div>
-                    <div className="text-slate-500 text-[10px]">
+                    <div className="text-[#F1F4F8] text-[11px]">{rec.details}</div>
+                    <div className="text-[#9AA6B7]/70 text-[10px]">
                       Checksum: {rec.localChecksum} · Bytes: {rec.bytesTransferred} · Timestamp: {new Date(rec.timestamp).toLocaleTimeString()}
                     </div>
                   </div>

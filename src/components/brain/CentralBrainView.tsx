@@ -110,20 +110,20 @@ export const CentralBrainView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#283242] pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#9AA6B7] mb-1">
             <span>AI Operating System</span>
-            <span aria-hidden="true">·</span>
+            <span aria-hidden="true" className="text-[#283242]">·</span>
             <span>Subsystem 01</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-emerald-400 font-semibold">Active & Armed</span>
+            <span aria-hidden="true" className="text-[#283242]">·</span>
+            <span className="text-[#34D399] font-semibold">Active & Armed</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100 flex items-center gap-2.5">
-            <Brain className="h-6 w-6 text-blue-400" />
+          <h1 className="text-2xl font-semibold tracking-tight text-[#F1F4F8] flex items-center gap-2.5">
+            <Brain className="h-6 w-6 text-[#42D9F5]" />
             Central Brain & Dynamic Model Router
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-3xl">
+          <p className="text-sm text-[#9AA6B7] mt-1 max-w-3xl">
             Autonomous routing engine evaluating task suitability, context depth, inference latency, token economics, and quota limits to select optimal model execution paths.
           </p>
         </div>
@@ -132,7 +132,7 @@ export const CentralBrainView: React.FC = () => {
           <button
             onClick={loadBrainData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-xs font-mono text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#283242] bg-[#121822] hover:bg-[#171F2B] text-xs font-mono text-[#F1F4F8] transition-colors cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh Telemetry
@@ -141,43 +141,43 @@ export const CentralBrainView: React.FC = () => {
       </div>
 
       {/* Navigation Tabs (Functional Segmented Control) */}
-      <div className="flex items-center gap-1 p-1 bg-slate-900/80 border border-slate-800 rounded-lg w-fit">
+      <div className="flex items-center gap-1 p-1 bg-[#121822] border border-[#283242] rounded-lg w-fit">
         <button
           onClick={() => setActiveTab('router')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
             activeTab === 'router'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#42D9F5] text-[#080B10] font-semibold shadow-xs'
+              : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
           }`}
         >
           Interactive Router Tester
         </button>
         <button
           onClick={() => setActiveTab('models')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
             activeTab === 'models'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#42D9F5] text-[#080B10] font-semibold shadow-xs'
+              : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
           }`}
         >
           Calibrated Model Matrix ({models.length})
         </button>
         <button
           onClick={() => setActiveTab('decisions')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
             activeTab === 'decisions'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#42D9F5] text-[#080B10] font-semibold shadow-xs'
+              : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
           }`}
         >
           Audit Decision Log ({decisions.length})
         </button>
         <button
           onClick={() => setActiveTab('quotas')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
             activeTab === 'quotas'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#42D9F5] text-[#080B10] font-semibold shadow-xs'
+              : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
           }`}
         >
           Provider Quotas & Failover
@@ -188,12 +188,12 @@ export const CentralBrainView: React.FC = () => {
       {activeTab === 'router' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Form: Query Classifier */}
-          <div className="lg:col-span-6 bg-slate-900/40 border border-slate-800 rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+          <div className="lg:col-span-6 bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
+            <h2 className="text-sm font-semibold text-[#F1F4F8] mb-2 flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-400" />
               Live Request Classifier & Routing Simulator
             </h2>
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-xs text-[#9AA6B7] mb-4">
               Enter any engineering prompt to observe domain classification, complexity calculation, token estimation, and the multi-criteria model selection algorithm.
             </p>
 
@@ -203,7 +203,7 @@ export const CentralBrainView: React.FC = () => {
                 onChange={(e) => setTestPrompt(e.target.value)}
                 placeholder="e.g. Audit PostgreSQL migrations, check concurrency locks, and run regression test suite..."
                 rows={4}
-                className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-xs text-slate-200 font-mono placeholder:text-slate-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#080B10] border border-[#283242] rounded-md p-3 text-xs text-[#F1F4F8] font-mono placeholder:text-slate-600 focus:outline-none focus:border-blue-500"
               />
 
               <div className="flex items-center justify-between">
@@ -211,7 +211,7 @@ export const CentralBrainView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setTestPrompt('Refactor backend API endpoints, add strict input validation, and verify zero regressions')}
-                    className="text-[11px] text-slate-500 hover:text-slate-300 font-mono underline"
+                    className="text-[11px] text-[#9AA6B7]/70 hover:text-[#F1F4F8] font-mono underline"
                   >
                     Sample Coding
                   </button>
@@ -219,7 +219,7 @@ export const CentralBrainView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setTestPrompt('Audit authorization boundaries for sensitive credentials and check for command injection vulnerabilities')}
-                    className="text-[11px] text-slate-500 hover:text-slate-300 font-mono underline"
+                    className="text-[11px] text-[#9AA6B7]/70 hover:text-[#F1F4F8] font-mono underline"
                   >
                     Sample Security
                   </button>
@@ -227,7 +227,7 @@ export const CentralBrainView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setTestPrompt('ls -la workspace files and inspect latest git commits')}
-                    className="text-[11px] text-slate-500 hover:text-slate-300 font-mono underline"
+                    className="text-[11px] text-[#9AA6B7]/70 hover:text-[#F1F4F8] font-mono underline"
                   >
                     Sample Terminal
                   </button>
@@ -254,25 +254,25 @@ export const CentralBrainView: React.FC = () => {
             </form>
 
             {/* Quick Metrics */}
-            <div className="mt-6 pt-5 border-t border-slate-800 grid grid-cols-3 gap-3 text-center">
-              <div className="bg-slate-950/60 p-2.5 rounded border border-slate-800/80">
-                <div className="text-[11px] text-slate-400">Total Models</div>
-                <div className="text-base font-semibold font-mono text-slate-200 mt-0.5">{models.length}</div>
+            <div className="mt-6 pt-5 border-t border-[#283242] grid grid-cols-3 gap-3 text-center">
+              <div className="bg-[#080B10]/60 p-2.5 rounded border border-[#283242]/80">
+                <div className="text-[11px] text-[#9AA6B7]">Total Models</div>
+                <div className="text-base font-semibold font-mono text-[#F1F4F8] mt-0.5">{models.length}</div>
               </div>
-              <div className="bg-slate-950/60 p-2.5 rounded border border-slate-800/80">
-                <div className="text-[11px] text-slate-400">Available Quota</div>
+              <div className="bg-[#080B10]/60 p-2.5 rounded border border-[#283242]/80">
+                <div className="text-[11px] text-[#9AA6B7]">Available Quota</div>
                 <div className="text-base font-semibold font-mono text-emerald-400 mt-0.5">100% Active</div>
               </div>
-              <div className="bg-slate-950/60 p-2.5 rounded border border-slate-800/80">
-                <div className="text-[11px] text-slate-400">Avg Decision Latency</div>
+              <div className="bg-[#080B10]/60 p-2.5 rounded border border-[#283242]/80">
+                <div className="text-[11px] text-[#9AA6B7]">Avg Decision Latency</div>
                 <div className="text-base font-semibold font-mono text-blue-400 mt-0.5">&lt; 4ms</div>
               </div>
             </div>
           </div>
 
           {/* Right: Simulation Output */}
-          <div className="lg:col-span-6 bg-slate-900/40 border border-slate-800 rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+          <div className="lg:col-span-6 bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
+            <h2 className="text-sm font-semibold text-[#F1F4F8] mb-2 flex items-center gap-2">
               <Layers className="h-4 w-4 text-blue-400" />
               Routing Decision Output
             </h2>
@@ -280,27 +280,27 @@ export const CentralBrainView: React.FC = () => {
             {testResult ? (
               <div className="space-y-4">
                 {/* Result Summary Banner */}
-                <div className="p-3.5 rounded-md bg-slate-950 border border-slate-800">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
+                <div className="p-3.5 rounded-md bg-[#080B10] border border-[#283242]">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#9AA6B7] mb-2">
                     <span className="text-blue-400 font-semibold uppercase">{testResult.domain} Domain</span>
                     <span>Complexity: {testResult.complexity}</span>
                     <span>Tokens: ~{testResult.estimatedTokens}</span>
                   </div>
-                  <div className="text-base font-semibold text-slate-100 flex items-center gap-2">
+                  <div className="text-base font-semibold text-[#F1F4F8] flex items-center gap-2">
                     <span>Selected:</span>
                     <span className="text-emerald-400 font-mono">{testResult.recommendedModel.name}</span>
                   </div>
-                  <div className="text-xs text-slate-400 mt-2 leading-relaxed">
+                  <div className="text-xs text-[#9AA6B7] mt-2 leading-relaxed">
                     {testResult.rationale}
                   </div>
                 </div>
 
                 {/* Model Comparison Cards */}
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-slate-950 border border-emerald-900/40 rounded">
+                  <div className="p-3 bg-[#080B10] border border-emerald-900/40 rounded">
                     <div className="text-[11px] text-emerald-400 font-mono mb-1">PRIMARY ROUTE</div>
-                    <div className="font-semibold text-slate-200">{testResult.recommendedModel.name}</div>
-                    <div className="text-slate-400 text-[11px] mt-1 space-y-0.5">
+                    <div className="font-semibold text-[#F1F4F8]">{testResult.recommendedModel.name}</div>
+                    <div className="text-[#9AA6B7] text-[11px] mt-1 space-y-0.5">
                       <div>Provider: {testResult.recommendedModel.provider}</div>
                       <div>Window: {testResult.recommendedModel.contextWindow.toLocaleString()} tokens</div>
                       <div>Coding Score: {testResult.recommendedModel.codingScore}/100</div>
@@ -308,10 +308,10 @@ export const CentralBrainView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded">
-                    <div className="text-[11px] text-slate-500 font-mono mb-1">FAILOVER TARGET</div>
-                    <div className="font-semibold text-slate-300">{testResult.fallbackModel.name}</div>
-                    <div className="text-slate-400 text-[11px] mt-1 space-y-0.5">
+                  <div className="p-3 bg-[#080B10] border border-[#283242] rounded">
+                    <div className="text-[11px] text-[#9AA6B7]/70 font-mono mb-1">FAILOVER TARGET</div>
+                    <div className="font-semibold text-[#F1F4F8]">{testResult.fallbackModel.name}</div>
+                    <div className="text-[#9AA6B7] text-[11px] mt-1 space-y-0.5">
                       <div>Provider: {testResult.fallbackModel.provider}</div>
                       <div>Window: {testResult.fallbackModel.contextWindow.toLocaleString()} tokens</div>
                       <div>Cost / 1M Out: ${testResult.fallbackModel.outputCostPerM.toFixed(2)}</div>
@@ -321,7 +321,7 @@ export const CentralBrainView: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center p-12 text-center text-slate-500 border border-dashed border-slate-800 rounded">
+              <div className="flex flex-col items-center justify-center p-12 text-center text-[#9AA6B7]/70 border border-dashed border-[#283242] rounded">
                 <Brain className="h-8 w-8 mb-2 text-slate-600" />
                 <p className="text-xs">No simulation executed yet.</p>
                 <p className="text-[11px] text-slate-600 mt-1">Submit a prompt on the left to see routing logic in action.</p>
@@ -338,56 +338,56 @@ export const CentralBrainView: React.FC = () => {
             {models.map((model) => (
               <div
                 key={model.id}
-                className="bg-slate-900/40 border border-slate-800 rounded-lg p-4 flex flex-col justify-between hover:border-slate-700 transition-colors"
+                className="bg-[#121822]/40 border border-[#283242] rounded-lg p-4 flex flex-col justify-between hover:border-[#283242] transition-colors"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="font-mono text-slate-400 uppercase text-[10px] tracking-wider">{model.provider}</span>
+                    <span className="font-mono text-[#9AA6B7] uppercase text-[10px] tracking-wider">{model.provider}</span>
                     <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                       Available
                     </span>
                   </div>
-                  <h3 className="text-base font-semibold text-slate-100">{model.name}</h3>
-                  <div className="text-xs text-slate-400 mt-1">
-                    Context: <span className="font-mono text-slate-200">{model.contextWindow.toLocaleString()}</span> tokens
+                  <h3 className="text-base font-semibold text-[#F1F4F8]">{model.name}</h3>
+                  <div className="text-xs text-[#9AA6B7] mt-1">
+                    Context: <span className="font-mono text-[#F1F4F8]">{model.contextWindow.toLocaleString()}</span> tokens
                   </div>
 
                   {/* Benchmark & Performance Scores */}
                   <div className="mt-4 space-y-2 text-xs">
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                      <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                         <span>Coding (SWE-bench / HumanEval)</span>
-                        <span className="font-mono text-slate-200">{model.codingScore}%</span>
+                        <span className="font-mono text-[#F1F4F8]">{model.codingScore}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                         <div className="h-full bg-blue-500 rounded-full" style={{ width: `${model.codingScore}%` }} />
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                      <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                         <span>Reasoning (GPQA / MMLU)</span>
-                        <span className="font-mono text-slate-200">{model.reasoningScore}%</span>
+                        <span className="font-mono text-[#F1F4F8]">{model.reasoningScore}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                         <div className="h-full bg-purple-500 rounded-full" style={{ width: `${model.reasoningScore}%` }} />
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                      <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                         <span>Inference Speed</span>
-                        <span className="font-mono text-slate-200">{model.speedScore}%</span>
+                        <span className="font-mono text-[#F1F4F8]">{model.speedScore}%</span>
                       </div>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                         <div className="h-full bg-amber-500 rounded-full" style={{ width: `${model.speedScore}%` }} />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                <div className="mt-4 pt-3 border-t border-[#283242]/80 flex items-center justify-between text-[11px] text-[#9AA6B7] font-mono">
                   <span>Latency: ~{model.avgLatencyMs}ms</span>
                   <span>Cost: ${model.outputCostPerM.toFixed(2)}/M out</span>
                 </div>
@@ -399,10 +399,10 @@ export const CentralBrainView: React.FC = () => {
 
       {/* TAB 3: AUDIT DECISION LOG */}
       {activeTab === 'decisions' && (
-        <div className="bg-slate-900/40 border border-slate-800 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-200">Historical Routing Decisions</h3>
-            <span className="text-xs font-mono text-slate-500">{decisions.length} recorded</span>
+        <div className="bg-[#121822]/40 border border-[#283242] rounded-lg overflow-hidden">
+          <div className="p-4 border-b border-[#283242] flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[#F1F4F8]">Historical Routing Decisions</h3>
+            <span className="text-xs font-mono text-[#9AA6B7]/70">{decisions.length} recorded</span>
           </div>
 
           <div className="divide-y divide-slate-800/60">
@@ -412,18 +412,18 @@ export const CentralBrainView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-blue-400 font-semibold">{dec.id}</span>
                     <span className="text-slate-600">·</span>
-                    <span className="uppercase text-[10px] text-slate-400 font-mono">{dec.detectedDomain}</span>
+                    <span className="uppercase text-[10px] text-[#9AA6B7] font-mono">{dec.detectedDomain}</span>
                     <span className="text-slate-600">·</span>
                     <span className="text-emerald-400 font-medium">{dec.selectedModelName}</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-mono">
+                  <span className="text-[11px] text-[#9AA6B7]/70 font-mono">
                     {new Date(dec.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
-                <div className="text-xs text-slate-300 font-mono line-clamp-1 mb-1">
+                <div className="text-xs text-[#F1F4F8] font-mono line-clamp-1 mb-1">
                   "{dec.query}"
                 </div>
-                <div className="text-[11px] text-slate-400 leading-relaxed">
+                <div className="text-[11px] text-[#9AA6B7] leading-relaxed">
                   {dec.rationale}
                 </div>
               </div>
@@ -436,24 +436,24 @@ export const CentralBrainView: React.FC = () => {
       {activeTab === 'quotas' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {quotas.map((q) => (
-            <div key={q.providerId} className="bg-slate-900/40 border border-slate-800 rounded-lg p-4">
+            <div key={q.providerId} className="bg-[#121822]/40 border border-[#283242] rounded-lg p-4">
               <div className="flex items-center justify-between text-xs mb-2">
-                <span className="font-semibold text-slate-200">{q.providerName}</span>
+                <span className="font-semibold text-[#F1F4F8]">{q.providerName}</span>
                 <span className={`text-[11px] font-mono ${q.status === 'operational' ? 'text-emerald-400' : 'text-amber-400'}`}>
                   {q.status.toUpperCase()}
                 </span>
               </div>
-              <div className="text-xs text-slate-400 mb-3">
-                Active Account: <span className="font-mono text-slate-300">{q.activeAccount}</span>
+              <div className="text-xs text-[#9AA6B7] mb-3">
+                Active Account: <span className="font-mono text-[#F1F4F8]">{q.activeAccount}</span>
               </div>
 
               <div className="space-y-2 text-xs">
                 <div>
-                  <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                  <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1">
                     <span>Requests / Minute</span>
                     <span className="font-mono">{q.requestsPerMinute} / {q.requestsLimit}</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 rounded-full"
                       style={{ width: `${Math.min(100, (q.requestsPerMinute / q.requestsLimit) * 100)}%` }}
@@ -461,9 +461,9 @@ export const CentralBrainView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/60 font-mono">
+                <div className="flex justify-between text-[11px] text-[#9AA6B7] pt-2 border-t border-[#283242]/60 font-mono">
                   <span>Failover Target:</span>
-                  <span className="text-slate-300">{q.failoverTarget}</span>
+                  <span className="text-[#F1F4F8]">{q.failoverTarget}</span>
                 </div>
               </div>
             </div>

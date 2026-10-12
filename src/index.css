@@ -3,11 +3,23 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --bg-base: #080B10;
+    --bg-sidebar: #0D1118;
+    --surface-standard: #121822;
+    --surface-elevated: #171F2B;
+    --border-color: #283242;
+    --text-primary: #F1F4F8;
+    --text-secondary: #9AA6B7;
+    --accent-primary: #42D9F5;
+    --accent-secondary: #8A83FF;
+    --status-success: #34D399;
+    --status-warning: #FBBF24;
+    --status-error: #F87171;
   }
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #080b11;
-    color: #f1f5f9;
+    background-color: #080B10;
+    color: #F1F4F8;
     letter-spacing: -0.01em;
   }
   code, pre, kbd, samp, .font-mono {
@@ -25,9 +37,20 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #283242;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3a475d;
 }
+
+/* Common engineering surfaces */
+.surface-standard {
+  background-color: #121822;
+  border-color: #283242;
+}
+.surface-elevated {
+  background-color: #171F2B;
+  border-color: #283242;
+}
+

@@ -338,18 +338,18 @@ export const TerminalWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 text-slate-100">
+    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 text-[#F1F4F8]">
       {/* 1. Header Banner */}
-      <div className="bg-[#0D121F] border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-[#121822] border border-[#283242] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-emerald-950/80 border border-emerald-600/40 flex items-center justify-center text-emerald-400">
+          <div className="h-10 w-10 rounded-lg bg-[#34D399]/10 border border-[#34D399]/30 flex items-center justify-center text-[#34D399]">
             <Terminal className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-mono tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-xl font-bold font-mono tracking-tight text-[#F1F4F8] flex items-center gap-2">
               Isolated Terminal & Workspace Environment
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#9AA6B7]">
               Tenant-isolated virtual container execution · Zero host pollution · Real file trees & Git tools
             </p>
           </div>
@@ -358,13 +358,13 @@ export const TerminalWorkspace: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsImportModalOpen(true)}
-            className="min-h-[44px] px-3.5 py-2 text-xs font-mono font-medium rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors flex items-center gap-2"
+            className="min-h-[44px] px-3.5 py-2 text-xs font-mono font-medium rounded-lg bg-[#171F2B] hover:bg-[#202b3c] border border-[#283242] text-[#F1F4F8] transition-colors flex items-center gap-2 cursor-pointer"
           >
-            <Download className="h-4 w-4 text-blue-400" />
+            <Download className="h-4 w-4 text-[#42D9F5]" />
             <span>Import Repository</span>
           </button>
 
-          <span className="text-[11px] font-mono px-2.5 py-1.5 rounded bg-emerald-950/60 border border-emerald-800 text-emerald-400 flex items-center gap-1.5">
+          <span className="text-[11px] font-mono px-2.5 py-1.5 rounded bg-[#34D399]/10 border border-[#34D399]/30 text-[#34D399] flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" />
             <span>SANDBOX ISOLATED</span>
           </span>
@@ -374,14 +374,14 @@ export const TerminalWorkspace: React.FC = () => {
       {/* 2. Main Workspace Split: Terminal on Left, Files/Editor on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT: Terminal Console (7 columns on desktop) */}
-        <div className="lg:col-span-7 bg-[#0A0D14] border border-slate-800 rounded-xl flex flex-col h-[650px] shadow-2xl overflow-hidden">
+        <div className="lg:col-span-7 bg-[#080B10] border border-[#283242] rounded-xl flex flex-col h-[650px] shadow-2xl overflow-hidden">
           {/* Terminal Titlebar */}
-          <div className="px-4 py-3 bg-[#0E131F] border-b border-slate-800/80 flex items-center justify-between">
+          <div className="px-4 py-3 bg-[#121822] border-b border-[#283242] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-rose-500/80" />
-              <div className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
-              <span className="ml-2 text-xs font-mono text-slate-400 truncate max-w-xs">
+              <div className="h-3 w-3 rounded-full bg-[#F87171]" />
+              <div className="h-3 w-3 rounded-full bg-[#FBBF24]" />
+              <div className="h-3 w-3 rounded-full bg-[#34D399]" />
+              <span className="ml-2 text-xs font-mono text-[#9AA6B7] truncate max-w-xs">
                 bash — {cwd}
               </span>
             </div>
@@ -390,7 +390,7 @@ export const TerminalWorkspace: React.FC = () => {
               {isExecuting && (
                 <button
                   onClick={handleCancel}
-                  className="px-2 py-1 text-[11px] font-mono rounded bg-rose-950/60 border border-rose-800 text-rose-300 hover:bg-rose-900/60 flex items-center gap-1"
+                  className="px-2 py-1 text-[11px] font-mono rounded bg-[#F87171]/15 border border-[#F87171]/40 text-[#F87171] hover:bg-[#F87171]/25 flex items-center gap-1 cursor-pointer"
                 >
                   <StopCircle className="h-3 w-3" />
                   <span>Cancel (SIGINT)</span>
@@ -398,7 +398,7 @@ export const TerminalWorkspace: React.FC = () => {
               )}
               <button
                 onClick={() => setHistoryLines([])}
-                className="text-[11px] font-mono text-slate-500 hover:text-slate-300 px-2 py-0.5 rounded"
+                className="text-[11px] font-mono text-[#9AA6B7] hover:text-[#F1F4F8] px-2 py-0.5 rounded cursor-pointer"
               >
                 Clear
               </button>
@@ -410,7 +410,7 @@ export const TerminalWorkspace: React.FC = () => {
             {historyLines.map(line => {
               if (line.type === 'command') {
                 return (
-                  <div key={line.id} className="text-slate-200 font-semibold pt-1">
+                  <div key={line.id} className="text-[#F1F4F8] font-semibold pt-1">
                     {line.text}
                   </div>
                 );
@@ -459,7 +459,7 @@ export const TerminalWorkspace: React.FC = () => {
                             }
                           ]);
                         }}
-                        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition-colors"
+                        className="px-3 py-1 bg-[#171F2B] hover:bg-slate-700 text-[#F1F4F8] rounded text-xs transition-colors"
                       >
                         Reject
                       </button>
@@ -468,7 +468,7 @@ export const TerminalWorkspace: React.FC = () => {
                 );
               }
               return (
-                <div key={line.id} className="text-slate-300 whitespace-pre-wrap">
+                <div key={line.id} className="text-[#F1F4F8] whitespace-pre-wrap">
                   {line.text}
                 </div>
               );
@@ -477,8 +477,8 @@ export const TerminalWorkspace: React.FC = () => {
           </div>
 
           {/* Quick Command Toolbar */}
-          <div className="px-3 py-2 bg-[#0E131F]/60 border-t border-slate-800/80 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-            <span className="text-[10px] font-mono text-slate-500 uppercase mr-1">RUN:</span>
+          <div className="px-3 py-2 bg-[#121822] border-t border-[#283242] flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <span className="text-[10px] font-mono text-[#9AA6B7]/60 uppercase mr-1">RUN:</span>
             {[
               'git status',
               'ls -la',
@@ -492,7 +492,7 @@ export const TerminalWorkspace: React.FC = () => {
                 key={quickCmd}
                 onClick={() => handleExecute(quickCmd)}
                 disabled={isExecuting}
-                className="px-2 py-1 text-[11px] font-mono rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors shrink-0 disabled:opacity-50"
+                className="px-2 py-1 text-[11px] font-mono rounded bg-[#171F2B] hover:bg-[#202b3c] text-[#9AA6B7] hover:text-[#F1F4F8] border border-[#283242] transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
               >
                 {quickCmd}
               </button>
@@ -500,8 +500,8 @@ export const TerminalWorkspace: React.FC = () => {
           </div>
 
           {/* Terminal Interactive Input Prompt */}
-          <div className="p-3 bg-[#080B11] border-t border-slate-800 flex items-center gap-2">
-            <span className="font-mono text-emerald-400 text-xs shrink-0 select-none">
+          <div className="p-3 bg-[#080B10] border-t border-[#283242] flex items-center gap-2">
+            <span className="font-mono text-[#42D9F5] text-xs shrink-0 select-none">
               developer@aiheaven:$
             </span>
             <input
@@ -512,13 +512,13 @@ export const TerminalWorkspace: React.FC = () => {
               onKeyDown={handleKeyDown}
               disabled={isExecuting}
               placeholder="Enter command (e.g. ls, git status, npm test)..."
-              className="flex-1 bg-transparent font-mono text-xs text-white placeholder-slate-600 focus:outline-none"
+              className="flex-1 bg-transparent font-mono text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:outline-none"
               autoFocus
             />
             <button
               onClick={() => handleExecute()}
               disabled={isExecuting || !currentInput.trim()}
-              className="min-h-[36px] px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs rounded transition-colors disabled:opacity-40 flex items-center gap-1"
+              className="min-h-[36px] px-3 py-1 bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] font-mono text-xs font-semibold rounded transition-colors disabled:opacity-40 flex items-center gap-1 cursor-pointer"
             >
               <CornerDownLeft className="h-3 w-3" />
             </button>
@@ -526,25 +526,25 @@ export const TerminalWorkspace: React.FC = () => {
         </div>
 
         {/* RIGHT: Workspace File Explorer & Inline Code Inspector (5 columns on desktop) */}
-        <div className="lg:col-span-5 bg-[#0A0D14] border border-slate-800 rounded-xl flex flex-col h-[650px] shadow-2xl overflow-hidden">
+        <div className="lg:col-span-5 bg-[#121822] border border-[#283242] rounded-xl flex flex-col h-[650px] shadow-2xl overflow-hidden">
           {/* File Explorer Header */}
-          <div className="px-4 py-3 bg-[#0E131F] border-b border-slate-800 flex items-center justify-between">
+          <div className="px-4 py-3 bg-[#171F2B] border-b border-[#283242] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FolderGit2 className="h-4 w-4 text-blue-400" />
-              <span className="text-xs font-mono font-semibold text-white">
+              <FolderGit2 className="h-4 w-4 text-[#42D9F5]" />
+              <span className="text-xs font-mono font-semibold text-[#F1F4F8]">
                 Workspace Filesystem
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               {saveStatus && (
-                <span className="text-[11px] font-mono text-emerald-400">{saveStatus}</span>
+                <span className="text-[11px] font-mono text-[#34D399]">{saveStatus}</span>
               )}
               {selectedFile && (
                 <button
                   onClick={handleSaveFile}
                   disabled={isSavingFile}
-                  className="min-h-[32px] px-2.5 py-1 text-xs font-mono rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1 transition-colors disabled:opacity-50"
+                  className="min-h-[32px] px-2.5 py-1 text-xs font-mono rounded bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] font-semibold flex items-center gap-1 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <Save className="h-3 w-3" />
                   <span>Save</span>
@@ -554,9 +554,9 @@ export const TerminalWorkspace: React.FC = () => {
           </div>
 
           {/* Files List Tree */}
-          <div className="h-40 overflow-y-auto border-b border-slate-800/80 p-2 space-y-1 bg-slate-950/40">
+          <div className="h-40 overflow-y-auto border-b border-[#283242] p-2 space-y-1 bg-[#080B10]">
             {files.length === 0 ? (
-              <div className="p-4 text-center text-xs font-mono text-slate-500">
+              <div className="p-4 text-center text-xs font-mono text-[#9AA6B7]">
                 No files in workspace. Click "Import Repository" to clone a project.
               </div>
             ) : (
@@ -564,21 +564,21 @@ export const TerminalWorkspace: React.FC = () => {
                 <button
                   key={file.path}
                   onClick={() => loadFileContent(file.name)}
-                  className={`w-full px-2.5 py-1.5 rounded text-left flex items-center justify-between text-xs font-mono transition-colors ${
+                  className={`w-full px-2.5 py-1.5 rounded text-left flex items-center justify-between text-xs font-mono transition-colors cursor-pointer ${
                     selectedFile === file.name
-                      ? 'bg-blue-950/60 text-blue-300 border border-blue-800/60'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+                      ? 'bg-[#42D9F5]/10 text-[#42D9F5] border border-[#42D9F5]/30'
+                      : 'text-[#9AA6B7] hover:text-[#F1F4F8] hover:bg-[#121822]'
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">
                     {file.type === 'directory' ? (
-                      <Folder className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      <Folder className="h-3.5 w-3.5 text-[#FBBF24] shrink-0" />
                     ) : (
-                      <FileCode className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                      <FileCode className="h-3.5 w-3.5 text-[#42D9F5] shrink-0" />
                     )}
                     <span className="truncate">{file.name}</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 shrink-0">
+                  <span className="text-[10px] text-[#9AA6B7]/60 shrink-0">
                     {file.size_bytes}B
                   </span>
                 </button>
@@ -587,22 +587,22 @@ export const TerminalWorkspace: React.FC = () => {
           </div>
 
           {/* Code Viewer / Editor Area */}
-          <div className="flex-1 flex flex-col bg-[#080B11] overflow-hidden">
-            <div className="px-3 py-1.5 bg-[#0D121F] border-b border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
+          <div className="flex-1 flex flex-col bg-[#080B10] overflow-hidden">
+            <div className="px-3 py-1.5 bg-[#121822] border-b border-[#283242] flex items-center justify-between text-xs font-mono text-[#9AA6B7]">
               <span className="truncate">{selectedFile || 'Select a file to inspect'}</span>
               <span>UTF-8</span>
             </div>
 
             {isFileLoading ? (
-              <div className="flex-1 flex items-center justify-center text-xs font-mono text-slate-500">
-                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+              <div className="flex-1 flex items-center justify-center text-xs font-mono text-[#9AA6B7]">
+                <RefreshCw className="h-4 w-4 animate-spin mr-2 text-[#42D9F5]" />
                 Loading file...
               </div>
             ) : (
               <textarea
                 value={fileContent}
                 onChange={e => setFileContent(e.target.value)}
-                className="flex-1 p-3 bg-transparent font-mono text-xs text-slate-200 focus:outline-none resize-none leading-relaxed"
+                className="flex-1 p-3 bg-transparent font-mono text-xs text-[#F1F4F8] focus:outline-none resize-none leading-relaxed placeholder-[#9AA6B7]/40"
                 spellCheck={false}
               />
             )}
@@ -612,39 +612,39 @@ export const TerminalWorkspace: React.FC = () => {
 
       {/* 3. Import Repository Modal */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0D121F] border border-slate-700 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080B10]/80 backdrop-blur-sm">
+          <div className="bg-[#171F2B] border border-[#283242] rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-blue-400">
+              <div className="flex items-center gap-2 text-[#42D9F5]">
                 <Download className="h-5 w-5" />
-                <h3 className="text-base font-semibold text-white">Import Open-Source Project</h3>
+                <h3 className="text-base font-semibold text-[#F1F4F8]">Import Open-Source Project</h3>
               </div>
               <button
                 onClick={() => setIsImportModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[#9AA6B7] hover:text-[#F1F4F8] cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#9AA6B7]">
               Clones the repository's source tree, README, and dependency manifests directly into your tenant virtual workspace for immediate inspection and execution.
             </p>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono text-slate-300">REPOSITORY (OWNER/REPO)</label>
+              <label className="text-xs font-mono text-[#F1F4F8]">REPOSITORY (OWNER/REPO)</label>
               <input
                 type="text"
                 value={importRepoInput}
                 onChange={e => setImportRepoInput(e.target.value)}
                 placeholder="google-gemini/cookbook"
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg font-mono text-xs text-white focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-[#121822] border border-[#283242] rounded-lg font-mono text-xs text-white focus:outline-none focus:border-blue-500"
               />
             </div>
 
             {/* Quick Pick Suggestions */}
             <div className="space-y-1">
-              <span className="text-[11px] font-mono text-slate-400">FEATURED REPOSITORIES:</span>
+              <span className="text-[11px] font-mono text-[#9AA6B7]">FEATURED REPOSITORIES:</span>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {[
                   'google-gemini/cookbook',
@@ -655,7 +655,7 @@ export const TerminalWorkspace: React.FC = () => {
                   <button
                     key={repoSlug}
                     onClick={() => setImportRepoInput(repoSlug)}
-                    className="px-2 py-1 text-[11px] font-mono rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                    className="px-2 py-1 text-[11px] font-mono rounded bg-[#171F2B] hover:bg-slate-700 text-[#F1F4F8]"
                   >
                     {repoSlug}
                   </button>
@@ -667,7 +667,7 @@ export const TerminalWorkspace: React.FC = () => {
               <button
                 onClick={() => setIsImportModalOpen(false)}
                 disabled={isImporting}
-                className="min-h-[44px] px-4 py-2 text-xs font-mono text-slate-400 hover:text-white"
+                className="min-h-[44px] px-4 py-2 text-xs font-mono text-[#9AA6B7] hover:text-white"
               >
                 Cancel
               </button>

@@ -420,5 +420,38 @@ describe('PART 1/6: CORE AUTONOMOUS BUG-HUNTING PLATFORM & AUTHENTICATION', () =
       assert.strictEqual(res.body.status, 'completed');
       assert.ok(res.body.findings.length >= 2);
     });
+
+    it('PUT /api/bughunt/findings/:id/status updates verification status and audit notes', async () => {
+      const findingsRes = await mockRequest('GET', '/api/bughunt/findings');
+      assert.strictEqual(findingsRes.status, 200);
+      const finding = findingsRes.body.findings[0];
+      assert.ok(finding, 'At least one finding must exist');
+
+      const updateRes = await mockRequest('PUT', `/api/bughunt/findings/${finding.id}/status`, {}, {
+        status: 'NEEDS REVIEW',
+        notes: 'Operator requested secondary manual PoC reproduction'
+      });
+      assert.strictEqual(updateRes.status, 200);
+      assert.strictEqual(updateRes.body.verificationStatus, 'NEEDS REVIEW');
+      assert.strictEqual(updateRes.body.falsePositiveReviewNotes, 'Operator requested secondary manual PoC reproduction');
+    });
+
+    it('POST /api/bughunt/findings/:id/submit-hackerone reports honest status when credentials unconfigured and requires verified finding', async () => {
+      const findingsRes = await mockRequest('GET', '/api/bughunt/findings');
+      const finding = findingsRes.body.findings[0];
+
+      // Reset to VERIFIED first
+      await mockRequest('PUT', `/api/bughunt/findings/${finding.id}/status`, {}, {
+        status: 'VERIFIED'
+      });
+
+      const submitRes = await mockRequest('POST', `/api/bughunt/findings/${finding.id}/submit-hackerone`, {}, {
+        programHandle: 'aiheaven-sandbox'
+      });
+      assert.strictEqual(submitRes.status, 200);
+      // When HACKERONE_API_IDENTIFIER is unset, it must report honest failure message rather than faking success
+      assert.strictEqual(submitRes.body.success, false);
+      assert.ok(submitRes.body.message.includes('credentials unconfigured'));
+    });
   });
 });

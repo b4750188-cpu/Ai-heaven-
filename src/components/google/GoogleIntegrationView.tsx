@@ -135,22 +135,22 @@ export const GoogleIntegrationView: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#283242] pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#9AA6B7] mb-1">
             <span>AI Operating System</span>
             <span aria-hidden="true">·</span>
             <span>External Accounts</span>
             <span aria-hidden="true">·</span>
-            <span className={session.isConnected ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
+            <span className={session.isConnected ? 'text-emerald-400 font-semibold' : 'text-[#9AA6B7]/70'}>
               {session.isConnected ? 'Google Account Connected' : 'Disconnected'}
             </span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#F1F4F8] flex items-center gap-2.5">
             <Cloud className="h-6 w-6 text-blue-400" />
             Google Account & Drive Integration
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-3xl">
+          <p className="text-sm text-[#9AA6B7] mt-1 max-w-3xl">
             Genuine Google Identity & Google Drive cloud backup. Synchronize conversations, projects, and task checkpoints with explicit user authorization. PostgreSQL remains the authoritative source of truth.
           </p>
         </div>
@@ -159,7 +159,7 @@ export const GoogleIntegrationView: React.FC = () => {
           {session.isConnected ? (
             <button
               onClick={handleDisconnect}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-850 text-rose-300 rounded-md text-xs font-mono transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#121822] border border-[#283242] hover:bg-slate-850 text-rose-300 rounded-md text-xs font-mono transition-colors"
             >
               <LogOut className="h-3.5 w-3.5" />
               Disconnect Account
@@ -187,46 +187,46 @@ export const GoogleIntegrationView: React.FC = () => {
             {statusMessage.type === 'success' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <AlertTriangle className="h-4 w-4 text-rose-400" />}
             <span>{statusMessage.text}</span>
           </div>
-          <button onClick={() => setStatusMessage(null)} className="text-slate-400 hover:text-slate-200">✕</button>
+          <button onClick={() => setStatusMessage(null)} className="text-[#9AA6B7] hover:text-[#F1F4F8]">✕</button>
         </div>
       )}
 
       {/* Account Status Card & Drive Quota Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Account Identity */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-lg p-5">
+        <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-blue-400" />
               Connected Google Identity
             </h3>
-            <span className={`text-[11px] font-mono ${session.isConnected ? 'text-emerald-400' : 'text-slate-500'}`}>
+            <span className={`text-[11px] font-mono ${session.isConnected ? 'text-emerald-400' : 'text-[#9AA6B7]/70'}`}>
               {session.isConnected ? 'AUTHENTICATED' : 'NOT CONNECTED'}
             </span>
           </div>
 
           {session.isConnected && session.profile ? (
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-md">
-                <div className="text-[11px] text-slate-500 font-mono mb-1">ACCOUNT PROFILE</div>
-                <div className="text-sm font-semibold text-slate-100">{session.profile.name}</div>
+              <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md">
+                <div className="text-[11px] text-[#9AA6B7]/70 font-mono mb-1">ACCOUNT PROFILE</div>
+                <div className="text-sm font-semibold text-[#F1F4F8]">{session.profile.name}</div>
                 <div className="text-xs text-blue-400 font-mono mt-0.5">{session.profile.email}</div>
               </div>
 
-              <div className="text-[11px] text-slate-400 font-mono space-y-1">
+              <div className="text-[11px] text-[#9AA6B7] font-mono space-y-1">
                 <div>Authorized Scopes:</div>
-                <div className="text-slate-300 pl-2">
+                <div className="text-[#F1F4F8] pl-2">
                   {session.scopes.map(s => <div key={s}>• {s}</div>)}
                 </div>
-                <div className="pt-2 text-slate-500">
+                <div className="pt-2 text-[#9AA6B7]/70">
                   Drive Scope Authorized: <span className="text-emerald-400">Yes (drive.file)</span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-xs text-slate-400 space-y-3">
+            <div className="text-xs text-[#9AA6B7] space-y-3">
               <p>Connect your Google account to authorize user-controlled storage of project backups and conversations into Google Drive.</p>
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-md text-[11px] font-mono text-slate-500">
+              <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-[11px] font-mono text-[#9AA6B7]/70">
                 Status: Google OAuth Web Client ready. Click "Connect Google Account" above.
               </div>
             </div>
@@ -234,24 +234,24 @@ export const GoogleIntegrationView: React.FC = () => {
         </div>
 
         {/* Right: Drive Storage Quota */}
-        <div className="bg-slate-900/40 border border-slate-800 rounded-lg p-5">
+        <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
               <HardDrive className="h-4 w-4 text-purple-400" />
               Google Drive Cloud Storage
             </h3>
-            <span className="text-[11px] font-mono text-slate-400">
+            <span className="text-[11px] font-mono text-[#9AA6B7]">
               {quota ? quota.usageFormatted : '0 MB'} / {quota ? quota.limitFormatted : '15 GB'}
             </span>
           </div>
 
           <div className="space-y-4 text-xs">
             <div>
-              <div className="flex justify-between text-[11px] text-slate-400 mb-1 font-mono">
+              <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1 font-mono">
                 <span>Storage Utilization</span>
                 <span>{quota?.percentUsed || 0}% used</span>
               </div>
-              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-[#171F2B] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all"
                   style={{ width: `${Math.min(100, Math.max(1, quota?.percentUsed || 1))}%` }}
@@ -259,8 +259,8 @@ export const GoogleIntegrationView: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-slate-950 border border-slate-800 rounded-md text-[11px] text-slate-400 font-mono space-y-1">
-              <div>Source of Truth: <span className="text-slate-200">PostgreSQL (Durable)</span></div>
+            <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-[11px] text-[#9AA6B7] font-mono space-y-1">
+              <div>Source of Truth: <span className="text-[#F1F4F8]">PostgreSQL (Durable)</span></div>
               <div>Drive Role: <span className="text-blue-400">Connected Backup & Archive Vault</span></div>
               <div>Mode: <span className="text-emerald-400">User-Approved Sync</span></div>
             </div>
@@ -278,34 +278,34 @@ export const GoogleIntegrationView: React.FC = () => {
       </div>
 
       {/* Sync Receipts History */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-lg p-5">
+      <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             Audit Trail & Synchronization Receipts ({receipts.length})
           </h3>
-          <span className="text-[11px] font-mono text-slate-500">Cryptographically Verified</span>
+          <span className="text-[11px] font-mono text-[#9AA6B7]/70">Cryptographically Verified</span>
         </div>
 
         {receipts.length === 0 ? (
-          <div className="text-xs text-slate-500 font-mono text-center py-8">
+          <div className="text-xs text-[#9AA6B7]/70 font-mono text-center py-8">
             Zero synchronization receipts recorded yet. Run a backup to generate receipts.
           </div>
         ) : (
           <div className="space-y-2">
             {receipts.map((rec) => (
-              <div key={rec.id} className="p-3 bg-slate-950 border border-slate-800 rounded-md text-xs font-mono flex items-center justify-between">
+              <div key={rec.id} className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-xs font-mono flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-blue-400 font-semibold">{rec.id}</span>
                     <span className="text-slate-600">·</span>
-                    <span className="text-slate-300">{rec.target.toUpperCase()}</span>
+                    <span className="text-[#F1F4F8]">{rec.target.toUpperCase()}</span>
                     <span className="text-slate-600">·</span>
                     <span className="text-emerald-400 font-medium">{rec.status.toUpperCase()}</span>
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">{rec.details}</div>
+                  <div className="text-[11px] text-[#9AA6B7] mt-0.5">{rec.details}</div>
                 </div>
-                <div className="text-right text-[11px] text-slate-500">
+                <div className="text-right text-[11px] text-[#9AA6B7]/70">
                   <div>{rec.bytesTransferred} bytes</div>
                   <div>{new Date(rec.timestamp).toLocaleTimeString()}</div>
                 </div>
@@ -316,53 +316,53 @@ export const GoogleIntegrationView: React.FC = () => {
       </div>
 
       {/* Google Cloud Console Setup Guide */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-lg p-5 text-xs">
-        <h3 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+      <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5 text-xs">
+        <h3 className="text-sm font-semibold text-[#F1F4F8] mb-2 flex items-center gap-2">
           <Key className="h-4 w-4 text-amber-400" />
           Google Cloud Console Configuration Guide
         </h3>
-        <p className="text-slate-400 mb-4 leading-relaxed">
+        <p className="text-[#9AA6B7] mb-4 leading-relaxed">
           To connect your own Google Cloud project for Google Sign-In and Google Drive synchronization in production, configure the following in the Google Cloud Console (APIs &amp; Services &gt; Credentials):
         </p>
 
         <div className="space-y-3 font-mono">
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-md">
-            <div className="text-[11px] text-slate-500 mb-1">1. ENABLED GOOGLE APIS</div>
-            <div className="text-slate-200">
+          <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md">
+            <div className="text-[11px] text-[#9AA6B7]/70 mb-1">1. ENABLED GOOGLE APIS</div>
+            <div className="text-[#F1F4F8]">
               • Google Drive API (`drive.googleapis.com`)<br />
               • Google Identity Services / OAuth 2.0 API
             </div>
           </div>
 
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-md flex items-center justify-between">
+          <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-500 mb-1">2. REQUIRED OAUTH SCOPES</div>
-              <div className="text-slate-200">https://www.googleapis.com/auth/drive.file, email, profile</div>
+              <div className="text-[11px] text-[#9AA6B7]/70 mb-1">2. REQUIRED OAUTH SCOPES</div>
+              <div className="text-[#F1F4F8]">https://www.googleapis.com/auth/drive.file, email, profile</div>
             </div>
             <button
               onClick={() => copyToClipboard('https://www.googleapis.com/auth/drive.file email profile', 'scopes')}
-              className="text-slate-400 hover:text-slate-200 p-1"
+              className="text-[#9AA6B7] hover:text-[#F1F4F8] p-1"
             >
               {copiedKey === 'scopes' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
           </div>
 
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-md flex items-center justify-between">
+          <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-500 mb-1">3. AUTHORIZED JAVASCRIPT ORIGINS</div>
-              <div className="text-slate-200">https://*.vercel.app, http://localhost:3000</div>
+              <div className="text-[11px] text-[#9AA6B7]/70 mb-1">3. AUTHORIZED JAVASCRIPT ORIGINS</div>
+              <div className="text-[#F1F4F8]">https://*.vercel.app, http://localhost:3000</div>
             </div>
             <button
               onClick={() => copyToClipboard('http://localhost:3000', 'origins')}
-              className="text-slate-400 hover:text-slate-200 p-1"
+              className="text-[#9AA6B7] hover:text-[#F1F4F8] p-1"
             >
               {copiedKey === 'origins' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
           </div>
 
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-md">
-            <div className="text-[11px] text-slate-500 mb-1">4. ENVIRONMENT VARIABLE</div>
-            <div className="text-slate-200">VITE_GOOGLE_CLIENT_ID="[YOUR_GOOGLE_CLOUD_CLIENT_ID].apps.googleusercontent.com"</div>
+          <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md">
+            <div className="text-[11px] text-[#9AA6B7]/70 mb-1">4. ENVIRONMENT VARIABLE</div>
+            <div className="text-[#F1F4F8]">VITE_GOOGLE_CLIENT_ID="[YOUR_GOOGLE_CLOUD_CLIENT_ID].apps.googleusercontent.com"</div>
           </div>
         </div>
       </div>
