@@ -125,71 +125,65 @@ class GoogleAuthService {
 
     const clientId = this.getClientId();
 
-    if (clientId && typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
-      return new Promise((resolve, reject) => {
-        try {
-          const client = (window as any).google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-            scope: scopes.join(' '),
-            callback: async (tokenResponse: any) => {
-              if (tokenResponse.error) {
-                reject(new Error(tokenResponse.error_description || tokenResponse.error));
-                return;
-              }
-
-              const accessToken = tokenResponse.access_token;
-              const expiresIn = parseInt(tokenResponse.expires_in, 10) || 3600;
-              const expiresAt = Date.now() + expiresIn * 1000;
-
-              // Fetch User profile from Google userinfo API
-              try {
-                const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                const profile: GoogleUserProfile = await userRes.json();
-
-                this.session = {
-                  isConnected: true,
-                  profile,
-                  accessToken,
-                  expiresAt,
-                  scopes,
-                  isDriveAuthorized: withDriveScope,
-                  lastConnectedAt: new Date().toISOString()
-                };
-                this.saveSession();
-                resolve(this.session);
-              } catch (err: any) {
-                reject(new Error(`Failed to retrieve Google profile: ${err.message}`));
-              }
-            }
-          });
-
-          client.requestAccessToken({ prompt: 'consent' });
-        } catch (err) {
-          reject(err);
-        }
-      });
+    if (!clientId) {
+      throw new Error(
+        'Google OAuth Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your environment variables to connect your Google account.'
+      );
     }
 
-    // Developer Workspace Connection (when Google Cloud Client ID is being configured)
-    const devProfile: GoogleUserProfile = {
-      email: 'operator@aiheaven.local',
-      name: 'AI Heaven Operator',
-      sub: 'local_dev_workspace_session'
-    };
+    if (typeof window === 'undefined' || !(window as any).google?.accounts?.oauth2) {
+      throw new Error(
+        'Google Identity Services client library is not loaded. Ensure accounts.google.com/gsi/client is accessible in your network.'
+      );
+    }
 
-    this.session = {
-      isConnected: true,
-      profile: devProfile,
-      accessToken: 'dev_mock_google_oauth_token_' + Date.now(),
-      expiresAt: Date.now() + 3600 * 1000,
-      scopes,
-      isDriveAuthorized: withDriveScope,
-      lastConnectedAt: new Date().toISOString()
-    };
-    this.saveSession();
-    return this.session;
+    return new Promise((resolve, reject) => {
+      try {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: scopes.join(' '),
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse.error) {
+              reject(new Error(tokenResponse.error_description || tokenResponse.error));
+              return;
+            }
+
+            const accessToken = tokenResponse.access_token;
+            const expiresIn = parseInt(tokenResponse.expires_in, 10) || 3600;
+            const expiresAt = Date.now() + expiresIn * 1000;
+
+            // Fetch User profile from Google userinfo API
+            try {
+              const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+              });
+              if (!userRes.ok) {
+                throw new Error(`Google UserInfo API returned HTTP ${userRes.status}`);
+              }
+              const profile: GoogleUserProfile = await userRes.json();
+
+              this.session = {
+                isConnected: true,
+                profile,
+                accessToken,
+                expiresAt,
+                scopes,
+                isDriveAuthorized: withDriveScope,
+                lastConnectedAt: new Date().toISOString()
+              };
+              this.saveSession();
+              resolve(this.session);
+            } catch (err: any) {
+              reject(new Error(`Failed to retrieve verified Google profile: ${err.message}`));
+            }
+          }
+        });
+
+        client.requestAccessToken({ prompt: 'consent' });
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 
   public disconnect(): void {

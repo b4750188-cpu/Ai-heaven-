@@ -297,7 +297,7 @@ export const BugHuntWorkspace: React.FC<BugHuntWorkspaceProps> = ({
               </span>
             </div>
             <p className="text-xs text-[#9AA6B7] mt-0.5">
-              11-Droid Fleet &bull; HackerOne Scope Snapshots &bull; SHA-256 Proof Seals &bull; Sensitive Data Redacted
+              6-Droid Specialized Fleet &bull; HackerOne Scope Snapshots &bull; SHA-256 Proof Seals &bull; Sensitive Data Redacted
             </p>
           </div>
         </div>
@@ -860,7 +860,7 @@ export const BugHuntWorkspace: React.FC<BugHuntWorkspaceProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-[#F1F4F8]">Specialized Security Droid Fleet</h3>
-              <p className="text-xs text-[#9AA6B7]">11 autonomous agents with explicit role boundaries, SAST tools, and verifiers</p>
+              <p className="text-xs text-[#9AA6B7]">6 specialized security droids with explicit role boundaries, SAST tools, and verifiers</p>
             </div>
           </div>
 

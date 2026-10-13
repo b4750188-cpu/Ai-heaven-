@@ -112,6 +112,8 @@ export interface ConversationThread {
   isAutoRouting?: boolean;
   systemPrompt?: string;
   memorySummary?: string;
+  userId?: string;
+  tenantId?: string;
 }
 
 export interface TaskCheckpoint {
@@ -240,60 +242,52 @@ class CentralBrainService {
   }
 
   private initDefaultQuotas() {
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
     const defaultQuotas: ProviderQuotaInfo[] = [
       {
         providerId: 'google-ai',
         providerName: 'Google AI Studio / Gemini API',
-        status: 'operational',
-        requestsPerMinute: 14,
+        status: geminiKey ? 'operational' : 'degraded',
+        requestsPerMinute: 0,
         requestsLimit: 60,
-        tokensPerMinute: 24500,
+        tokensPerMinute: 0,
         tokensLimit: 4000000,
         failureRatePercent: 0.0,
-        activeAccount: this.activeGoogleAccount,
+        activeAccount: geminiKey ? this.activeGoogleAccount : 'unconfigured',
         failoverTarget: 'gemini-2.5-flash'
       },
       {
         providerId: 'anthropic',
         providerName: 'Anthropic Claude API',
-        status: 'operational',
-        requestsPerMinute: 8,
+        status: anthropicKey ? 'operational' : 'degraded',
+        requestsPerMinute: 0,
         requestsLimit: 50,
-        tokensPerMinute: 18200,
+        tokensPerMinute: 0,
         tokensLimit: 2000000,
         failureRatePercent: 0.0,
-        activeAccount: 'org-aiheaven-main',
+        activeAccount: anthropicKey ? 'anthropic-env-key' : 'unconfigured',
         failoverTarget: 'gemini-2.5-pro'
       },
       {
         providerId: 'openai',
         providerName: 'OpenAI API',
-        status: 'operational',
-        requestsPerMinute: 11,
+        status: openaiKey ? 'operational' : 'degraded',
+        requestsPerMinute: 0,
         requestsLimit: 100,
-        tokensPerMinute: 31000,
+        tokensPerMinute: 0,
         tokensLimit: 5000000,
         failureRatePercent: 0.0,
-        activeAccount: 'default-project-key',
+        activeAccount: openaiKey ? 'openai-env-key' : 'unconfigured',
         failoverTarget: 'gemini-2.5-flash'
-      },
-      {
-        providerId: 'huggingface',
-        providerName: 'Hugging Face Hub & Inference',
-        status: 'operational',
-        requestsPerMinute: 5,
-        requestsLimit: 30,
-        tokensPerMinute: 9400,
-        tokensLimit: 500000,
-        failureRatePercent: 0.0,
-        activeAccount: 'hf-public-token',
-        failoverTarget: 'llama-3-3-70b'
       },
       {
         providerId: 'local-vfs',
         providerName: 'Local VFS & Offline Runner',
         status: 'operational',
-        requestsPerMinute: 42,
+        requestsPerMinute: 0,
         requestsLimit: 1000,
         tokensPerMinute: 0,
         tokensLimit: 0,
@@ -649,17 +643,29 @@ class CentralBrainService {
   // 3. PERSISTENT CONVERSATIONS & MEMORY
   // =========================================================================
 
-  public listConversations(): ConversationThread[] {
-    return Array.from(this.conversations.values()).sort(
+  public listConversations(userId?: string): ConversationThread[] {
+    const list = Array.from(this.conversations.values());
+    const filtered = userId
+      ? list.filter(c => !c.userId || c.userId === userId)
+      : list;
+    return filtered.sort(
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   }
 
-  public getConversation(id: string): ConversationThread | null {
-    return this.conversations.get(id) || null;
+  public getConversation(id: string, userId?: string): ConversationThread | null {
+    const conv = this.conversations.get(id);
+    if (!conv) return null;
+    if (userId && conv.userId && conv.userId !== userId) return null;
+    return conv;
   }
 
-  public createConversation(title: string, model: string = 'gemini-2.5-pro'): ConversationThread {
+  public createConversation(
+    title: string,
+    model: string = 'gemini-2.5-pro',
+    userId?: string,
+    tenantId?: string
+  ): ConversationThread {
     const id = `conv_${crypto.randomUUID().slice(0, 8)}`;
     const thread: ConversationThread = {
       id,
@@ -669,21 +675,26 @@ class CentralBrainService {
       messageCount: 0,
       activeModel: model,
       systemPrompt: 'You are AI Heaven Central Brain orchestrator with persistent memory.',
-      memorySummary: 'Session initialized.'
+      memorySummary: 'Session initialized.',
+      userId,
+      tenantId
     };
     this.conversations.set(id, thread);
     this.messages.set(id, []);
     return thread;
   }
 
-  public getMessages(conversationId: string): ConversationMessage[] {
+  public getMessages(conversationId: string, userId?: string): ConversationMessage[] {
+    const conv = this.conversations.get(conversationId);
+    if (userId && conv?.userId && conv.userId !== userId) return [];
     return this.messages.get(conversationId) || [];
   }
 
-  public searchConversations(query: string): ConversationThread[] {
+  public searchConversations(query: string, userId?: string): ConversationThread[] {
     const q = query.toLowerCase().trim();
-    if (!q) return this.listConversations();
-    return Array.from(this.conversations.values()).filter(conv => {
+    const list = this.listConversations(userId);
+    if (!q) return list;
+    return list.filter(conv => {
       if (conv.title.toLowerCase().includes(q)) return true;
       if (conv.projectName && conv.projectName.toLowerCase().includes(q)) return true;
       const msgs = this.messages.get(conv.id) || [];
@@ -691,21 +702,22 @@ class CentralBrainService {
     });
   }
 
-  public renameConversation(id: string, newTitle: string): ConversationThread | null {
+  public renameConversation(id: string, newTitle: string, userId?: string): ConversationThread | null {
     const conv = this.conversations.get(id);
     if (!conv) return null;
+    if (userId && conv.userId && conv.userId !== userId) return null;
     conv.title = newTitle.trim() || conv.title;
     conv.updatedAt = new Date().toISOString();
     return conv;
   }
 
-  public deleteConversation(id: string): boolean {
-    const exists = this.conversations.has(id);
-    if (exists) {
-      this.conversations.delete(id);
-      this.messages.delete(id);
-    }
-    return exists;
+  public deleteConversation(id: string, userId?: string): boolean {
+    const conv = this.conversations.get(id);
+    if (!conv) return false;
+    if (userId && conv.userId && conv.userId !== userId) return false;
+    this.conversations.delete(id);
+    this.messages.delete(id);
+    return true;
   }
 
   public associateProject(id: string, projectId: string, projectName?: string): ConversationThread | null {

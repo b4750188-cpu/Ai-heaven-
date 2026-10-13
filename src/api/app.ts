@@ -32,6 +32,7 @@ import { continuityEngine } from '../services/continuity/continuityEngine';
 import { authService } from '../services/auth/authService';
 import { bugHuntService } from '../services/bughunt/bugHuntService';
 import { hackerOneService } from '../services/bughunt/hackerOneService';
+import { realityRegistryService } from '../services/reality/realityRegistryService';
 
 dotenv.config();
 
@@ -1621,31 +1622,41 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.get('/conversations', (req: Request, res: Response) => {
-    res.json({ conversations: centralBrainService.listConversations() });
+    const user = getRequestUser(req);
+    res.json({ conversations: centralBrainService.listConversations(user?.id) });
   });
 
   apiRouter.post('/conversations', (req: Request, res: Response) => {
     try {
+      const user = getRequestUser(req);
       const { title, model } = req.body || {};
-      const thread = centralBrainService.createConversation(title, model);
+      const thread = centralBrainService.createConversation(title, model, user?.id, user?.tenantId);
       res.json(thread);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
 
+  apiRouter.get('/conversations/:id', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
+    const thread = centralBrainService.getConversation(req.params.id, user?.id);
+    if (!thread) return res.status(404).json({ error: 'Conversation not found or access denied' });
+    res.json(thread);
+  });
+
   apiRouter.put('/conversations/:id', (req: Request, res: Response) => {
     try {
+      const user = getRequestUser(req);
       const { title, model, projectId, projectName, isAutoRouting } = req.body || {};
       const id = req.params.id;
-      let thread = centralBrainService.getConversation(id);
-      if (!thread) return res.status(404).json({ error: 'Conversation not found' });
+      let thread = centralBrainService.getConversation(id, user?.id);
+      if (!thread) return res.status(404).json({ error: 'Conversation not found or access denied' });
 
-      if (title) centralBrainService.renameConversation(id, title);
+      if (title) centralBrainService.renameConversation(id, title, user?.id);
       if (model) centralBrainService.setConversationModel(id, model, isAutoRouting);
       if (projectId) centralBrainService.associateProject(id, projectId, projectName);
 
-      thread = centralBrainService.getConversation(id);
+      thread = centralBrainService.getConversation(id, user?.id);
       res.json(thread);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -1653,8 +1664,9 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.delete('/conversations/:id', (req: Request, res: Response) => {
-    const deleted = centralBrainService.deleteConversation(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Conversation not found' });
+    const user = getRequestUser(req);
+    const deleted = centralBrainService.deleteConversation(req.params.id, user?.id);
+    if (!deleted) return res.status(404).json({ error: 'Conversation not found or access denied' });
     res.json({ success: true, id: req.params.id });
   });
 
@@ -1663,12 +1675,18 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.get('/conversations/:id/messages', (req: Request, res: Response) => {
-    const messages = centralBrainService.getMessages(req.params.id);
+    const user = getRequestUser(req);
+    const thread = centralBrainService.getConversation(req.params.id, user?.id);
+    if (!thread) return res.status(404).json({ error: 'Conversation not found or access denied' });
+    const messages = centralBrainService.getMessages(req.params.id, user?.id);
     res.json({ messages });
   });
 
   apiRouter.post('/conversations/:id/messages', (req: Request, res: Response) => {
     try {
+      const user = getRequestUser(req);
+      const thread = centralBrainService.getConversation(req.params.id, user?.id);
+      if (!thread) return res.status(404).json({ error: 'Conversation not found or access denied' });
       const { role, content, agentName, modelUsed } = req.body || {};
       if (!content) return res.status(400).json({ error: 'content is required' });
       const msg = centralBrainService.addMessage(
@@ -1686,6 +1704,9 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/conversations/:id/chat', async (req: Request, res: Response) => {
     try {
+      const user = getRequestUser(req);
+      const thread = centralBrainService.getConversation(req.params.id, user?.id);
+      if (!thread) return res.status(404).json({ error: 'Conversation not found or access denied' });
       const { content, model } = req.body || {};
       if (!content) return res.status(400).json({ error: 'content is required' });
       const result = await centralBrainService.processChatTurn(req.params.id, content, model);
@@ -1693,6 +1714,51 @@ export function createExpressApp(): express.Express {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
+  });
+
+  // =========================================================================
+  // UNIFIED REALITY & CAPABILITY REGISTRY ROUTES
+  // =========================================================================
+  apiRouter.get('/reality/registry', (req: Request, res: Response) => {
+    res.json({ capabilities: realityRegistryService.getAllCapabilities() });
+  });
+
+  apiRouter.get('/reality/registry/:id', (req: Request, res: Response) => {
+    const cap = realityRegistryService.getCapability(req.params.id);
+    if (!cap) return res.status(404).json({ error: 'Capability not registered' });
+    res.json({ capability: cap });
+  });
+
+  apiRouter.get('/reality/credentials', (req: Request, res: Response) => {
+    res.json({ credentials: realityRegistryService.getCredentialAudit() });
+  });
+
+  apiRouter.post('/reality/verify/:id', (req: Request, res: Response) => {
+    const cap = realityRegistryService.getCapability(req.params.id);
+    if (!cap) return res.status(404).json({ error: 'Capability not registered' });
+    const verified = realityRegistryService.updateCapabilityState(req.params.id, {
+      lastVerifiedAt: new Date().toISOString()
+    });
+    res.json({ success: true, capability: verified });
+  });
+
+  // =========================================================================
+  // GOOGLE DRIVE QUOTA & BACKUP HONEST STATUS ROUTES
+  // =========================================================================
+  apiRouter.get('/google/drive/quota', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
+    res.json(realityRegistryService.getGoogleDriveQuota(user.id));
+  });
+
+  apiRouter.get('/google/drive/backup', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
+    res.json(realityRegistryService.getGoogleDriveBackupStatus(user.id));
+  });
+
+  apiRouter.post('/google/drive/disconnect', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
+    realityRegistryService.disconnectGoogleDrive(user.id);
+    res.json({ success: true, message: 'Google Drive disconnected' });
   });
 
   // =========================================================================

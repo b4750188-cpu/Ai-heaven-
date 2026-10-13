@@ -233,47 +233,118 @@ export const GoogleIntegrationView: React.FC = () => {
           )}
         </div>
 
-        {/* Right: Drive Storage Quota */}
+        {/* Right: Drive Storage Quota & AI Heaven Backup */}
         <div className="bg-[#121822]/40 border border-[#283242] rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
               <HardDrive className="h-4 w-4 text-purple-400" />
-              Google Drive Cloud Storage
+              Google Drive Backup Vault
             </h3>
-            <span className="text-[11px] font-mono text-[#9AA6B7]">
-              {quota ? quota.usageFormatted : '0 MB'} / {quota ? quota.limitFormatted : '15 GB'}
+            <span className={`text-[11px] font-mono px-2 py-0.5 rounded ${
+              session.isConnected ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-[#171F2B] text-[#9AA6B7]'
+            }`}>
+              {session.isConnected ? 'CONNECTED' : 'NOT CONNECTED'}
             </span>
           </div>
 
-          <div className="space-y-4 text-xs">
-            <div>
-              <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1 font-mono">
-                <span>Storage Utilization</span>
-                <span>{quota?.percentUsed || 0}% used</span>
+          {!session.isConnected ? (
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md font-mono text-[11px] space-y-1.5 text-[#9AA6B7]">
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="text-amber-400 font-semibold">Not connected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Storage quota:</span>
+                  <span className="text-[#9AA6B7]/80">Not available</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Backup status:</span>
+                  <span className="text-[#9AA6B7]/80">Not configured</span>
+                </div>
               </div>
-              <div className="h-2 w-full bg-[#171F2B] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, Math.max(1, quota?.percentUsed || 1))}%` }}
-                />
+
+              <p className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                Google Drive can be used as an optional backup and archive destination. PostgreSQL remains AI Heaven's primary source of truth for structured application data.
+              </p>
+
+              <button
+                onClick={handleConnect}
+                disabled={isConnecting}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Cloud className={`h-4 w-4 ${isConnecting ? 'animate-spin' : ''}`} />
+                {isConnecting ? 'Connecting Google Account...' : 'Connect Google Drive'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 text-xs">
+              {/* Google Drive Account Information */}
+              <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md space-y-2">
+                <div className="text-[11px] font-mono text-[#9AA6B7]/70 uppercase tracking-wide">
+                  Google Drive Account Storage
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Account Storage Quota:</span>
+                  <span className="text-[#F1F4F8] font-semibold">{quota?.limitFormatted || 'Not available'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Account Storage Used:</span>
+                  <span className="text-[#F1F4F8]">{quota?.usageFormatted || 'Not available'}</span>
+                </div>
+                {quota?.percentUsed !== null && quota?.percentUsed !== undefined && (
+                  <div>
+                    <div className="flex justify-between text-[11px] text-[#9AA6B7] mb-1 font-mono">
+                      <span>Drive Utilization</span>
+                      <span>{quota.percentUsed}% used</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-[#171F2B] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-purple-500 rounded-full transition-all"
+                        style={{ width: `${Math.min(100, Math.max(1, quota.percentUsed))}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="text-[10px] text-[#9AA6B7]/70 font-mono pt-1 border-t border-[#283242]/40 flex justify-between">
+                  <span>Last Quota Check:</span>
+                  <span>{quota?.lastCheckedAt ? new Date(quota.lastCheckedAt).toLocaleTimeString() : 'Never'}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md text-[11px] text-[#9AA6B7] font-mono space-y-1">
-              <div>Source of Truth: <span className="text-[#F1F4F8]">PostgreSQL (Durable)</span></div>
-              <div>Drive Role: <span className="text-blue-400">Connected Backup & Archive Vault</span></div>
-              <div>Mode: <span className="text-emerald-400">User-Approved Sync</span></div>
-            </div>
+              {/* AI Heaven Backup Status */}
+              <div className="p-3 bg-[#080B10] border border-[#283242] rounded-md space-y-2">
+                <div className="text-[11px] font-mono text-[#9AA6B7]/70 uppercase tracking-wide">
+                  AI Heaven Backup Status
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Backup Destination:</span>
+                  <span className="text-blue-400 font-semibold">{quota?.destinationFolder || 'Drive Root Vault'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Data Successfully Backed Up:</span>
+                  <span className="text-[#F1F4F8]">{quota?.backupFormatted || '0 bytes'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Last Successful Backup:</span>
+                  <span className="text-[#F1F4F8]">{quota?.lastBackupAt ? new Date(quota.lastBackupAt).toLocaleString() : 'Never'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#9AA6B7]">Operational State:</span>
+                  <span className="text-emerald-400 font-medium">Verified User-Approved Sync</span>
+                </div>
+              </div>
 
-            <button
-              onClick={handleFullBackup}
-              disabled={isSyncing || !session.isConnected}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-colors"
-            >
-              <Cloud className={`h-4 w-4 ${isSyncing ? 'animate-pulse' : ''}`} />
-              {isSyncing ? 'Synchronizing Entire Vault...' : 'Create Full Google Drive Backup'}
-            </button>
-          </div>
+              <button
+                onClick={handleFullBackup}
+                disabled={isSyncing}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Cloud className={`h-4 w-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+                {isSyncing ? 'Synchronizing Entire Vault...' : 'Create Full Google Drive Backup'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

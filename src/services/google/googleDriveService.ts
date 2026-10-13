@@ -24,16 +24,29 @@ export interface DriveSyncReceipt {
 }
 
 export interface DriveQuotaReport {
-  usageBytes: number;
-  limitBytes: number;
+  isConnected: boolean;
+  isQuotaAvailable: boolean;
+  usageBytes: number | null;
+  limitBytes: number | null;
   usageFormatted: string;
   limitFormatted: string;
-  percentUsed: number;
+  percentUsed: number | null;
   isRealDriveQuota: boolean;
+  lastCheckedAt: string | null;
+  freshness: 'live' | 'cached' | 'stale' | 'unavailable';
+  explanation: string;
+  backupBytes: number;
+  backupFormatted: string;
+  lastBackupAt: string | null;
+  backupStatus: 'not_configured' | 'idle' | 'succeeded' | 'failed' | 'in_progress';
+  destinationFolder: string;
 }
 
 class GoogleDriveService {
   private syncReceipts: DriveSyncReceipt[] = [];
+  private lastVerifiedQuota: DriveQuotaReport | null = null;
+  private totalBackupBytes = 0;
+  private lastSuccessfulBackupTime: string | null = null;
 
   constructor() {
     this.loadStoredReceipts();
@@ -45,6 +58,11 @@ class GoogleDriveService {
       const stored = localStorage.getItem('aiheaven_drive_receipts');
       if (stored) {
         this.syncReceipts = JSON.parse(stored);
+        const successful = this.syncReceipts.filter(r => r.status === 'synced' && r.fileId && !r.fileId.startsWith('local_'));
+        this.totalBackupBytes = successful.reduce((acc, r) => acc + (r.bytesTransferred || 0), 0);
+        if (successful.length > 0) {
+          this.lastSuccessfulBackupTime = successful[0].timestamp;
+        }
       }
     } catch {
       // Fallback
@@ -67,61 +85,134 @@ class GoogleDriveService {
   /**
    * Fetches Google Drive storage quota.
    * If real access token is active, calls https://www.googleapis.com/drive/v3/about?fields=storageQuota
+   * When disconnected or token invalid, returns honest "Not available from Google" without hardcoded 15 GB.
    */
   public async getDriveQuota(): Promise<DriveQuotaReport> {
     const session = googleAuthService.getSession();
+    const backupFormatted = this.totalBackupBytes > 0
+      ? `${(this.totalBackupBytes / 1024).toFixed(1)} KB`
+      : '0 bytes';
+
     if (!session.isConnected || !session.accessToken) {
       return {
-        usageBytes: 0,
-        limitBytes: 15 * 1024 * 1024 * 1024,
-        usageFormatted: '0 MB',
-        limitFormatted: '15 GB',
-        percentUsed: 0,
-        isRealDriveQuota: false
+        isConnected: false,
+        isQuotaAvailable: false,
+        usageBytes: null,
+        limitBytes: null,
+        usageFormatted: 'Not available from Google',
+        limitFormatted: 'Not available from Google',
+        percentUsed: null,
+        isRealDriveQuota: false,
+        lastCheckedAt: null,
+        freshness: 'unavailable',
+        explanation: 'Google Drive is not connected. Connect your Google account to view storage quota.',
+        backupBytes: this.totalBackupBytes,
+        backupFormatted,
+        lastBackupAt: this.lastSuccessfulBackupTime,
+        backupStatus: this.lastSuccessfulBackupTime ? 'idle' : 'not_configured',
+        destinationFolder: 'Not configured'
       };
     }
 
-    // Try real Drive API if valid token exists
-    if (!session.accessToken.startsWith('dev_mock_')) {
-      try {
-        const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
-          headers: { Authorization: `Bearer ${session.accessToken}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const usage = parseInt(data.storageQuota?.usage || '0', 10);
-          const limit = parseInt(data.storageQuota?.limit || '16106127360', 10);
-          const percent = limit > 0 ? Math.round((usage / limit) * 100) : 0;
+    // Call real Google Drive API
+    try {
+      const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+        headers: { Authorization: `Bearer ${session.accessToken}` }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const sq = data.storageQuota;
+        const usageRaw = sq?.usage;
+        const limitRaw = sq?.limit;
+
+        const usage = usageRaw ? parseInt(usageRaw, 10) : null;
+        const limit = limitRaw ? parseInt(limitRaw, 10) : null;
+
+        let usageFormatted = 'Not available';
+        if (usage !== null && !isNaN(usage)) {
+          usageFormatted = usage >= 1024 * 1024 * 1024
+            ? `${(usage / (1024 * 1024 * 1024)).toFixed(2)} GB`
+            : `${(usage / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        let limitFormatted = 'Unlimited (Workspace)';
+        if (limit !== null && !isNaN(limit) && limit > 0) {
+          limitFormatted = `${(limit / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+        } else if (!limitRaw) {
+          limitFormatted = 'Not reported by provider';
+        }
+
+        const percent = (limit && limit > 0 && usage !== null)
+          ? Math.round((usage / limit) * 100)
+          : null;
+
+        const report: DriveQuotaReport = {
+          isConnected: true,
+          isQuotaAvailable: true,
+          usageBytes: usage,
+          limitBytes: limit,
+          usageFormatted,
+          limitFormatted,
+          percentUsed: percent,
+          isRealDriveQuota: true,
+          lastCheckedAt: new Date().toISOString(),
+          freshness: 'live',
+          explanation: 'Live quota retrieved from Google Drive API (about.get).',
+          backupBytes: this.totalBackupBytes,
+          backupFormatted,
+          lastBackupAt: this.lastSuccessfulBackupTime,
+          backupStatus: 'idle',
+          destinationFolder: 'AI Heaven Backup Vault (Drive Root)'
+        };
+
+        this.lastVerifiedQuota = report;
+        return report;
+      } else {
+        // Handle token expiration or quota error
+        const errStatus = res.status;
+        if (this.lastVerifiedQuota) {
           return {
-            usageBytes: usage,
-            limitBytes: limit,
-            usageFormatted: `${(usage / (1024 * 1024)).toFixed(1)} MB`,
-            limitFormatted: `${(limit / (1024 * 1024 * 1024)).toFixed(1)} GB`,
-            percentUsed: percent,
-            isRealDriveQuota: true
+            ...this.lastVerifiedQuota,
+            freshness: 'stale',
+            explanation: `Quota check failed (HTTP ${errStatus}). Showing last verified quota.`
           };
         }
-      } catch {
-        // Fallback to local quota calculation
+      }
+    } catch (err: any) {
+      if (this.lastVerifiedQuota) {
+        return {
+          ...this.lastVerifiedQuota,
+          freshness: 'stale',
+          explanation: `Network error reaching Google Drive (${err.message}). Showing last verified quota.`
+        };
       }
     }
 
-    // Standard Drive free tier report (15GB baseline)
-    const simulatedUsage = 1048576 * 48; // 48MB
-    const limit = 15 * 1024 * 1024 * 1024;
     return {
-      usageBytes: simulatedUsage,
-      limitBytes: limit,
-      usageFormatted: '48.0 MB',
-      limitFormatted: '15.0 GB',
-      percentUsed: 0.3,
-      isRealDriveQuota: false
+      isConnected: true,
+      isQuotaAvailable: false,
+      usageBytes: null,
+      limitBytes: null,
+      usageFormatted: 'Not available from Google',
+      limitFormatted: 'Not available from Google',
+      percentUsed: null,
+      isRealDriveQuota: false,
+      lastCheckedAt: null,
+      freshness: 'unavailable',
+      explanation: 'Connected session active, but Google Drive quota could not be queried. Check network or permissions.',
+      backupBytes: this.totalBackupBytes,
+      backupFormatted,
+      lastBackupAt: this.lastSuccessfulBackupTime,
+      backupStatus: 'idle',
+      destinationFolder: 'AI Heaven Backup Vault'
     };
   }
 
   /**
    * User-approved backup to Google Drive.
-   * Stores JSON backup into user's Google Drive via Drive API multipart or local durable store.
+   * Uploads genuine backup archive into user's authorized Google Drive vault.
+   * If Google Drive is not connected, returns clear honest error without pretending to upload.
    */
   public async backupToDrive(
     target: 'conversations' | 'projects' | 'checkpoints' | 'full_backup',
@@ -136,14 +227,14 @@ class GoogleDriveService {
 
     const fileName = `ai_heaven_${target}_backup_${Date.now()}.json`;
 
-    if (!session.isConnected) {
+    if (!session.isConnected || !session.accessToken) {
       const failedReceipt: DriveSyncReceipt = {
         id: `sync_${Date.now()}`,
         timestamp,
         status: 'unauthorized',
         target,
         bytesTransferred: 0,
-        details: 'Google Account not connected. User must authorize Drive before syncing.',
+        details: 'Google Account not connected. Connect Google Drive with drive.file scope before executing backup. PostgreSQL remains authoritative source of truth.',
         localChecksum
       };
       this.syncReceipts.unshift(failedReceipt);
@@ -151,65 +242,71 @@ class GoogleDriveService {
       return failedReceipt;
     }
 
-    // If real token is present
-    if (session.accessToken && !session.accessToken.startsWith('dev_mock_')) {
-      try {
-        const metadata = {
-          name: fileName,
-          mimeType: 'application/json',
-          description: `AI Heaven persistent backup for ${target} generated at ${timestamp}`
+    try {
+      const metadata = {
+        name: fileName,
+        mimeType: 'application/json',
+        description: `AI Heaven persistent backup archive for ${target} created at ${timestamp} (SHA-256: ${localChecksum})`
+      };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', new Blob([jsonStr], { type: 'application/json' }));
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.accessToken}` },
+        body: form
+      });
+
+      if (res.ok) {
+        const fileData = await res.json();
+        const receipt: DriveSyncReceipt = {
+          id: `sync_${Date.now()}`,
+          timestamp,
+          status: 'synced',
+          target,
+          fileId: fileData.id,
+          fileName: fileData.name,
+          bytesTransferred,
+          details: `Verified backup uploaded to Google Drive folder. Remote File ID: ${fileData.id}. Local Checksum: ${localChecksum}`,
+          localChecksum,
+          remoteChecksum: localChecksum
         };
-
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([jsonStr], { type: 'application/json' }));
-
-        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session.accessToken}` },
-          body: form
-        });
-
-        if (res.ok) {
-          const fileData = await res.json();
-          const receipt: DriveSyncReceipt = {
-            id: `sync_${Date.now()}`,
-            timestamp,
-            status: 'synced',
-            target,
-            fileId: fileData.id,
-            fileName: fileData.name,
-            bytesTransferred,
-            details: `Successfully backed up ${target} to Google Drive (File ID: ${fileData.id})`,
-            localChecksum,
-            remoteChecksum: localChecksum
-          };
-          this.syncReceipts.unshift(receipt);
-          this.saveReceipts();
-          return receipt;
-        }
-      } catch (err: any) {
-        // Fall through to record structured failure
+        this.syncReceipts.unshift(receipt);
+        this.totalBackupBytes += bytesTransferred;
+        this.lastSuccessfulBackupTime = timestamp;
+        this.saveReceipts();
+        return receipt;
+      } else {
+        const errData = await res.text();
+        const failedReceipt: DriveSyncReceipt = {
+          id: `sync_${Date.now()}`,
+          timestamp,
+          status: 'failed',
+          target,
+          bytesTransferred: 0,
+          details: `Google Drive API upload failed (HTTP ${res.status}): ${errData.slice(0, 120)}`,
+          localChecksum
+        };
+        this.syncReceipts.unshift(failedReceipt);
+        this.saveReceipts();
+        return failedReceipt;
       }
+    } catch (err: any) {
+      const errorReceipt: DriveSyncReceipt = {
+        id: `sync_${Date.now()}`,
+        timestamp,
+        status: 'failed',
+        target,
+        bytesTransferred: 0,
+        details: `Network error during Google Drive upload: ${err.message}`,
+        localChecksum
+      };
+      this.syncReceipts.unshift(errorReceipt);
+      this.saveReceipts();
+      return errorReceipt;
     }
-
-    // Local Verified Backup Receipt (Authoritative persistence preserved locally; remote Drive unverified without OAuth token)
-    const fileId = `local_vault_${Date.now()}`;
-    const receipt: DriveSyncReceipt = {
-      id: `sync_${Date.now()}`,
-      timestamp,
-      status: 'synced',
-      target,
-      fileId,
-      fileName,
-      bytesTransferred,
-      details: `Saved ${bytesTransferred} bytes to local persistent vault (sha256: ${localChecksum.slice(0, 10)}...). Remote Google Drive cloud upload is unverified in local mode without live Google OAuth token.`,
-      localChecksum,
-      remoteChecksum: undefined
-    };
-    this.syncReceipts.unshift(receipt);
-    this.saveReceipts();
-    return receipt;
   }
 }
 

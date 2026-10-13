@@ -1459,6 +1459,10 @@ class AIHeavenApiClient {
     }
   }
 
+  public async getBrainProviderStatuses(): Promise<any[]> {
+    return this.getProviderStatuses();
+  }
+
   public async createConversation(title?: string, model?: string): Promise<any> {
     const res = await fetch(`${this.baseUrl}/conversations`, {
       method: 'POST',
@@ -2125,6 +2129,42 @@ class AIHeavenApiClient {
     });
     const data = await res.json();
     return data.state;
+  }
+
+  // --- Unified Reality & Capability Registry ---
+  public async getRealityRegistry(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/reality/registry`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.capabilities || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getCredentialAudit(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/reality/credentials`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.credentials || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async verifyCapability(id: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/reality/verify/${encodeURIComponent(id)}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Verification failed: HTTP ${res.status}`);
+    return await res.json();
   }
 }
 

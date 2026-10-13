@@ -39,6 +39,7 @@ import { Badge } from '../ui/Badge';
 
 export type ShellView =
   | 'home'
+  | 'chat'
   | 'bughunt'
   | 'brain'
   | 'continuity'
@@ -91,6 +92,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   // Grouped Navigation Items matching the design specification
   const primaryNav = [
     { id: 'home' as ShellView, label: 'Command Center', icon: Home },
+    { id: 'chat' as ShellView, label: 'Central Brain Chat', icon: MessageSquare },
     { id: 'bughunt' as ShellView, label: 'Bug Bounty & Droids', icon: Crosshair },
     { id: 'brain' as ShellView, label: 'AI Brain & Router', icon: Brain },
     {
@@ -100,7 +102,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       badge: pendingApprovalsCount > 0 ? String(pendingApprovalsCount) : undefined,
       badgeVariant: 'warning' as const
     },
-    { id: 'memory' as ShellView, label: 'Memory & Threads', icon: MessageSquare },
+    { id: 'memory' as ShellView, label: 'Memory & Threads', icon: Sparkles },
     { id: 'terminal' as ShellView, label: 'Terminal & Sandbox', icon: Terminal },
     { id: 'explore' as ShellView, label: 'Open-Source Explorer', icon: Compass }
   ];

@@ -35,6 +35,8 @@ const EvolutionView = lazy(() => import('./components/evolution/EvolutionView').
 const GoogleIntegrationView = lazy(() => import('./components/google/GoogleIntegrationView').then(m => ({ default: m.GoogleIntegrationView })));
 const ContinuityCenter = lazy(() => import('./components/continuity/ContinuityCenter').then(m => ({ default: m.ContinuityCenter })));
 const BugHuntWorkspace = lazy(() => import('./components/bughunt/BugHuntWorkspace').then(m => ({ default: m.BugHuntWorkspace })));
+const CentralBrainChatView = lazy(() => import('./components/chat/CentralBrainChatView').then(m => ({ default: m.CentralBrainChatView })));
+const SettingsView = lazy(() => import('./components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -282,6 +284,14 @@ export default function App() {
           />
         )}
 
+        {currentView === 'chat' && (
+          <CentralBrainChatView
+            onNavigateToProject={() => setCurrentView('projects')}
+            onNavigateToHunt={() => setCurrentView('bughunt')}
+            onNavigateToTools={() => setCurrentView('tools')}
+          />
+        )}
+
         {currentView === 'brain' && (
           <CentralBrainView />
         )}
@@ -403,6 +413,10 @@ export default function App() {
 
         {currentView === 'connectors' && (
           <ConnectorConsole onSyncComplete={handleSyncComplete} />
+        )}
+
+        {currentView === 'settings' && (
+          <SettingsView />
         )}
       </Suspense>
 
