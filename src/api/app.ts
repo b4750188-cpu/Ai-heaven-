@@ -30,32 +30,47 @@ import { autonomousEvolutionEngine } from '../services/evolution/evolutionEngine
 import { centralBrainService } from '../services/brain/centralBrainService';
 import { continuityEngine } from '../services/continuity/continuityEngine';
 import { authService } from '../services/auth/authService';
+import { AuthenticatedUser } from '../types/auth';
 import { bugHuntService } from '../services/bughunt/bugHuntService';
 import { hackerOneService } from '../services/bughunt/hackerOneService';
 import { realityRegistryService } from '../services/reality/realityRegistryService';
 import { beastEngineRegistry } from '../engines/registry';
 import { autonomousRealityRepairEngine } from '../services/reality/autonomousRealityRepairEngine';
+import { scannerRegistry } from '../services/security/scannerRegistry';
+import { temporalWorkflowAdapter } from '../services/workflow/temporalAdapter';
 
 dotenv.config();
 
-// Internal Server Configuration
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'ai_heaven_production_insecure_default_key_change_in_prod';
+// Internal Server Configuration & Fail-Closed JWT Secret
+const DEV_EPHEMERAL_JWT_SECRET = crypto.randomBytes(32).toString('hex');
+export function getEffectiveJwtSecret(): string {
+  if (process.env.JWT_SECRET_KEY && process.env.JWT_SECRET_KEY.trim().length > 0) {
+    return process.env.JWT_SECRET_KEY.trim();
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL SECURITY ERROR: JWT_SECRET_KEY is required in production environment.');
+  }
+  return DEV_EPHEMERAL_JWT_SECRET;
+}
+
 const DATABASE_URL = process.env.DATABASE_URL;
 
 // HS256 JWT utilities
-export function signJwt(payload: Record<string, any>, secret: string): string {
+export function signJwt(payload: Record<string, any>, secret?: string): string {
+  const activeSecret = secret || getEffectiveJwtSecret();
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
+  const signature = crypto.createHmac('sha256', activeSecret).update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${signature}`;
 }
 
-export function verifyJwt(token: string, secret: string): Record<string, any> | null {
+export function verifyJwt(token: string, secret?: string): Record<string, any> | null {
   try {
+    const activeSecret = secret || getEffectiveJwtSecret();
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const [header, body, signature] = parts;
-    const expectedSig = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
+    const expectedSig = crypto.createHmac('sha256', activeSecret).update(`${header}.${body}`).digest('base64url');
     if (signature !== expectedSig) return null;
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf-8'));
     if (payload.exp && Date.now() / 1000 > payload.exp) return null;
@@ -444,8 +459,7 @@ export function createExpressApp(): express.Express {
     if (origin) {
       const isAllowed =
         configuredOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        process.env.NODE_ENV !== 'production';
+        (process.env.NODE_ENV !== 'production' && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')));
 
       if (isAllowed) {
         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -554,8 +568,13 @@ export function createExpressApp(): express.Express {
       const verified = authService.verifyToken(token);
       if (verified) return verified;
 
-      const decoded = verifyJwt(token, JWT_SECRET_KEY);
-      if (decoded) {
+      let decoded: any = null;
+      try {
+        decoded = verifyJwt(token);
+      } catch {
+        decoded = null;
+      }
+      if (decoded && decoded.sub) {
         return {
           id: decoded.sub,
           email: decoded.email,
@@ -563,7 +582,7 @@ export function createExpressApp(): express.Express {
           role: decoded.role || 'security_researcher',
           isActive: true,
           isEmailVerified: true,
-          tenantId: `tenant_${decoded.sub}`,
+          tenantId: decoded.tenantId || `tenant_${decoded.sub}`,
           linkedIdentities: [],
           activeSessionsCount: 1,
           createdAt: new Date().toISOString(),
@@ -571,35 +590,74 @@ export function createExpressApp(): express.Express {
         };
       }
     }
-    return authService.getDefaultResearcher();
+
+    // In production, unauthenticated requests strictly return null
+    if (process.env.NODE_ENV === 'production') {
+      return null;
+    }
+
+    try {
+      return authService.getDefaultResearcher();
+    } catch {
+      return null;
+    }
+  };
+
+  const getSafeUser = (req: Request): AuthenticatedUser => {
+    const user = getRequestUser(req);
+    if (user) return user;
+    return {
+      id: 'user_anonymous',
+      email: 'anonymous@aiheaven.local',
+      fullName: 'Anonymous Researcher',
+      role: 'security_researcher',
+      isActive: true,
+      isEmailVerified: false,
+      tenantId: 'tenant_anonymous',
+      linkedIdentities: [],
+      activeSessionsCount: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  };
+
+  const getRequiredUser = (req: Request, res: Response): AuthenticatedUser | null => {
+    const user = getRequestUser(req);
+    if (!user) {
+      res.status(401).json({ error: 'Authentication required. Bearer token missing or invalid.' });
+      return null;
+    }
+    return user;
   };
 
   // 2. JWT Authentication: Token Issuance
   apiRouter.post('/auth/token', (req: Request, res: Response) => {
-    const { email = currentUser.email, role = currentUser.role } = req.body || {};
-    const now = Math.floor(Date.now() / 1000);
-    const token = signJwt(
-      {
+    try {
+      const { email = currentUser.email, role = currentUser.role } = req.body || {};
+      const now = Math.floor(Date.now() / 1000);
+      const token = signJwt({
         sub: currentUser.id,
         email,
         role,
+        tenantId: `tenant_${currentUser.id}`,
         iat: now,
         exp: now + 3600
-      },
-      JWT_SECRET_KEY
-    );
+      });
 
-    res.json({
-      token,
-      token_type: 'Bearer',
-      expires_in: 3600,
-      user: {
-        id: currentUser.id,
-        email,
-        role,
-        full_name: currentUser.profile?.full_name
-      }
-    });
+      res.json({
+        token,
+        token_type: 'Bearer',
+        expires_in: 3600,
+        user: {
+          id: currentUser.id,
+          email,
+          role,
+          full_name: currentUser.profile?.full_name
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // 3. Multi-Provider Authentication API
@@ -665,7 +723,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/auth/link', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getRequiredUser(req, res);
+      if (!user) return;
       const { provider, providerUserId, email } = req.body || {};
       const updated = authService.linkAccount(user.id, provider, providerUserId, email || user.email);
       res.json({ user: updated, success: true });
@@ -676,7 +735,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/auth/unlink', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getRequiredUser(req, res);
+      if (!user) return;
       const { provider } = req.body || {};
       const updated = authService.unlinkAccount(user.id, provider);
       res.json({ user: updated, success: true });
@@ -760,7 +820,7 @@ export function createExpressApp(): express.Express {
   // 3.5. Autonomous Bug-Bounty Platform Endpoints
   apiRouter.get('/bughunt/workspace', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const ws = bugHuntService.getWorkspace(user.id, user.tenantId);
       res.json(ws);
     } catch (err: any) {
@@ -778,7 +838,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.get('/bughunt/findings', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const findings = bugHuntService.getFindingsForUser(user.id, user.tenantId);
       res.json({ findings });
     } catch (err: any) {
@@ -788,7 +848,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.put('/bughunt/findings/:id/status', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { status, notes } = req.body || {};
       if (!status) return res.status(400).json({ error: 'status is required' });
       const updated = bugHuntService.updateFindingStatus(req.params.id, user.id, user.tenantId, status, notes);
@@ -801,7 +861,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/bughunt/findings/:id/submit-hackerone', async (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { programHandle = 'aiheaven-sandbox' } = req.body || {};
       const result = await bugHuntService.submitFindingToHackerOne(req.params.id, user.id, user.tenantId, programHandle);
       res.json(result);
@@ -813,7 +873,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.get('/bughunt/hunts/:id', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const hunt = bugHuntService.getHuntJob(req.params.id, user.id, user.tenantId);
       res.json(hunt);
     } catch (err: any) {
@@ -824,7 +884,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/bughunt/start', async (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { programId } = req.body || {};
       const job = await bugHuntService.startAutonomousBugHunt(user.id, user.tenantId, programId);
       res.json(job);
@@ -835,7 +895,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/bughunt/custom', async (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { title, config } = req.body || {};
       if (!config || !config.scope) {
         return res.status(400).json({ error: 'Custom hunt config with scope is required' });
@@ -860,7 +920,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/bughunt/cancel', (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { huntId, reason } = req.body || {};
       if (!huntId) return res.status(400).json({ error: 'huntId is required' });
       const job = bugHuntService.cancelBugHunt(huntId, user.id, user.tenantId, reason);
@@ -873,7 +933,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/bughunt/resume', async (req: Request, res: Response) => {
     try {
-      const user = getRequestUser(req);
+      const user = getSafeUser(req);
       const { huntId } = req.body || {};
       if (!huntId) return res.status(400).json({ error: 'huntId is required' });
       const job = await bugHuntService.resumeBugHunt(huntId, user.id, user.tenantId);
@@ -1748,17 +1808,17 @@ export function createExpressApp(): express.Express {
   // GOOGLE DRIVE QUOTA & BACKUP HONEST STATUS ROUTES
   // =========================================================================
   apiRouter.get('/google/drive/quota', (req: Request, res: Response) => {
-    const user = getRequestUser(req);
+    const user = getSafeUser(req);
     res.json(realityRegistryService.getGoogleDriveQuota(user.id));
   });
 
   apiRouter.get('/google/drive/backup', (req: Request, res: Response) => {
-    const user = getRequestUser(req);
+    const user = getSafeUser(req);
     res.json(realityRegistryService.getGoogleDriveBackupStatus(user.id));
   });
 
   apiRouter.post('/google/drive/disconnect', (req: Request, res: Response) => {
-    const user = getRequestUser(req);
+    const user = getSafeUser(req);
     realityRegistryService.disconnectGoogleDrive(user.id);
     res.json({ success: true, message: 'Google Drive disconnected' });
   });
@@ -2069,6 +2129,136 @@ export function createExpressApp(): express.Express {
       const { active } = req.body || {};
       const result = autonomousRealityRepairEngine.setKillSwitch(Boolean(active));
       res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // 35. FIVE REPOSITORIES INTEGRATION: SECURITY AUDIT & TEMPORAL WORKFLOWS
+  // =========================================================================
+
+  apiRouter.get('/security-audit/status', async (_req: Request, res: Response) => {
+    try {
+      const adapters = scannerRegistry.getAllAdapters().map(a => ({
+        id: a.id,
+        name: a.name,
+        version: a.version,
+        upstreamUrl: a.upstreamUrl,
+        upstreamLicense: a.upstreamLicense,
+        category: a.category,
+        runtimeRequirement: a.runtimeRequirement,
+        status: a.status,
+        isAvailable: a.isAvailable()
+      }));
+
+      const temporalHealth = await temporalWorkflowAdapter.checkHealth();
+
+      res.json({
+        scanners: adapters,
+        temporal: temporalHealth,
+        findingsCount: scannerRegistry.getAllFindings().length,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/security-audit/run', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      if (process.env.NODE_ENV === 'production' && !user) {
+        return res.status(401).json({ error: 'Authentication required to initiate security scan.' });
+      }
+
+      const { scannerId, targetScope, parameters } = req.body || {};
+      if (!scannerId) return res.status(400).json({ error: 'scannerId is required' });
+      if (!targetScope) return res.status(400).json({ error: 'targetScope is required' });
+
+      const result = await scannerRegistry.executeScan({
+        scannerId,
+        targetScope,
+        parameters,
+        tenantId: user?.tenantId || 'tenant_default'
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(err.message.includes('Target scope violation') ? 403 : 500).json({
+        error: err.message
+      });
+    }
+  });
+
+  apiRouter.get('/security-audit/findings', (req: Request, res: Response) => {
+    try {
+      const { scannerId, status, minSeverity } = req.query as any;
+      const findings = scannerRegistry.getAllFindings({ scannerId, status, minSeverity });
+      res.json(findings);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/security-audit/export', (req: Request, res: Response) => {
+    try {
+      const format = (req.query.format as 'json' | 'markdown') || 'json';
+      const report = scannerRegistry.exportReport(format);
+      if (format === 'markdown') {
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      } else {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      }
+      res.send(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/temporal/status', async (_req: Request, res: Response) => {
+    try {
+      const status = await temporalWorkflowAdapter.checkHealth();
+      res.json(status);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/workflows', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const jobs = await temporalWorkflowAdapter.getAllJobs(user?.tenantId);
+      res.json(jobs);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/workflows', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      if (process.env.NODE_ENV === 'production' && !user) {
+        return res.status(401).json({ error: 'Authentication required to start workflows.' });
+      }
+
+      const { workflowType = 'general_task', input = {}, idempotencyKey } = req.body || {};
+      const job = await temporalWorkflowAdapter.startJob(workflowType, input, {
+        tenantId: user?.tenantId || 'tenant_default',
+        idempotencyKey
+      });
+      res.json(job);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/workflows/:jobId/cancel', async (req: Request, res: Response) => {
+    try {
+      const { jobId } = req.params;
+      const { reason } = req.body || {};
+      const success = await temporalWorkflowAdapter.cancelJob(jobId, reason);
+      res.json({ success, jobId });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

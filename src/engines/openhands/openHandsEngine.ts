@@ -63,7 +63,7 @@ export class OpenHandsEngine implements IUnifiedBeastEngine {
       this.metadata.status = 'operational';
       this.metadata.runtime = 'Python/Node Bridge';
     } else {
-      this.metadata.status = 'operational';
+      this.metadata.status = 'degraded';
       this.metadata.runtime = 'Node.js/TypeScript';
     }
   }
@@ -74,11 +74,11 @@ export class OpenHandsEngine implements IUnifiedBeastEngine {
     const latencyMs = Date.now() - start;
 
     return {
-      status: 'operational',
+      status: bridge.connected ? 'operational' : 'degraded',
       latencyMs,
       message: bridge.connected
-        ? `OpenHands active via external Python worker (${bridge.serverUrl})`
-        : `OpenHands active via integrated TypeScript Agent Controller SDK`
+        ? `OpenHands operational via external Python worker (${bridge.serverUrl})`
+        : `OpenHands running via integrated TypeScript Agent Controller adapter (upstream Python service optional/offline)`
     };
   }
 

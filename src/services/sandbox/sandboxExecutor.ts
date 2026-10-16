@@ -114,7 +114,25 @@ export class SandboxExecutor {
         stdout: '',
         stderr: 'SECURITY FAULT: Command violates host security policy and is permanently disallowed.',
         output_truncated: false,
-        duration_ms: Date.now() - startTime
+        duration_ms: Date.now() - startTime,
+        execution_mode: 'virtual_vfs_sandbox',
+        is_simulated: true,
+        security_notice: 'Host escalation commands blocked at execution kernel boundary (Exit 126).'
+      };
+    }
+
+    // 1b. Path traversal & workspace escape validation
+    if (/\.\.[\/\\]/.test(command) || /\/\.\./.test(command)) {
+      return {
+        execution_id: executionId,
+        exit_code: 126,
+        stdout: '',
+        stderr: 'SECURITY FAULT: Directory traversal outside authorized workspace root is strictly prohibited.',
+        output_truncated: false,
+        duration_ms: Date.now() - startTime,
+        execution_mode: 'virtual_vfs_sandbox',
+        is_simulated: true,
+        security_notice: 'Path traversal attempt blocked at workspace VFS boundary.'
       };
     }
 
@@ -126,7 +144,9 @@ export class SandboxExecutor {
         stdout: '',
         stderr: 'PERMISSION DENIED: Agent does not possess "network_access" permission for outbound calls.',
         output_truncated: false,
-        duration_ms: Date.now() - startTime
+        duration_ms: Date.now() - startTime,
+        execution_mode: 'virtual_vfs_sandbox',
+        is_simulated: true
       };
     }
 
@@ -138,7 +158,9 @@ export class SandboxExecutor {
         stdout: '',
         stderr: 'PERMISSION DENIED: Agent filesystem_scope is "none". Cannot access workspace files.',
         output_truncated: false,
-        duration_ms: Date.now() - startTime
+        duration_ms: Date.now() - startTime,
+        execution_mode: 'virtual_vfs_sandbox',
+        is_simulated: true
       };
     }
 
@@ -224,7 +246,10 @@ export class SandboxExecutor {
       stdout: maskedStdout,
       stderr: maskedStderr,
       output_truncated: truncated,
-      duration_ms: Date.now() - startTime
+      duration_ms: Date.now() - startTime,
+      execution_mode: 'virtual_vfs_sandbox',
+      is_simulated: true,
+      security_notice: '[AI HEAVEN VFS SANDBOX: Host container worker not attached; commands execute in virtual workspace filesystem with Exit 126 host escalation barrier. Host machine is strictly protected.]'
     };
   }
 }

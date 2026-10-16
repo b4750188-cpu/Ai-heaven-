@@ -44,20 +44,42 @@ class AuthService {
   private oauthStates: Map<string, OAuthStateRecord> = new Map();
   private isInitialized = false;
 
+  private revokedTokens: Set<string> = new Set();
+
   constructor() {
     this.seedInitialUsers();
   }
 
+  /**
+   * Safe user seeding:
+   * DEMO ACCOUNTS ARE STRICTLY FORBIDDEN IN PRODUCTION.
+   * If NODE_ENV === 'production', zero demo accounts are seeded.
+   * In development/test, demo accounts are only initialized for local test isolation.
+   */
   private seedInitialUsers(): void {
     if (this.isInitialized) return;
 
-    // Seed primary security researcher account
+    if (process.env.NODE_ENV === 'production') {
+      // In production, no hardcoded users are permitted.
+      this.isInitialized = true;
+      return;
+    }
+
+    // Explicit opt-in or local development / test mode
+    const isDevOrTest = !process.env.NODE_ENV || process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    const allowDemo = process.env.ENABLE_DEV_DEMO_ACCOUNTS === 'true' || isDevOrTest;
+    if (!allowDemo) {
+      this.isInitialized = true;
+      return;
+    }
+
+    // Seed development security researcher account with distinct per-runtime salt
     const salt1 = crypto.randomBytes(16).toString('hex');
-    const hash1 = this.hashPassword('Researcher2026!Secure', salt1);
+    const hash1 = this.hashPassword(process.env.DEV_RESEARCHER_PASSWORD || 'DevResearcher2026!Local', salt1);
     const researcherUser: StoredUserAccount = {
       id: 'user_default_researcher',
-      email: 'researcher@aiheaven.security',
-      fullName: 'Lead Bounty Hunter',
+      email: 'researcher@aiheaven.local',
+      fullName: 'Development Security Researcher',
       passwordHash: hash1,
       salt: salt1,
       role: 'security_researcher',
@@ -68,8 +90,8 @@ class AuthService {
       linkedIdentities: [
         {
           provider: 'local',
-          providerUserId: 'researcher@aiheaven.security',
-          email: 'researcher@aiheaven.security',
+          providerUserId: 'researcher@aiheaven.local',
+          email: 'researcher@aiheaven.local',
           linkedAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
         }
@@ -78,13 +100,13 @@ class AuthService {
       updatedAt: new Date().toISOString()
     };
 
-    // Seed secondary auditor account for tenant isolation testing
+    // Seed secondary development auditor account for tenant isolation testing
     const salt2 = crypto.randomBytes(16).toString('hex');
-    const hash2 = this.hashPassword('AuditorPass99!Strict', salt2);
+    const hash2 = this.hashPassword(process.env.DEV_AUDITOR_PASSWORD || 'DevAuditor99!StrictLocal', salt2);
     const auditorUser: StoredUserAccount = {
       id: 'user_external_auditor',
-      email: 'auditor@external-org.net',
-      fullName: 'External Compliance Auditor',
+      email: 'auditor@external-org.local',
+      fullName: 'External Compliance Auditor (Dev)',
       passwordHash: hash2,
       salt: salt2,
       role: 'auditor',
@@ -95,8 +117,8 @@ class AuthService {
       linkedIdentities: [
         {
           provider: 'local',
-          providerUserId: 'auditor@external-org.net',
-          email: 'auditor@external-org.net',
+          providerUserId: 'auditor@external-org.local',
+          email: 'auditor@external-org.local',
           linkedAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString()
         }
@@ -708,12 +730,15 @@ class AuthService {
 
   public verifyToken(token: string): AuthenticatedUser | null {
     if (!token) return null;
+    if (this.revokedTokens.has(token)) return null;
+
     const session = this.sessions.get(token);
     if (!session) return null;
 
     if (new Date(session.expiresAt) < new Date()) {
       this.sessions.delete(token);
       this.tokenToUserId.delete(token);
+      this.revokedTokens.add(token);
       return null;
     }
 
@@ -725,8 +750,15 @@ class AuthService {
   }
 
   public logout(token: string): void {
-    this.sessions.delete(token);
-    this.tokenToUserId.delete(token);
+    if (token) {
+      this.revokedTokens.add(token);
+      this.sessions.delete(token);
+      this.tokenToUserId.delete(token);
+    }
+  }
+
+  public isTokenRevoked(token: string): boolean {
+    return this.revokedTokens.has(token);
   }
 
   public getUser(userId: string): AuthenticatedUser | null {
@@ -746,8 +778,13 @@ class AuthService {
   }
 
   public getDefaultResearcher(): AuthenticatedUser {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Default development researcher account is permanently disabled in production. Valid authentication required.');
+    }
     const user = this.users.get('user_default_researcher');
-    if (!user) throw new Error('Default researcher user missing.');
+    if (!user) {
+      throw new Error('No active default researcher account found in current environment.');
+    }
     return this.toAuthenticatedUser(user);
   }
 

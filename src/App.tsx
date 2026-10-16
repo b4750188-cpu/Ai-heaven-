@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AgentContractModal } from './components/common/AgentContractModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { ResourceExplorer } from './components/explorer/ResourceExplorer';
@@ -16,28 +16,28 @@ import { Provider, Resource, ResourceRelationship } from './types/resource';
 import { AgentDefinition, AuditEvent, Project, ToolDefinition, Workspace } from './types/foundation';
 import { AgentWorker, KillSwitchStatus, RuntimeEvent } from './types/agentRuntime';
 
-// Code-split secondary views for maximum initial bundle efficiency
-const KnowledgeGraphView = lazy(() => import('./components/graph/KnowledgeGraphView').then(m => ({ default: m.KnowledgeGraphView })));
-const AgentRuntimeConsole = lazy(() => import('./components/agents/AgentRuntimeConsole').then(m => ({ default: m.AgentRuntimeConsole })));
-const ResourceDetailPage = lazy(() => import('./components/detail/ResourceDetailPage').then(m => ({ default: m.ResourceDetailPage })));
-const ProviderHub = lazy(() => import('./components/providers/ProviderHub').then(m => ({ default: m.ProviderHub })));
-const ConnectorConsole = lazy(() => import('./components/connectors/ConnectorConsole').then(m => ({ default: m.ConnectorConsole })));
-const ProjectsView = lazy(() => import('./components/projects/ProjectsView').then(m => ({ default: m.ProjectsView })));
-const ToolsView = lazy(() => import('./components/tools/ToolsView').then(m => ({ default: m.ToolsView })));
-const ActivityView = lazy(() => import('./components/activity/ActivityView').then(m => ({ default: m.ActivityView })));
-const DocsView = lazy(() => import('./components/docs/DocsView').then(m => ({ default: m.DocsView })));
-const OperatorDashboard = lazy(() => import('./components/operations/OperatorDashboard').then(m => ({ default: m.OperatorDashboard })));
-const ReviewCenter = lazy(() => import('./components/review/ReviewCenter').then(m => ({ default: m.ReviewCenter })));
-const TerminalWorkspace = lazy(() => import('./components/terminal/TerminalWorkspace').then(m => ({ default: m.TerminalWorkspace })));
-const CentralBrainView = lazy(() => import('./components/brain/CentralBrainView').then(m => ({ default: m.CentralBrainView })));
-const ConversationsView = lazy(() => import('./components/memory/ConversationsView').then(m => ({ default: m.ConversationsView })));
-const EvolutionView = lazy(() => import('./components/evolution/EvolutionView').then(m => ({ default: m.EvolutionView })));
-const GoogleIntegrationView = lazy(() => import('./components/google/GoogleIntegrationView').then(m => ({ default: m.GoogleIntegrationView })));
-const ContinuityCenter = lazy(() => import('./components/continuity/ContinuityCenter').then(m => ({ default: m.ContinuityCenter })));
-const BugHuntWorkspace = lazy(() => import('./components/bughunt/BugHuntWorkspace').then(m => ({ default: m.BugHuntWorkspace })));
-const CentralBrainChatView = lazy(() => import('./components/chat/CentralBrainChatView').then(m => ({ default: m.CentralBrainChatView })));
-const SettingsView = lazy(() => import('./components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
-const FourBeastsView = lazy(() => import('./components/engines/FourBeastsView').then(m => ({ default: m.FourBeastsView })));
+// Statically imported views for guaranteed single-instance React runtime and instant 0ms tab switching
+import { KnowledgeGraphView } from './components/graph/KnowledgeGraphView';
+import { AgentRuntimeConsole } from './components/agents/AgentRuntimeConsole';
+import { ResourceDetailPage } from './components/detail/ResourceDetailPage';
+import { ProviderHub } from './components/providers/ProviderHub';
+import { ConnectorConsole } from './components/connectors/ConnectorConsole';
+import { ProjectsView } from './components/projects/ProjectsView';
+import { ToolsView } from './components/tools/ToolsView';
+import { ActivityView } from './components/activity/ActivityView';
+import { DocsView } from './components/docs/DocsView';
+import { OperatorDashboard } from './components/operations/OperatorDashboard';
+import { ReviewCenter } from './components/review/ReviewCenter';
+import { TerminalWorkspace } from './components/terminal/TerminalWorkspace';
+import { CentralBrainView } from './components/brain/CentralBrainView';
+import { ConversationsView } from './components/memory/ConversationsView';
+import { EvolutionView } from './components/evolution/EvolutionView';
+import { GoogleIntegrationView } from './components/google/GoogleIntegrationView';
+import { ContinuityCenter } from './components/continuity/ContinuityCenter';
+import { BugHuntWorkspace } from './components/bughunt/BugHuntWorkspace';
+import { CentralBrainChatView } from './components/chat/CentralBrainChatView';
+import { SettingsView } from './components/settings/SettingsView';
+import { FourBeastsView } from './components/engines/FourBeastsView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -264,8 +264,7 @@ export default function App() {
         </div>
       )}
 
-      <Suspense fallback={<div className="flex items-center justify-center p-12 text-xs font-mono text-neutral-400">Loading module...</div>}>
-        {currentView === 'home' && (
+      {currentView === 'home' && (
           <HomeView
             resources={resources}
             agents={agents}
@@ -423,7 +422,6 @@ export default function App() {
         {currentView === 'engines' && (
           <FourBeastsView />
         )}
-      </Suspense>
 
       {/* Global Search Modal */}
       <GlobalSearchModal

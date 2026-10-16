@@ -28,12 +28,52 @@ import { centralBrainService } from '../brain/centralBrainService';
 import { agentRuntimeService } from '../sandbox/agentRuntimeService';
 import { executionManager } from '../sandbox/executionManager';
 
+import fs from 'fs';
+import path from 'path';
+
 class ContinuityEngine {
   private memories = new Map<string, EngineeringMemory>();
   private outcomes: TaskOutcome[] = [];
+  private persistenceFilePath: string;
 
   constructor() {
+    this.persistenceFilePath = path.resolve(process.cwd(), '.data', 'continuity_memories.json');
     this.seedAuthoritativeBaseMemories();
+    this.recoverState();
+  }
+
+  public persistState(): void {
+    try {
+      const dir = path.dirname(this.persistenceFilePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      const data = {
+        memories: Array.from(this.memories.entries()),
+        outcomes: this.outcomes,
+        savedAt: new Date().toISOString()
+      };
+      fs.writeFileSync(this.persistenceFilePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch {
+      // In-memory fallback
+    }
+  }
+
+  private recoverState(): void {
+    try {
+      if (fs.existsSync(this.persistenceFilePath)) {
+        const raw = fs.readFileSync(this.persistenceFilePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.memories)) {
+          for (const [id, mem] of parsed.memories) {
+            this.memories.set(id, mem);
+          }
+        }
+        if (Array.isArray(parsed.outcomes)) {
+          this.outcomes = parsed.outcomes;
+        }
+      }
+    } catch {
+      // In-memory baseline preserved
+    }
   }
 
   // =========================================================================
@@ -233,6 +273,7 @@ class ContinuityEngine {
         console.error('[ContinuityEngine] Postgres persist error:', err.message);
       });
     }
+    this.persistState();
 
     return memory;
   }
@@ -651,6 +692,7 @@ class ContinuityEngine {
         console.error('[ContinuityEngine] Postgres outcome save error:', err.message);
       });
     }
+    this.persistState();
 
     // RULE 8: Let Central Brain use historical outcomes to improve future routing,
     // BUT require adequate evidence (>= 3 samples) to avoid overfitting to small samples.
@@ -856,6 +898,7 @@ class ContinuityEngine {
       await postgresManager.deleteEngineeringMemory(id, tenantId).catch(() => {});
     }
 
+    this.persistState();
     return true;
   }
 

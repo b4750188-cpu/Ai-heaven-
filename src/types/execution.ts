@@ -97,4 +97,7 @@ export interface SandboxExecutionResult {
   stderr: string;
   output_truncated: boolean;
   duration_ms: number;
+  execution_mode?: 'virtual_vfs_sandbox' | 'isolated_worker' | 'unavailable';
+  is_simulated?: boolean;
+  security_notice?: string;
 }
