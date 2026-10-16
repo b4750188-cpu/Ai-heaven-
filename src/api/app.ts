@@ -33,6 +33,8 @@ import { authService } from '../services/auth/authService';
 import { bugHuntService } from '../services/bughunt/bugHuntService';
 import { hackerOneService } from '../services/bughunt/hackerOneService';
 import { realityRegistryService } from '../services/reality/realityRegistryService';
+import { beastEngineRegistry } from '../engines/registry';
+import { autonomousRealityRepairEngine } from '../services/reality/autonomousRealityRepairEngine';
 
 dotenv.config();
 
@@ -1992,13 +1994,101 @@ export function createExpressApp(): express.Express {
     }
   });
 
+  // ==========================================
+  // FOUR BEASTS & AUTONOMOUS REALITY REPAIR
+  // ==========================================
+  apiRouter.get('/engines', async (req: Request, res: Response) => {
+    try {
+      const engines = beastEngineRegistry.getAllMetadata();
+      res.json(engines);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/engines/:engineId/execute', async (req: Request, res: Response) => {
+    try {
+      const { engineId } = req.params;
+      const { goal, context, dryRun } = req.body || {};
+      if (!goal) return res.status(400).json({ error: 'goal is required' });
+
+      const result = await beastEngineRegistry.executeTask({
+        id: `task_${Date.now()}`,
+        goal,
+        preferredEngine: engineId as any,
+        context,
+        dryRun
+      });
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/reality/issues', (req: Request, res: Response) => {
+    try {
+      const issues = autonomousRealityRepairEngine.getAllIssues();
+      res.json(issues);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/reality/metrics', (req: Request, res: Response) => {
+    try {
+      const metrics = autonomousRealityRepairEngine.getMetrics();
+      res.json(metrics);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/reality/audit/run', async (req: Request, res: Response) => {
+    try {
+      const metrics = await autonomousRealityRepairEngine.runFullAudit();
+      res.json(metrics);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/reality/repair', async (req: Request, res: Response) => {
+    try {
+      const { issueId, approved } = req.body || {};
+      if (!issueId) return res.status(400).json({ error: 'issueId is required' });
+
+      const outcome = await autonomousRealityRepairEngine.triggerAutonomousRepair(issueId, Boolean(approved));
+      res.json(outcome);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/reality/killswitch', (req: Request, res: Response) => {
+    try {
+      const { active } = req.body || {};
+      const result = autonomousRealityRepairEngine.setKillSwitch(Boolean(active));
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Mount API router at BOTH '/api' AND root '/'
   // This guarantees that whether Vercel preserves '/api/health' or rewrites to '/health', it resolves correctly.
   app.use('/api', apiRouter);
   app.use('/', apiRouter);
 
-  // Root document preview handler (serves index.html with appropriate security headers)
-  app.get('/', (req: Request, res: Response) => {
+  // Root document preview handler
+  // When running inside server.ts with active Vite dev middleware, delegate to Vite for index.html transformation
+  app.get('/', (req: Request, res: Response, next: NextFunction) => {
+    if (process.env.VITE_DEV_SERVER === 'true') {
+      return next();
+    }
+    const distIndexPath = path.resolve(process.cwd(), 'dist/index.html');
+    if (fs.existsSync(distIndexPath)) {
+      return res.sendFile(distIndexPath);
+    }
     const indexPath = path.resolve(process.cwd(), 'index.html');
     if (fs.existsSync(indexPath)) {
       return res.sendFile(indexPath);

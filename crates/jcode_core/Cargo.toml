@@ -1,0 +1,16 @@
+[package]
+name = "jcode_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["1jehuang", "AI Heaven Core Engineering"]
+description = "Lightning-fast autonomous coding agent core, patch engine, and session manager"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]

@@ -5,8 +5,9 @@
  * - Real-time Central Brain routing and execution
  * - Conversation persistence, renaming, deletion, and thread history
  * - Multi-model selection (Auto, Gemini 2.5 Flash, Gemini 2.5 Pro, Claude 3.7 Sonnet, GPT-4o, DeepSeek R1)
- * - Markdown rendering with code blocks, copy actions, and latency/model metadata
- * - Genuine Central Brain status awareness (Live / Deterministic Sandbox)
+ * - Structured markdown rendering with syntax-highlighted code blocks and copy buttons
+ * - Guaranteed non-blank initial state and resilient error recovery with 1-click Retry
+ * - Starter prompt chips that immediately dispatch on click
  * - Mobile-first responsive touch layout designed for mobile and desktop
  */
 
@@ -31,10 +32,11 @@ import {
   Terminal,
   Shield,
   Zap,
-  FolderGit2,
-  ChevronDown
+  Code2,
+  Crosshair
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { BugHuntWorkspace } from '../bughunt/BugHuntWorkspace';
 
 interface ConversationThread {
   id: string;
@@ -66,18 +68,224 @@ interface ChatMessage {
 }
 
 interface CentralBrainChatViewProps {
+  initialMode?: 'normal' | 'bughunt';
+  currentUser?: any;
+  onOpenAuth?: () => void;
   onNavigateToProject?: (projectId: string) => void;
   onNavigateToHunt?: (target: string) => void;
   onNavigateToTools?: () => void;
 }
 
+/**
+ * Custom lightweight Markdown Parser component for Central Brain responses
+ */
+const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  const [copiedCodeBlockIdx, setCopiedCodeBlockIdx] = useState<number | null>(null);
+
+  const copyCode = (code: string, idx: number) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCodeBlockIdx(idx);
+    setTimeout(() => setCopiedCodeBlockIdx(null), 2000);
+  };
+
+  if (isUser) {
+    return <div className="whitespace-pre-wrap font-sans text-xs text-[#F1F4F8] leading-relaxed">{content}</div>;
+  }
+
+  // Parse code blocks with ```lang ... ```
+  const parts: React.ReactNode[] = [];
+  const codeBlockRegex = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let blockCounter = 0;
+
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    // Add text preceding code block
+    if (match.index > lastIndex) {
+      const textChunk = content.substring(lastIndex, match.index);
+      parts.push(
+        <TextSection key={`text_${lastIndex}`} text={textChunk} />
+      );
+    }
+
+    const language = match[1] || 'code';
+    const codeContent = match[2].trimEnd();
+    const currentIdx = blockCounter++;
+
+    parts.push(
+      <div key={`code_${currentIdx}`} className="my-2.5 rounded-lg border border-[#283242] bg-[#080B10] overflow-hidden">
+        <div className="flex items-center justify-between px-3 py-1.5 bg-[#121822] border-b border-[#283242] text-[10px] font-mono text-[#9AA6B7]">
+          <div className="flex items-center gap-1.5">
+            <Code2 className="h-3 w-3 text-[#42D9F5]" />
+            <span className="uppercase text-[#42D9F5] font-semibold">{language}</span>
+          </div>
+          <button
+            onClick={() => copyCode(codeContent, currentIdx)}
+            className="flex items-center gap-1 hover:text-[#F1F4F8] transition-colors cursor-pointer"
+            title="Copy code snippet"
+          >
+            {copiedCodeBlockIdx === currentIdx ? (
+              <>
+                <CheckCircle2 className="h-3 w-3 text-[#34D399]" />
+                <span className="text-[#34D399]">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        <pre className="p-3 text-xs font-mono text-[#38BDF8] overflow-x-auto leading-relaxed select-text">
+          <code>{codeContent}</code>
+        </pre>
+      </div>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add trailing text
+  if (lastIndex < content.length) {
+    const textChunk = content.substring(lastIndex);
+    parts.push(
+      <TextSection key={`text_end_${lastIndex}`} text={textChunk} />
+    );
+  }
+
+  return <div className="space-y-1.5 text-xs text-[#F1F4F8] leading-relaxed">{parts}</div>;
+};
+
+/**
+ * Text section renderer for headings, bullet points, and inline emphasis
+ */
+const TextSection: React.FC<{ text: string }> = ({ text }) => {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-1 font-sans">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+
+        // Provider Notice callout banner
+        if (trimmed.startsWith('[PROVIDER NOTICE:') || trimmed.startsWith('[CENTRAL BRAIN')) {
+          return (
+            <div key={i} className="my-1.5 p-2 rounded border border-[#FBBF24]/30 bg-[#FBBF24]/10 text-[#FBBF24] text-[11px] font-mono flex items-center gap-2">
+              <Zap className="h-3.5 w-3.5 shrink-0" />
+              <span>{trimmed}</span>
+            </div>
+          );
+        }
+
+        // Heading 3
+        if (trimmed.startsWith('### ')) {
+          return (
+            <h4 key={i} className="text-xs font-bold font-mono text-[#42D9F5] pt-1">
+              {trimmed.substring(4)}
+            </h4>
+          );
+        }
+
+        // Heading 2 / 1
+        if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+          return (
+            <h3 key={i} className="text-sm font-bold font-mono text-[#F1F4F8] pt-1.5">
+              {trimmed.replace(/^#+\s/, '')}
+            </h3>
+          );
+        }
+
+        // Bullet points
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+          const bulletText = trimmed.replace(/^[-*•]\s+/, '');
+          return (
+            <div key={i} className="flex items-start gap-2 pl-2">
+              <span className="text-[#42D9F5] font-bold">&bull;</span>
+              <span className="flex-1">{renderInlineStyles(bulletText)}</span>
+            </div>
+          );
+        }
+
+        // Numbered list
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        if (numMatch) {
+          return (
+            <div key={i} className="flex items-start gap-2 pl-2">
+              <span className="font-mono text-[10px] text-[#42D9F5] font-bold min-w-[16px]">{numMatch[1]}.</span>
+              <span className="flex-1">{renderInlineStyles(numMatch[2])}</span>
+            </div>
+          );
+        }
+
+        if (!trimmed) {
+          return <div key={i} className="h-1" />;
+        }
+
+        return <p key={i}>{renderInlineStyles(line)}</p>;
+      })}
+    </div>
+  );
+};
+
+/**
+ * Inline style helper for **bold** and `code`
+ */
+function renderInlineStyles(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*.*?\*\*|`.*?`)/g;
+  let lastIdx = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) {
+      parts.push(text.substring(lastIdx, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(
+        <strong key={`b_${match.index}`} className="font-semibold text-[#F1F4F8]">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      parts.push(
+        <code key={`c_${match.index}`} className="px-1.5 py-0.5 rounded bg-[#171F2B] border border-[#283242] font-mono text-[11px] text-[#42D9F5]">
+          {token.slice(1, -1)}
+        </code>
+      );
+    }
+    lastIdx = match.index + token.length;
+  }
+
+  if (lastIdx < text.length) {
+    parts.push(text.substring(lastIdx));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
 export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
+  initialMode = 'normal',
+  currentUser,
+  onOpenAuth,
   onNavigateToProject,
   onNavigateToHunt,
   onNavigateToTools
 }) => {
-  const [conversations, setConversations] = useState<ConversationThread[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<'normal' | 'bughunt'>(initialMode);
+
+  // Guaranteed initial session so the view is NEVER blank even before network loads
+  const [conversations, setConversations] = useState<ConversationThread[]>([
+    {
+      id: 'session_primary',
+      title: 'Current Brain Session',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messageCount: 0,
+      activeModel: 'auto'
+    }
+  ]);
+  const [activeConversationId, setActiveConversationId] = useState<string>('session_primary');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -93,6 +301,8 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
   const [models, setModels] = useState<any[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(false);
 
   // Mobile drawer toggle for conversation list
   const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState(false);
@@ -119,57 +329,107 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
   };
 
   const loadInitialData = async () => {
+    setIsLoadingInitial(true);
     try {
       const [convList, provList, brainModels] = await Promise.all([
-        apiClient.getConversations(),
-        apiClient.getBrainProviderStatuses(),
-        apiClient.getBrainModels()
+        apiClient.getConversations().catch(() => []),
+        apiClient.getBrainProviderStatuses().catch(() => []),
+        apiClient.getBrainModels().catch(() => [])
       ]);
-      setConversations(convList || []);
+
+      if (convList && convList.length > 0) {
+        setConversations(convList);
+        setActiveConversationId(convList[0].id);
+      } else {
+        // Create an official server conversation thread
+        try {
+          const newThread = await apiClient.createConversation('New Brain Session', selectedModel);
+          if (newThread && newThread.id) {
+            setConversations([newThread]);
+            setActiveConversationId(newThread.id);
+          }
+        } catch {
+          // Keep local fallback thread
+        }
+      }
+
       setProviders(provList || []);
       setModels(brainModels || []);
-
-      if (convList && convList.length > 0 && !activeConversationId) {
-        setActiveConversationId(convList[0].id);
-      } else if (!convList || convList.length === 0) {
-        handleCreateNewChat();
-      }
     } catch (err: any) {
-      setErrorBanner('Failed to load Central Brain threads: ' + (err.message || 'Unknown error'));
+      setErrorBanner('Central Brain telemetry notice: ' + (err.message || 'Connecting to brain...'));
+    } finally {
+      setIsLoadingInitial(false);
     }
   };
 
   const loadMessages = async (convId: string) => {
+    if (convId === 'session_primary') return;
     try {
       const msgs = await apiClient.getConversationMessages(convId);
-      setMessages(msgs || []);
+      if (Array.isArray(msgs)) {
+        setMessages(msgs);
+      }
     } catch (err: any) {
-      setErrorBanner('Failed to retrieve messages: ' + (err.message || 'Unknown error'));
+      // If fetching fails on newly created or local session, keep current messages
     }
   };
 
   const handleCreateNewChat = async () => {
+    setErrorBanner(null);
     try {
       const newThread = await apiClient.createConversation('New Brain Session', selectedModel);
-      setConversations(prev => [newThread, ...prev]);
+      setConversations(prev => [newThread, ...prev.filter(c => c.id !== 'session_primary')]);
       setActiveConversationId(newThread.id);
       setMessages([]);
       setIsSidebarOpenMobile(false);
       setTimeout(() => textareaRef.current?.focus(), 100);
     } catch (err: any) {
-      setErrorBanner('Could not create session: ' + (err.message || 'Unknown error'));
+      // Fallback local creation
+      const localThread: ConversationThread = {
+        id: `conv_${Date.now()}`,
+        title: 'New Brain Session',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messageCount: 0,
+        activeModel: selectedModel
+      };
+      setConversations(prev => [localThread, ...prev]);
+      setActiveConversationId(localThread.id);
+      setMessages([]);
+      setIsSidebarOpenMobile(false);
+      setTimeout(() => textareaRef.current?.focus(), 100);
     }
   };
 
-  const handleSendMessage = async (e?: React.FormEvent) => {
+  /**
+   * Send message handler supporting both text from input box and direct string override (e.g. starter chips or retry)
+   */
+  const handleSendMessage = async (e?: React.FormEvent, overrideText?: string) => {
     if (e) e.preventDefault();
-    const text = inputText.trim();
-    if (!text || isSending || !activeConversationId) return;
+    const text = (overrideText !== undefined ? overrideText : inputText).trim();
+    if (!text || isSending) return;
+
+    setErrorBanner(null);
+    setLastFailedPrompt(null);
+
+    // Ensure we have a valid conversation thread
+    let targetConvId = activeConversationId;
+    if (!targetConvId || targetConvId === 'session_primary') {
+      try {
+        const newThread = await apiClient.createConversation('New Brain Session', selectedModel);
+        setConversations(prev => [newThread, ...prev.filter(c => c.id !== 'session_primary')]);
+        targetConvId = newThread.id;
+        setActiveConversationId(targetConvId);
+      } catch {
+        targetConvId = `conv_${Date.now()}`;
+        setActiveConversationId(targetConvId);
+      }
+    }
 
     // Optimistically add user message
     const tempUserMsg: ChatMessage = {
       id: `temp_${Date.now()}`,
-      conversationId: activeConversationId,
+      conversationId: targetConvId,
       role: 'user',
       content: text,
       timestamp: new Date().toISOString()
@@ -177,25 +437,33 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
     setMessages(prev => [...prev, tempUserMsg]);
     setInputText('');
     setIsSending(true);
-    setErrorBanner(null);
 
     try {
-      const result = await apiClient.chatInConversation(activeConversationId, text, selectedModel);
-      // Replace with genuine verified server messages
+      const result = await apiClient.chatInConversation(targetConvId, text, selectedModel);
+      
+      // Update with verified server messages
       setMessages(prev => [
         ...prev.filter(m => m.id !== tempUserMsg.id),
-        result.userMessage,
+        result.userMessage || tempUserMsg,
         result.assistantMessage
       ]);
 
       // Update thread title if first message
-      const activeThread = conversations.find(c => c.id === activeConversationId);
-      if (activeThread && (activeThread.title === 'New Brain Session' || activeThread.title === 'New Session')) {
-        const generatedTitle = text.length > 30 ? text.substring(0, 30) + '...' : text;
-        await handleSaveRename(activeConversationId, generatedTitle);
+      const activeThread = conversations.find(c => c.id === targetConvId);
+      if (activeThread && (activeThread.title === 'New Brain Session' || activeThread.title === 'Current Brain Session')) {
+        const generatedTitle = text.length > 28 ? text.substring(0, 28) + '...' : text;
+        await handleSaveRename(targetConvId, generatedTitle);
       }
+
+      // Update message count in thread list
+      setConversations(prev => prev.map(c => 
+        c.id === targetConvId 
+          ? { ...c, messageCount: c.messageCount + 2, updatedAt: new Date().toISOString() } 
+          : c
+      ));
     } catch (err: any) {
-      setErrorBanner(`Central Brain processing error: ${err.message || 'Execution failed'}`);
+      setLastFailedPrompt(text);
+      setErrorBanner(`Central Brain routing error: ${err.message || 'Execution failed'}`);
     } finally {
       setIsSending(false);
       setTimeout(() => textareaRef.current?.focus(), 50);
@@ -216,19 +484,23 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
   };
 
   const handleSaveRename = async (convId: string, customTitle?: string) => {
-    const titleToSave = customTitle || editTitle;
+    const titleToSave = (customTitle || editTitle).trim();
+    if (!titleToSave) {
+      setEditingId(null);
+      return;
+    }
     try {
       const updated = await apiClient.updateConversation(convId, { title: titleToSave });
-      setConversations(prev => prev.map(c => c.id === convId ? updated : c));
+      setConversations(prev => prev.map(c => c.id === convId ? (updated || { ...c, title: titleToSave }) : c));
       setEditingId(null);
-    } catch (err: any) {
-      setErrorBanner('Failed to rename session: ' + (err.message || 'Unknown error'));
+    } catch {
+      setConversations(prev => prev.map(c => c.id === convId ? { ...c, title: titleToSave } : c));
+      setEditingId(null);
     }
   };
 
   const handleDeleteConversation = async (convId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this session and its message history?')) return;
     try {
       await apiClient.deleteConversation(convId);
       setConversations(prev => prev.filter(c => c.id !== convId));
@@ -260,67 +532,97 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
   const isGeminiLive = geminiProvider?.isConfigured;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] md:h-[calc(100vh-5.5rem)] rounded-xl border border-[#283242] bg-[#0D1118] overflow-hidden shadow-2xl">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#283242] bg-[#121822]">
+    <div className="flex flex-col min-h-[600px] h-[calc(100vh-8rem)] md:h-[calc(100vh-6.5rem)] rounded-xl border border-[#222632] bg-[#0E1015] overflow-hidden shadow-2xl">
+      {/* Top Header Bar with Mode Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 border-b border-[#222632] bg-[#12141C]">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsSidebarOpenMobile(prev => !prev)}
-            className="md:hidden p-1.5 rounded-lg border border-[#283242] bg-[#171F2B] text-[#9AA6B7] hover:text-[#F1F4F8]"
-            title="Toggle Sessions Drawer"
-          >
-            <Layers className="h-4 w-4" />
-          </button>
-          <div className="h-8 w-8 rounded-lg bg-[#42D9F5]/10 border border-[#42D9F5]/30 flex items-center justify-center text-[#42D9F5]">
-            <Brain className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold font-mono text-[#F1F4F8]">Central Brain Direct Chat</h2>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                isGeminiLive
-                  ? 'bg-[#34D399]/10 text-[#34D399] border-[#34D399]/30'
-                  : 'bg-[#42D9F5]/10 text-[#42D9F5] border-[#42D9F5]/30'
-              }`}>
-                {isGeminiLive ? 'LIVE SDK' : 'ENGINEERING RUNTIME'}
-              </span>
-            </div>
-            <p className="text-[11px] text-[#9AA6B7] hidden sm:block">
-              Authoritative routing &bull; Project context retrieval &bull; Persistent thread storage &bull; Zero fake outputs
-            </p>
-          </div>
-        </div>
-
-        {/* Model Switcher & New Chat button */}
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <select
-              value={selectedModel}
-              onChange={e => setSelectedModel(e.target.value)}
-              className="text-xs font-mono bg-[#171F2B] text-[#F1F4F8] border border-[#283242] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#42D9F5] cursor-pointer"
+          {chatMode === 'normal' && (
+            <button
+              onClick={() => setIsSidebarOpenMobile(prev => !prev)}
+              className="md:hidden p-1.5 rounded-lg border border-[#222632] bg-[#161822] text-[#9CA3AF] hover:text-[#F3F4F6]"
+              title="Toggle Sessions Drawer"
             >
-              <option value="auto">Auto-Routing (Central Brain)</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
-              <option value="gpt-4o">GPT-4o</option>
-              <option value="deepseek-r1">DeepSeek R1</option>
-            </select>
+              <Layers className="h-4 w-4" />
+            </button>
+          )}
+
+          {/* Mode Switcher: Normal Chat vs Bug Hunting */}
+          <div className="flex items-center rounded-lg border border-[#262B37] bg-[#0A0B0E] p-0.5">
+            <button
+              onClick={() => setChatMode('normal')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
+                chatMode === 'normal'
+                  ? 'bg-[#F4F4F6] text-[#090A0D] font-semibold shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
+              }`}
+            >
+              <Brain className="h-3 w-3" />
+              <span>Normal Chat</span>
+            </button>
+            <button
+              onClick={() => setChatMode('bughunt')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
+                chatMode === 'bughunt'
+                  ? 'bg-[#F4F4F6] text-[#090A0D] font-semibold shadow-xs'
+                  : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
+              }`}
+            >
+              <Crosshair className="h-3 w-3" />
+              <span>Bug Hunting</span>
+            </button>
           </div>
 
-          <button
-            onClick={handleCreateNewChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#42D9F5] text-[#080B10] hover:bg-[#42D9F5]/90 transition-colors cursor-pointer"
-            title="Create new conversation thread"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">New Session</span>
-          </button>
+          <span className={`hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded border ${
+            isGeminiLive
+              ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30'
+              : 'bg-[#9CA3AF]/10 text-[#9CA3AF] border-[#9CA3AF]/30'
+          }`}>
+            {isGeminiLive ? 'LIVE GEMINI 3.8' : 'SANDBOX RUNTIME'}
+          </span>
         </div>
+
+        {/* Model Switcher & New Chat button (Only visible in Normal Chat mode) */}
+        {chatMode === 'normal' ? (
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <select
+                value={selectedModel}
+                onChange={e => setSelectedModel(e.target.value)}
+                className="text-xs font-mono bg-[#161822] text-[#F3F4F6] border border-[#2E3342] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-white cursor-pointer"
+              >
+                <option value="auto">Auto-Routing (Central Brain)</option>
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash (Active Inference)</option>
+                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Deep Reasoning)</option>
+                <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+                <option value="gpt-4o">GPT-4o</option>
+                <option value="deepseek-r1">DeepSeek R1</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleCreateNewChat}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F4F4F6] text-[#090A0D] hover:bg-white transition-colors cursor-pointer"
+              title="Create new conversation session"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">New Session</span>
+            </button>
+          </div>
+        ) : (
+          <div className="text-xs font-mono text-[#9CA3AF]">
+            Scope Policy: <span className="text-[#10B981]">Strict Pre-Flight Enforcement</span>
+          </div>
+        )}
       </div>
 
-      {/* Main Workspace: Left Sidebar + Right Chat Canvas */}
-      <div className="flex flex-1 overflow-hidden relative">
+      {/* Mode View: Bug Hunting Workspace vs Normal Chat Canvas */}
+      {chatMode === 'bughunt' ? (
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#090A0D]">
+          <BugHuntWorkspace currentUser={currentUser || null} onOpenAuth={onOpenAuth || (() => {})} />
+        </div>
+      ) : (
+        /* Main Workspace: Left Sidebar + Right Chat Canvas */
+        <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar: Conversation History */}
         <div className={`
           absolute md:static inset-y-0 left-0 z-30 w-72 bg-[#0D1118] border-r border-[#283242] flex flex-col transition-transform duration-200
@@ -428,12 +730,12 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
           {/* Quick Stats Footer */}
           <div className="p-3 border-t border-[#283242] bg-[#121822]/60 text-[11px] font-mono text-[#9AA6B7] space-y-1">
             <div className="flex justify-between">
-              <span>Saved Threads:</span>
+              <span>Saved Sessions:</span>
               <span className="text-[#F1F4F8]">{conversations.length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Target Policy:</span>
-              <span className="text-[#34D399]">Read-Only</span>
+              <span>Execution Engine:</span>
+              <span className="text-[#34D399]">Central Brain</span>
             </div>
           </div>
         </div>
@@ -449,101 +751,130 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
         {/* Right Chat Canvas */}
         <div className="flex-1 flex flex-col bg-[#080B10] overflow-hidden">
           {errorBanner && (
-            <div className="p-2.5 bg-[#F87171]/10 border-b border-[#F87171]/30 text-[#F87171] text-xs flex items-center justify-between px-4">
+            <div className="p-3 bg-[#F87171]/10 border-b border-[#F87171]/30 text-[#F87171] text-xs flex items-center justify-between px-4">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>{errorBanner}</span>
               </div>
-              <button onClick={() => setErrorBanner(null)} className="hover:text-[#F1F4F8]">
-                &times;
-              </button>
+              <div className="flex items-center gap-2">
+                {lastFailedPrompt && (
+                  <button
+                    onClick={() => handleSendMessage(undefined, lastFailedPrompt)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#F87171]/20 hover:bg-[#F87171]/30 text-[#F87171] text-xs font-mono font-bold cursor-pointer"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Retry</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setErrorBanner(null)}
+                  className="hover:text-[#F1F4F8] p-1"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           )}
 
           {/* Message List */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center space-y-4 text-[#9AA6B7]">
-                <div className="w-14 h-14 rounded-2xl bg-[#42D9F5]/10 border border-[#42D9F5]/30 flex items-center justify-center text-[#42D9F5]">
-                  <Brain className="w-7 h-7" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#F1F4F8] font-mono">Central Brain Ready</h3>
-                  <p className="text-xs text-[#9AA6B7] mt-1 leading-relaxed">
-                    Direct access to AI Heaven's authoritative router. Ask architectural questions, trigger security reviews, inspect jobs, or analyze code.
-                  </p>
-                </div>
+          {/* Message List - Spacious Centered Column */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 space-y-6">
+            <div className="max-w-3xl mx-auto w-full space-y-6">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 text-[#9CA1B2] py-8 animate-in fade-in duration-300">
+                  <div className="h-14 w-14 rounded-2xl bg-[#1C1E26] border border-[#2E303E] flex items-center justify-center text-white shadow-md">
+                    <Brain className="h-7 w-7 text-neutral-200" />
+                  </div>
+                  <div className="space-y-1.5 max-w-md">
+                    <h2 className="text-xl font-semibold tracking-tight text-white font-sans">
+                      Central Brain
+                    </h2>
+                    <p className="text-xs text-[#9CA1B2] leading-relaxed">
+                      Conversational engineering, model consensus routing, and autonomous vulnerability auditing with cryptographic execution receipts.
+                    </p>
+                  </div>
 
-                <div className="grid grid-cols-1 gap-2 w-full pt-2">
-                  {[
-                    'Explain the 6-droid autonomous bug hunting architecture',
-                    'How is virtual filesystem host escalation blocked with exit code 126?',
-                    'List all registered security tools and their execution limits',
-                    'Draft a non-destructive REST API authorization test plan'
-                  ].map((prompt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setInputText(prompt);
-                        setTimeout(() => handleSendMessage(), 50);
-                      }}
-                      className="text-left text-xs p-2.5 rounded-lg border border-[#283242] bg-[#121822] hover:border-[#42D9F5]/50 hover:text-[#F1F4F8] transition-all font-mono"
+                  {/* 4 Claude-Style Spacious Prompt Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl pt-2">
+                    {[
+                      {
+                        title: 'Audit Workspace Security',
+                        desc: 'Run multi-droid scope & vulnerability inspection',
+                        prompt: '/hunt scope=workspace'
+                      },
+                      {
+                        title: 'Fast-Path Coding with jcode',
+                        desc: 'Apply AST-verified patches and diffs',
+                        prompt: 'Refactor error boundaries with AST verification'
+                      },
+                      {
+                        title: 'Inspect Dynamic Model Router',
+                        desc: 'Compare latencies, token economics, and failover',
+                        prompt: 'Compare model latency, tokens, and failover paths'
+                      },
+                      {
+                        title: 'Verify Security Boundaries',
+                        desc: 'Confirm VFS isolation and exit code 126 enforcement',
+                        prompt: 'List all active tools and verify sandbox limits'
+                      }
+                    ].map((card, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendMessage(undefined, card.prompt)}
+                        className="text-left p-3.5 rounded-2xl border border-[#262835] bg-[#14151C] hover:bg-[#1A1C25] hover:border-[#383B4C] transition-all cursor-pointer group shadow-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-xs font-medium text-white group-hover:text-white">
+                          <span>{card.title}</span>
+                          <Zap className="h-3.5 w-3.5 text-[#9CA1B2] group-hover:text-white transition-colors" />
+                        </div>
+                        <p className="text-[11px] text-[#9CA1B2] leading-relaxed">
+                          {card.desc}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                messages.map(msg => {
+                  const isUser = msg.role === 'user';
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5 w-full`}
                     >
-                      &rarr; {prompt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              messages.map(msg => {
-                const isUser = msg.role === 'user';
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex gap-3 sm:gap-4 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
-                  >
-                    {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
-                      isUser
-                        ? 'bg-[#8A83FF]/10 border-[#8A83FF]/30 text-[#8A83FF]'
-                        : 'bg-[#42D9F5]/10 border-[#42D9F5]/30 text-[#42D9F5]'
-                    }`}>
-                      {isUser ? <User className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
-                    </div>
-
-                    {/* Message Card */}
-                    <div className={`space-y-1.5 max-w-[85%] sm:max-w-[90%]`}>
-                      <div className={`flex items-center gap-2 text-[10px] font-mono text-[#9AA6B7] ${isUser ? 'justify-end' : ''}`}>
-                        <span className="font-semibold text-[#F1F4F8]">
-                          {isUser ? 'Operator' : (msg.agentName || 'Central Brain')}
+                      {/* Message Meta Info */}
+                      <div className="flex items-center gap-2 text-[11px] text-[#9CA1B2] px-1 font-mono">
+                        <span className="font-medium text-neutral-300">
+                          {isUser ? 'You' : (msg.agentName || 'AI Heaven Brain')}
                         </span>
                         {msg.modelUsed && (
-                          <span className="px-1.5 py-0.2 rounded bg-[#121822] border border-[#283242]">
+                          <span className="px-1.5 py-0.2 rounded-md bg-[#1C1E26] border border-[#2B2D3A] text-[10px]">
                             {msg.modelUsed}
                           </span>
                         )}
                         <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
 
-                      <div className={`p-4 rounded-xl border text-xs leading-relaxed whitespace-pre-wrap font-sans ${
+                      {/* Message Bubble */}
+                      <div className={`rounded-2xl p-4 text-xs leading-relaxed border transition-colors ${
                         isUser
-                          ? 'bg-[#171F2B] border-[#283242] text-[#F1F4F8]'
-                          : 'bg-[#121822] border-[#283242] text-[#F1F4F8]'
+                          ? 'max-w-[85%] bg-[#222430] border-[#313445] text-white shadow-xs'
+                          : 'w-full bg-[#14151D] border-[#242633] text-[#EDEDF2] shadow-xs'
                       }`}>
-                        {msg.content}
+                        <FormattedMessageContent content={msg.content} isUser={isUser} />
                       </div>
 
-                      {/* Footer Actions (Copy, metadata) */}
-                      <div className={`flex items-center gap-2 text-[10px] text-[#9AA6B7] ${isUser ? 'justify-end' : ''}`}>
+                      {/* Footer Actions */}
+                      <div className="flex items-center gap-3 text-[10px] text-[#9CA1B2] px-1">
                         <button
                           onClick={() => copyText(msg.content, msg.id)}
-                          className="hover:text-[#F1F4F8] flex items-center gap-1 transition-colors"
-                          title="Copy message content"
+                          className="hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Copy text"
                         >
                           {copiedId === msg.id ? (
                             <>
-                              <CheckCircle2 className="w-3 h-3 text-[#34D399]" />
-                              <span className="text-[#34D399]">Copied</span>
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span className="text-emerald-400 font-mono">Copied</span>
                             </>
                           ) : (
                             <>
@@ -553,66 +884,87 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                           )}
                         </button>
                         {msg.metadata?.domain && (
-                          <span className="text-[#42D9F5] font-mono font-medium">
+                          <span className="text-neutral-400 font-mono">
                             Domain: {msg.metadata.domain}
+                          </span>
+                        )}
+                        {msg.metadata?.latencyMs !== undefined && (
+                          <span className="font-mono text-[#9CA1B2]/60">
+                            {msg.metadata.latencyMs}ms
                           </span>
                         )}
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
 
-            {isSending && (
-              <div className="flex gap-3 max-w-3xl mr-auto">
-                <div className="w-8 h-8 rounded-lg bg-[#42D9F5]/10 border border-[#42D9F5]/30 flex items-center justify-center text-[#42D9F5] shrink-0">
-                  <Brain className="w-4 h-4 animate-pulse" />
+              {isSending && (
+                <div className="flex items-center gap-3 text-xs text-[#9CA1B2] p-4 rounded-2xl bg-[#14151D] border border-[#242633] max-w-md animate-pulse font-mono">
+                  <div className="h-2 w-2 rounded-full bg-white animate-ping" />
+                  <span>Central Brain evaluating request and routing execution...</span>
                 </div>
-                <div className="p-3.5 rounded-xl border border-[#283242] bg-[#121822] text-xs text-[#9AA6B7] flex items-center gap-2 font-mono">
-                  <span className="inline-block w-2 h-2 rounded-full bg-[#42D9F5] animate-ping" />
-                  <span>Central Brain evaluating request and routing task...</span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
-          {/* Bottom Message Composer */}
-          <div className="p-3 sm:p-4 border-t border-[#283242] bg-[#121822]">
-            <form onSubmit={handleSendMessage} className="space-y-2">
-              <div className="relative rounded-xl border border-[#283242] bg-[#0D1118] focus-within:border-[#42D9F5] transition-colors">
-                <textarea
-                  ref={textareaRef}
-                  value={inputText}
-                  onChange={e => setInputText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Communicate with AI Heaven Central Brain... (Shift+Enter for newline, Enter to send)"
-                  rows={2}
-                  className="w-full bg-transparent px-3.5 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:outline-none resize-none font-sans"
-                />
-                <div className="flex items-center justify-between px-3 py-2 border-t border-[#283242]/50 bg-[#080B10]/50 rounded-b-xl">
-                  <div className="flex items-center gap-2 text-[10px] text-[#9AA6B7] font-mono">
-                    <span className="hidden sm:inline">Active Thread:</span>
-                    <span className="text-[#F1F4F8] truncate max-w-[150px]">
-                      {activeThread?.title || 'Default'}
-                    </span>
-                  </div>
+          {/* Bottom Message Composer (Spacious, Softly Rounded, Claude-Style) */}
+          <div className="p-4 sm:p-5 border-t border-[#222632] bg-[#0E1015]/80 backdrop-blur-md">
+            <div className="max-w-3xl mx-auto w-full">
+              <form onSubmit={(e) => handleSendMessage(e)} className="space-y-2">
+                <div className="relative rounded-2xl border border-[#2E303E] bg-[#161720] focus-within:border-neutral-400 focus-within:ring-1 focus-within:ring-neutral-400/20 transition-all shadow-lg p-2.5">
+                  <textarea
+                    ref={textareaRef}
+                    value={inputText}
+                    onChange={e => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask Central Brain or submit engineering / bug hunt commands... (Shift+Enter for newline, Enter to send)"
+                    rows={2}
+                    disabled={isSending}
+                    className="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-[#9CA1B2]/60 focus:outline-none resize-none font-sans"
+                  />
+                  <div className="flex items-center justify-between pt-2 border-t border-[#282A36]">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setInputText('/hunt scope=')}
+                        className="px-2 py-1 rounded-lg border border-[#2B2D3A] bg-[#1E202B] hover:bg-[#252836] text-[10px] font-mono text-neutral-300 transition-colors"
+                        title="Add bug hunt command"
+                      >
+                        + /hunt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInputText('/audit tools')}
+                        className="px-2 py-1 rounded-lg border border-[#2B2D3A] bg-[#1E202B] hover:bg-[#252836] text-[10px] font-mono text-neutral-300 transition-colors"
+                        title="Add audit command"
+                      >
+                        + /audit
+                      </button>
+                    </div>
 
-                  <button
-                    type="submit"
-                    disabled={!inputText.trim() || isSending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#42D9F5] text-[#080B10] text-xs font-bold hover:bg-[#42D9F5]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-                  >
-                    <span>Send</span>
-                    <Send className="w-3 h-3" />
-                  </button>
+                    <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline text-[10px] font-mono text-[#9CA1B2]">
+                        {selectedModel}
+                      </span>
+                      <button
+                        type="submit"
+                        disabled={!inputText.trim() || isSending}
+                        className="flex items-center justify-center h-8 px-3.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
+                      >
+                        <span>{isSending ? 'Routing...' : 'Send'}</span>
+                        <Send className="w-3 h-3 ml-1.5 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 };

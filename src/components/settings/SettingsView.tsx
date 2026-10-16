@@ -25,15 +25,20 @@ import {
   ShieldAlert,
   ShieldCheck,
   Terminal,
-  Zap
+  Zap,
+  Download,
+  Smartphone,
+  Laptop
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { CapabilityEntry, CredentialAuditItem, GoogleDriveAccountQuota } from '../../types/reality';
 import { googleAuthService, GoogleSessionState } from '../../services/google/googleAuthService';
 import { googleDriveService, DriveQuotaReport } from '../../services/google/googleDriveService';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 export const SettingsView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'capabilities' | 'credentials' | 'google' | 'database'>('capabilities');
+  const [activeTab, setActiveTab] = useState<'capabilities' | 'credentials' | 'google' | 'database' | 'pwa'>('capabilities');
+  const pwa = usePWAInstall();
   const [capabilities, setCapabilities] = useState<CapabilityEntry[]>([]);
   const [credentials, setCredentials] = useState<CredentialAuditItem[]>([]);
   const [googleSession, setGoogleSession] = useState<GoogleSessionState>(googleAuthService.getSession());
@@ -204,6 +209,23 @@ export const SettingsView: React.FC = () => {
         >
           <Database className="h-4 w-4" />
           <span>Database &amp; Persistence</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('pwa')}
+          className={`px-4 py-2.5 border-b-2 font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeTab === 'pwa'
+              ? 'border-[#42D9F5] text-[#42D9F5] bg-[#42D9F5]/5'
+              : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
+          }`}
+        >
+          <Smartphone className="h-4 w-4" />
+          <span>Install Application (PWA)</span>
+          {pwa.isInstalled && (
+            <span className="px-1.5 py-0.2 text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-mono">
+              INSTALLED
+            </span>
+          )}
         </button>
       </div>
 
@@ -468,6 +490,113 @@ export const SettingsView: React.FC = () => {
               <div className="text-[10px] text-[#9AA6B7] uppercase">Execution Sandbox</div>
               <div className="text-emerald-400 font-bold">Exit Code 126 Bound</div>
               <div className="text-[11px] text-[#9AA6B7]">Host modification strictly denied</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Progressive Web App Installation & Offline Controls */}
+      {activeTab === 'pwa' && (
+        <div className="space-y-6">
+          <div className="bg-[#0D1118] border border-[#283242] rounded-lg p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#283242] pb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-[#42D9F5]" />
+                  Progressive Web App (PWA) Runtime
+                </h3>
+                <p className="text-xs text-[#9AA6B7] mt-1">
+                  Install AI Heaven as a standalone desktop or mobile application with native window chrome, offline static asset caching, and persistent secure sessions.
+                </p>
+              </div>
+
+              {pwa.isInstalled ? (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-emerald-950/60 border border-emerald-800 text-emerald-400 text-xs font-mono">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <span>Installed &amp; Running in Standalone Mode</span>
+                </div>
+              ) : (
+                <button
+                  onClick={async () => {
+                    const outcome = await pwa.promptInstall();
+                    if (outcome === 'accepted') {
+                      setStatusNotification({ type: 'success', message: 'AI Heaven successfully installed to your home screen or desktop.' });
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#42D9F5] hover:bg-[#42D9F5]/90 text-[#080B10] font-bold text-xs font-mono transition-all cursor-pointer shadow-lg shadow-[#42D9F5]/10"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Install AI Heaven App</span>
+                </button>
+              )}
+            </div>
+
+            {/* PWA State Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
+              <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-md space-y-1">
+                <div className="text-[10px] text-[#9AA6B7] uppercase">Display Mode</div>
+                <div className="text-[#F1F4F8] font-bold">
+                  {pwa.isStandalone ? 'Standalone (Native Chrome)' : 'Browser Tab'}
+                </div>
+                <div className="text-[11px] text-[#9AA6B7]">
+                  {pwa.isStandalone ? 'No browser address bar' : 'Standard viewport'}
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-md space-y-1">
+                <div className="text-[10px] text-[#9AA6B7] uppercase">Service Worker Cache</div>
+                <div className="text-emerald-400 font-bold">Active &bull; ai-heaven-v1</div>
+                <div className="text-[11px] text-[#9AA6B7]">Static shell cached; /api/* network-only</div>
+              </div>
+
+              <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-md space-y-1">
+                <div className="text-[10px] text-[#9AA6B7] uppercase">Privacy &amp; Isolation</div>
+                <div className="text-[#42D9F5] font-bold">Never Cached Offline</div>
+                <div className="text-[11px] text-[#9AA6B7]">Private chats &amp; tokens never stored in SW</div>
+              </div>
+            </div>
+
+            {/* Platform Instructions (Manual Fallback when beforeinstallprompt is suppressed) */}
+            <div className="pt-2">
+              <h4 className="text-xs font-semibold text-[#F1F4F8] mb-3 flex items-center gap-1.5">
+                <Info className="h-3.5 w-3.5 text-[#42D9F5]" />
+                Platform-Specific Installation Guidance
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                {/* Android / Chromium */}
+                <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1.5">
+                  <div className="flex items-center gap-2 text-[#F1F4F8] font-semibold">
+                    <Smartphone className="h-4 w-4 text-[#42D9F5]" />
+                    <span>Android / Chrome</span>
+                  </div>
+                  <p className="text-[#9AA6B7] text-[11px] leading-relaxed">
+                    Tap the <strong>three dots menu (&vellip;)</strong> in Google Chrome, then tap <strong>&ldquo;Install app&rdquo;</strong> or <strong>&ldquo;Add to Home screen&rdquo;</strong>.
+                  </p>
+                </div>
+
+                {/* iOS Safari */}
+                <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1.5">
+                  <div className="flex items-center gap-2 text-[#F1F4F8] font-semibold">
+                    <Smartphone className="h-4 w-4 text-[#42D9F5]" />
+                    <span>iOS / Safari</span>
+                  </div>
+                  <p className="text-[#9AA6B7] text-[11px] leading-relaxed">
+                    Tap the <strong>Share</strong> icon at the bottom of Safari, scroll down, and select <strong>&ldquo;Add to Home Screen&rdquo;</strong>.
+                  </p>
+                </div>
+
+                {/* Desktop Chrome / Edge */}
+                <div className="p-3 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-1.5">
+                  <div className="flex items-center gap-2 text-[#F1F4F8] font-semibold">
+                    <Laptop className="h-4 w-4 text-[#42D9F5]" />
+                    <span>Desktop (Chrome / Edge)</span>
+                  </div>
+                  <p className="text-[#9AA6B7] text-[11px] leading-relaxed">
+                    Click the <strong>Install icon (&darr;)</strong> in the right side of the browser URL bar, or choose <strong>Install AI Heaven</strong> from the browser menu.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

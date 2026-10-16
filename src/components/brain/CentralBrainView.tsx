@@ -20,7 +20,8 @@ import {
   Database,
   ShieldCheck,
   ChevronRight,
-  Filter
+  Filter,
+  MessageSquare
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 
@@ -58,7 +59,11 @@ interface RoutingDecision {
   };
 }
 
-export const CentralBrainView: React.FC = () => {
+interface CentralBrainViewProps {
+  onNavigateToChat?: () => void;
+}
+
+export const CentralBrainView: React.FC<CentralBrainViewProps> = ({ onNavigateToChat }) => {
   const [models, setModels] = useState<ModelSpec[]>([]);
   const [decisions, setDecisions] = useState<RoutingDecision[]>([]);
   const [quotas, setQuotas] = useState<any[]>([]);
@@ -129,6 +134,16 @@ export const CentralBrainView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {onNavigateToChat && (
+            <button
+              onClick={onNavigateToChat}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-[#42D9F5]/40 bg-[#42D9F5]/10 hover:bg-[#42D9F5]/20 text-xs font-mono text-[#42D9F5] transition-colors cursor-pointer"
+            >
+              <MessageSquare className="h-3.5 w-3.5 text-[#42D9F5]" />
+              Open AI Brain Chat
+            </button>
+          )}
+
           <button
             onClick={loadBrainData}
             disabled={isLoading}
@@ -473,3 +488,5 @@ export const CentralBrainView: React.FC = () => {
     </div>
   );
 };
+
+export default CentralBrainView;

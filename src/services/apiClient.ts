@@ -2166,6 +2166,84 @@ class AIHeavenApiClient {
     if (!res.ok) throw new Error(`Verification failed: HTTP ${res.status}`);
     return await res.json();
   }
+
+  // ==========================================
+  // FOUR BEASTS & AUTONOMOUS REALITY REPAIR
+  // ==========================================
+  public async getEngines(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/engines`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  public async executeEngineTask(engineId: string, goal: string, context?: any, dryRun?: boolean): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/engines/${encodeURIComponent(engineId)}/execute`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ goal, context, dryRun })
+    });
+    if (!res.ok) throw new Error(`Engine execution failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getRealityIssues(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/reality/issues`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  public async getRealityMetrics(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/reality/metrics`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  public async runRealityAudit(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/reality/audit/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Audit failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async repairRealityIssue(issueId: string, approved?: boolean): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/reality/repair`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ issueId, approved })
+    });
+    if (!res.ok) throw new Error(`Repair failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async setRealityKillSwitch(active: boolean): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/reality/killswitch`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ active })
+    });
+    if (!res.ok) throw new Error(`Kill switch update failed: HTTP ${res.status}`);
+    return await res.json();
+  }
 }
 
 export const apiClient = new AIHeavenApiClient();

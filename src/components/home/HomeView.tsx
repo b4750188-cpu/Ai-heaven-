@@ -27,7 +27,8 @@ import {
   ExternalLink,
   Lock,
   ChevronRight,
-  FolderGit2
+  FolderGit2,
+  MessageSquare
 } from 'lucide-react';
 import { AgentDefinition, ExecutionReceipt } from '../../types/foundation';
 import { AgentTask, AgentWorker } from '../../types/agentRuntime';
@@ -239,8 +240,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
           )}
 
           <button
+            onClick={() => onNavigate('chat')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#42D9F5]/10 border border-[#42D9F5]/40 hover:bg-[#42D9F5]/20 text-[#42D9F5] text-xs font-mono rounded transition-colors cursor-pointer"
+          >
+            <MessageSquare className="h-3.5 w-3.5 text-[#42D9F5]" />
+            <span>AI Brain Chat</span>
+          </button>
+
+          <button
             onClick={() => onNavigate('review')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121822] border border-[#283242] hover:border-[#3a475d] text-[#F1F4F8] text-xs font-mono rounded transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121822] border border-[#283242] hover:border-[#3a475d] text-[#F1F4F8] text-xs font-mono rounded transition-colors cursor-pointer"
           >
             <ClipboardCheck className="h-3.5 w-3.5 text-[#42D9F5]" />
             <span>QA Review</span>
@@ -400,6 +409,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* 3. DEDICATED WORK AREAS LAUNCHPAD (Grid Layout)                         */}
       {/* ===================================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Work Area: AI Brain Chat Workspace */}
+        <button
+          onClick={() => onNavigate('chat')}
+          className="text-left p-4 bg-[#121822] border border-[#283242] hover:border-[#42D9F5]/60 rounded-lg transition-colors flex flex-col justify-between group cursor-pointer"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <MessageSquare className="h-5 w-5 text-[#42D9F5] group-hover:scale-105 transition-transform" />
+              <ChevronRight className="h-4 w-4 text-[#9AA6B7] group-hover:text-[#42D9F5] transition-colors" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[#F1F4F8]">AI Brain Chat Workspace</h3>
+              <span className="px-1.5 py-0.2 text-[9px] bg-[#42D9F5]/10 text-[#42D9F5] border border-[#42D9F5]/30 rounded font-mono">
+                DIRECT
+              </span>
+            </div>
+            <p className="text-xs text-[#9AA6B7] mt-1">
+              Interactive multi-turn conversation with the Central Brain. Dynamic model routing, persistent memory threads, and structured code analysis.
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#283242] text-[11px] font-mono text-[#42D9F5] flex justify-between">
+            <span>Dynamic Multi-Model</span>
+            <span>Persistent Memory</span>
+          </div>
+        </button>
+
         {/* Work Area 0: Autonomous Bug Bounty Platform */}
         <button
           onClick={() => onNavigate('bughunt')}

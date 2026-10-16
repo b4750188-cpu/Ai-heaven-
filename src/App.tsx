@@ -37,6 +37,7 @@ const ContinuityCenter = lazy(() => import('./components/continuity/ContinuityCe
 const BugHuntWorkspace = lazy(() => import('./components/bughunt/BugHuntWorkspace').then(m => ({ default: m.BugHuntWorkspace })));
 const CentralBrainChatView = lazy(() => import('./components/chat/CentralBrainChatView').then(m => ({ default: m.CentralBrainChatView })));
 const SettingsView = lazy(() => import('./components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
+const FourBeastsView = lazy(() => import('./components/engines/FourBeastsView').then(m => ({ default: m.FourBeastsView })));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -293,7 +294,7 @@ export default function App() {
         )}
 
         {currentView === 'brain' && (
-          <CentralBrainView />
+          <CentralBrainView onNavigateToChat={() => setCurrentView('chat')} />
         )}
 
         {currentView === 'continuity' && (
@@ -417,6 +418,10 @@ export default function App() {
 
         {currentView === 'settings' && (
           <SettingsView />
+        )}
+
+        {currentView === 'engines' && (
+          <FourBeastsView />
         )}
       </Suspense>
 

@@ -266,3 +266,5 @@ export const ActivityView: React.FC<ActivityViewProps> = ({
     </div>
   );
 };
+
+export default ActivityView;
