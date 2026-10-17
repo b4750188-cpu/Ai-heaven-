@@ -11,7 +11,18 @@ export type ScannerId =
   | 'zaproxy'
   | 'agentgrep'
   | 'grype'
-  | 'scorecard';
+  | 'scorecard'
+  | 'nmap'
+  | 'nuclei'
+  | 'masscan';
+
+export type ToolOperationalState =
+  | 'READY'
+  | 'NOT_INSTALLED'
+  | 'MISCONFIGURED'
+  | 'UNAVAILABLE'
+  | 'FAILED'
+  | 'NOT_VERIFIED';
 
 export type FindingStatus =
   | 'CONFIRMED'
@@ -103,10 +114,12 @@ export interface ISecurityScannerAdapter {
   version: string;
   upstreamUrl: string;
   upstreamLicense: string;
-  category: 'SAST' | 'DAST' | 'SCA' | 'SUPPLY_CHAIN' | 'STRUCTURAL_SEARCH' | 'SECRET_DETECTION';
+  category: 'SAST' | 'DAST' | 'SCA' | 'SUPPLY_CHAIN' | 'STRUCTURAL_SEARCH' | 'SECRET_DETECTION' | 'NETWORK_PORT_AUDIT' | 'TEMPLATE_VULN_SCAN' | 'HIGH_SPEED_DISCOVERY';
   runtimeRequirement: 'in_process' | 'local_binary' | 'container_service' | 'cloud_api';
   status: 'operational' | 'adapter_ready' | 'service_required';
+  operationalState?: ToolOperationalState;
   isAvailable(): boolean;
+  getDetailedStatus?(): { state: ToolOperationalState; version?: string; executablePath?: string; message: string };
   executeScan(request: ScanJobRequest): Promise<ScanJobResult>;
   cancelScan(jobId: string): Promise<boolean>;
 }

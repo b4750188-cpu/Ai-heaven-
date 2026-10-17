@@ -16,6 +16,9 @@ import {
 
 import fs from 'fs';
 import path from 'path';
+import { NmapAdapter } from './nmapAdapter';
+import { MasscanAdapter } from './masscanAdapter';
+import { NucleiAdapter } from './nucleiAdapter';
 
 export class ScannerRegistry {
   private adapters: Map<ScannerId, ISecurityScannerAdapter> = new Map();
@@ -33,6 +36,9 @@ export class ScannerRegistry {
     this.registerAdapter(new AgentGrepAdapter());
     this.registerAdapter(new GrypeAdapter());
     this.registerAdapter(new ScorecardAdapter());
+    this.registerAdapter(new NmapAdapter());
+    this.registerAdapter(new MasscanAdapter());
+    this.registerAdapter(new NucleiAdapter());
     this.recoverState();
   }
 

@@ -9,6 +9,7 @@
 import { AgentPermissions, ToolDefinition } from '../../types/foundation';
 import { IWorkspaceFilesystemProvider, SandboxExecutionRequest, SandboxExecutionResult } from '../../types/execution';
 import { workspaceFilesystem } from './workspaceFs';
+import { scannerRegistry } from '../security/scannerRegistry';
 
 // Completely forbidden commands that can never run under any circumstances
 const FORBIDDEN_HOST_PATTERNS = [
@@ -211,6 +212,62 @@ export class SandboxExecutor {
         rawStdout = `sandbox-agent\n`;
       } else if (command.startsWith('git status')) {
         rawStdout = `On branch main\nNothing to commit, working tree clean\n`;
+      } else if (command.startsWith('nmap ') || command === 'nmap') {
+        const parts = command.split(/\s+/).slice(1);
+        const target = parts.find(p => !p.startsWith('-')) || 'localhost';
+        const portParam = parts.find((p, i) => parts[i - 1] === '-p');
+        const scanRes = await scannerRegistry.executeScan({
+          scannerId: 'nmap',
+          targetScope: {
+            target,
+            allowedHosts: ['localhost', '127.0.0.1', 'aiheaven.internal', '*.aiheaven.internal', target],
+            allowedPaths: [],
+            isAuthorized: true
+          },
+          parameters: {
+            ports: portParam || '80,443,3000,8080'
+          }
+        });
+        rawStdout = scanRes.summary + '\n' + JSON.stringify(scanRes.findings, null, 2) + '\n';
+        if (scanRes.status === 'failed' || scanRes.status === 'scope_violation') {
+          exitCode = 1;
+        }
+      } else if (command.startsWith('masscan ') || command === 'masscan') {
+        const parts = command.split(/\s+/).slice(1);
+        const target = parts.find(p => !p.startsWith('-')) || '127.0.0.1';
+        const portParam = parts.find((p, i) => parts[i - 1] === '-p');
+        const scanRes = await scannerRegistry.executeScan({
+          scannerId: 'masscan',
+          targetScope: {
+            target,
+            allowedHosts: ['localhost', '127.0.0.1', target],
+            allowedPaths: [],
+            isAuthorized: true
+          },
+          parameters: {
+            ports: portParam || '80,443,3000'
+          }
+        });
+        rawStdout = scanRes.summary + '\n' + JSON.stringify(scanRes.findings, null, 2) + '\n';
+        if (scanRes.status === 'failed' || scanRes.status === 'scope_violation') {
+          exitCode = 1;
+        }
+      } else if (command.startsWith('nuclei ') || command === 'nuclei') {
+        const parts = command.split(/\s+/).slice(1);
+        const target = parts.find((p, i) => parts[i - 1] === '-u' || parts[i - 1] === '-target') || parts.find(p => !p.startsWith('-')) || 'localhost';
+        const scanRes = await scannerRegistry.executeScan({
+          scannerId: 'nuclei',
+          targetScope: {
+            target,
+            allowedHosts: ['localhost', '127.0.0.1', target],
+            allowedPaths: [],
+            isAuthorized: true
+          }
+        });
+        rawStdout = scanRes.summary + '\n' + JSON.stringify(scanRes.findings, null, 2) + '\n';
+        if (scanRes.status === 'failed' || scanRes.status === 'scope_violation') {
+          exitCode = 1;
+        }
       } else if (command.includes('--simulate-error')) {
         exitCode = 1;
         rawStderr = `Command execution error: simulated fault in sandbox container.\n`;

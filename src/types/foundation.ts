@@ -86,7 +86,9 @@ export type ToolCapability =
   | 'browser'
   | 'mcp'
   | 'ai_inference'
-  | 'research';
+  | 'research'
+  | 'port_scan'
+  | 'vulnerability_scan';
 
 export interface ExecutionPolicy {
   sandboxed_only: boolean;
@@ -121,7 +123,7 @@ export interface ToolDefinition {
   permissions?: string[];
   risk_level?: 'low' | 'medium' | 'high' | 'destructive';
   authentication_requirements?: ToolAuthentication;
-  availability?: 'ready' | 'degraded' | 'disabled';
+  availability?: 'ready' | 'degraded' | 'disabled' | 'unavailable' | 'unconfigured';
   provenance?: ToolProvenance;
   permission_requirements: string[];
   execution_policy: ExecutionPolicy;

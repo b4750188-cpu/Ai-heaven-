@@ -141,7 +141,15 @@ const defaultAgent: AgentDefinition = {
   description: 'Primary platform engineering droid equipped with task planner, terminal execution, and MCP inspection capabilities.',
   status: 'idle',
   permissions: {
-    allowed_tools: ['tool_terminal_sandbox', 'tool_fs_scoped', 'tool_mcp_client', 'tool_github_sync'],
+    allowed_tools: [
+      'tool_terminal_sandbox',
+      'tool_fs_scoped',
+      'tool_mcp_client',
+      'tool_github_sync',
+      'tool_nmap_scan',
+      'tool_masscan_scan',
+      'tool_nuclei_scan'
+    ],
     network_access: true,
     filesystem_scope: 'workspace_only',
     requires_approval_for_destructive: true
@@ -159,7 +167,13 @@ const defaultAgentSecOps: AgentDefinition = {
   description: 'Specialized sandbox and security evaluator droid for code policy enforcement, automated testing, and regression analysis.',
   status: 'idle',
   permissions: {
-    allowed_tools: ['tool_terminal_sandbox', 'tool_fs_scoped'],
+    allowed_tools: [
+      'tool_terminal_sandbox',
+      'tool_fs_scoped',
+      'tool_nmap_scan',
+      'tool_masscan_scan',
+      'tool_nuclei_scan'
+    ],
     network_access: false,
     filesystem_scope: 'read_only',
     requires_approval_for_destructive: true
@@ -401,6 +415,135 @@ const registeredTools: ToolDefinition[] = [
       max_output_bytes: 1048576
     },
     is_enabled: true
+  },
+  {
+    id: 'tool_nmap_scan',
+    name: 'Nmap Network Service & Port Discovery',
+    provider: 'prov_nmap',
+    description: 'Performs authorized network service and port discovery using genuine upstream Nmap binary with strict scope validation.',
+    capability: 'port_scan',
+    input_schema: {
+      type: 'object',
+      properties: {
+        target: { type: 'string', description: 'Authorized hostname or IP address to scan.' },
+        ports: { type: 'string', description: 'Port range to inspect, e.g. "80,443,3000,8080".' },
+        intrusiveScripts: { type: 'boolean', description: 'Enable service versioning. Requires explicit operator approval.' }
+      },
+      required: ['target']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        findingsCount: { type: 'number' },
+        findings: { type: 'array' },
+        summary: { type: 'string' },
+        evidenceChecksum: { type: 'string' }
+      }
+    },
+    permissions: ['network:scan', 'network:outbound'],
+    permission_requirements: ['network:scan'],
+    risk_level: 'medium',
+    availability: 'ready',
+    provenance: {
+      source_provider: 'Nmap Project (Gordon Lyon)',
+      author: 'Gordon Lyon (Fyodor)',
+      verified: true,
+      registered_at: '2026-10-17T00:00:00Z',
+      spec_url: 'https://nmap.org'
+    },
+    execution_policy: {
+      sandboxed_only: false,
+      timeout_seconds: 30,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_masscan_scan',
+    name: 'Masscan High-Speed TCP Port Discovery',
+    provider: 'prov_masscan',
+    description: 'Executes safe rate-limited TCP port discovery against authorized targets using genuine upstream Masscan binary.',
+    capability: 'port_scan',
+    input_schema: {
+      type: 'object',
+      properties: {
+        target: { type: 'string', description: 'Authorized target IP or hostname.' },
+        ports: { type: 'string', description: 'Ports to discover, e.g. "80,443,3000".' },
+        rate: { type: 'number', description: 'Packet transmission rate (safe limit 10-500 pps).' }
+      },
+      required: ['target']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        findingsCount: { type: 'number' },
+        findings: { type: 'array' },
+        summary: { type: 'string' },
+        evidenceChecksum: { type: 'string' }
+      }
+    },
+    permissions: ['network:scan', 'network:outbound'],
+    permission_requirements: ['network:scan'],
+    risk_level: 'high',
+    availability: 'ready',
+    provenance: {
+      source_provider: 'Robert Graham',
+      author: 'Robert Graham',
+      verified: true,
+      registered_at: '2026-10-17T00:00:00Z',
+      spec_url: 'https://github.com/robertdavidgraham/masscan'
+    },
+    execution_policy: {
+      sandboxed_only: false,
+      timeout_seconds: 30,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_nuclei_scan',
+    name: 'Nuclei Template Vulnerability Scanner',
+    provider: 'prov_projectdiscovery',
+    description: 'Runs targeted YAML vulnerability templates against authorized hosts using ProjectDiscovery Nuclei (honest availability reported).',
+    capability: 'vulnerability_scan',
+    input_schema: {
+      type: 'object',
+      properties: {
+        target: { type: 'string', description: 'Authorized target URL or host.' },
+        severity: { type: 'string', description: 'Severity filter (info,low,medium).' },
+        intrusive: { type: 'boolean', description: 'Include intrusive templates. Requires operator approval.' }
+      },
+      required: ['target']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        findingsCount: { type: 'number' },
+        findings: { type: 'array' },
+        summary: { type: 'string' },
+        evidenceChecksum: { type: 'string' }
+      }
+    },
+    permissions: ['security:scan', 'network:outbound'],
+    permission_requirements: ['security:scan'],
+    risk_level: 'medium',
+    availability: 'unavailable',
+    provenance: {
+      source_provider: 'ProjectDiscovery, Inc.',
+      author: 'ProjectDiscovery Team',
+      verified: true,
+      registered_at: '2026-10-17T00:00:00Z',
+      spec_url: 'https://github.com/projectdiscovery/nuclei'
+    },
+    execution_policy: {
+      sandboxed_only: false,
+      timeout_seconds: 30,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
+    },
+    is_enabled: false
   }
 ];
 
