@@ -198,11 +198,6 @@ export default function App() {
       handleNavigateBySlug('google-ai-studio');
       return;
     }
-    if (view === 'settings') {
-      setCurrentView('activity');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

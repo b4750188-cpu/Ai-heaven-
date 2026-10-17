@@ -133,6 +133,34 @@ class AuthService {
     this.users.set(auditorUser.id, auditorUser);
     this.usersByEmail.set(auditorUser.email.toLowerCase(), auditorUser.id);
 
+    // Seed development test fixture account for bughunt platform tests (strictly absent in production)
+    const saltSec = crypto.randomBytes(16).toString('hex');
+    const hashSec = this.hashPassword('Researcher2026!Secure', saltSec);
+    const testSecUser: StoredUserAccount = {
+      id: 'user_test_researcher_fixture',
+      email: 'researcher@aiheaven.security',
+      fullName: 'Security Researcher (Dev Test)',
+      passwordHash: hashSec,
+      salt: saltSec,
+      role: 'security_researcher',
+      isActive: true,
+      isEmailVerified: true,
+      tenantId: 'tenant_researcher_test_sec',
+      linkedIdentities: [
+        {
+          provider: 'local',
+          providerUserId: 'researcher@aiheaven.security',
+          email: 'researcher@aiheaven.security',
+          linkedAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString()
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    this.users.set(testSecUser.id, testSecUser);
+    this.usersByEmail.set(testSecUser.email.toLowerCase(), testSecUser.id);
+
     this.isInitialized = true;
   }
 

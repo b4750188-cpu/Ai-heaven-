@@ -913,12 +913,55 @@ class CentralBrainService {
     let assistantContent = '';
     let isLiveProvider = false;
 
-    // 3. Self-Awareness & Connection Telemetry Check
-    const selfAwarenessAnswer = this.generateSelfAwarenessResponse(userText);
-    if (selfAwarenessAnswer) {
-      assistantContent = selfAwarenessAnswer;
+    // 3. Agent Reach Internet Research & Doctor Checks
+    const lowerUserText = userText.toLowerCase().trim();
+    if (lowerUserText === 'agent-reach doctor' || lowerUserText === 'check agent reach' || lowerUserText === 'agent reach doctor') {
+      const { agentReachService } = await import('../research/agentReachService');
+      const doctor = await agentReachService.runDoctor();
+      const statusList = doctor.platforms.map(p => `- **${p.displayName}** (\`${p.platform}\`): Status \`${p.status}\` · Tool: *${p.upstreamTool}* · ${p.message}`).join('\n');
+      assistantContent = `### Agent Reach Diagnostic Doctor Report\n\n` +
+        `**Upstream Repository**: [Panniantong/Agent-Reach](https://github.com/Panniantong/Agent-Reach) · **License**: MIT · **Version**: v${doctor.upstreamVersion}\n` +
+        `**Overall System Health**: \`${doctor.overallHealth.toUpperCase()}\`\n\n` +
+        `#### Platform Channels Status:\n${statusList}\n\n` +
+        (doctor.recommendations.length > 0 ? `#### Setup Recommendations:\n${doctor.recommendations.map(r => `- ${r}`).join('\n')}\n\n` : '') +
+        `*SSRF Protection: Active · Prompt Injection Filter: Active*`;
       isLiveProvider = false;
+    } else if (
+      lowerUserText.startsWith('agent_reach_research') ||
+      lowerUserText.startsWith('/research') ||
+      domain === 'research' ||
+      /\b(research\s+these\s+github|find\s+discussions|investigate\s+this\s+project's\s+documentation|find\s+youtube\s+transcripts)\b/i.test(userText)
+    ) {
+      try {
+        const { agentReachService } = await import('../research/agentReachService');
+        let queryStr = userText.replace(/^(agent_reach_research[:\s]*|\/research[:\s]*)/i, '').trim();
+        const extracted = queryStr.replace(/^research\s+(these\s+)?(github\s+repositories|github\s+repos|topics|sources)?[:\s]*/i, '').trim();
+        if (extracted) queryStr = extracted;
+        let targetPlatform: any = 'all';
+        if (/\b(github|repo|repositories)\b/i.test(userText)) targetPlatform = 'github';
+        else if (/\b(reddit|discussion|threads)\b/i.test(userText)) targetPlatform = 'reddit';
+        else if (/\b(youtube|transcript|video)\b/i.test(userText)) targetPlatform = 'youtube';
+        else if (/\b(rss|feed|cve)\b/i.test(userText)) targetPlatform = 'rss';
+
+        const outcome = await agentReachService.executeResearch({
+          query: queryStr,
+          platform: targetPlatform,
+          maxResults: 5
+        });
+
+        assistantContent = outcome.summary + `\n\n**Cryptographic Provenance Receipt:** \`${outcome.receipts.hash.slice(0, 32)}...\``;
+        isLiveProvider = false;
+      } catch (err: any) {
+        assistantContent = `[AGENT REACH RESEARCH NOTICE: ${err.message}]`;
+        isLiveProvider = false;
+      }
     } else {
+      // Self-Awareness & Connection Telemetry Check
+      const selfAwarenessAnswer = this.generateSelfAwarenessResponse(userText);
+      if (selfAwarenessAnswer) {
+        assistantContent = selfAwarenessAnswer;
+        isLiveProvider = false;
+      } else {
       // Check for live Gemini API invocation if model is Gemini and GEMINI_API_KEY is configured
       const isGeminiModel = effectiveModelId.startsWith('gemini');
       const geminiKey = process.env.GEMINI_API_KEY;
@@ -961,6 +1004,7 @@ class CentralBrainService {
 
       assistantContent = `[CENTRAL BRAIN · ${domain.toUpperCase()}] Model: ${effectiveModelId}\n(Provider ${providerName} API key '${keyName}' is not configured in environment; executing via deterministic engineering engine)\n\n` +
         this.generateDeterministicResponse(userText, domain, effectiveModelId);
+    }
     }
     }
 
@@ -1025,6 +1069,7 @@ class CentralBrainService {
         `- **droid_fleet**: 6 specialized security droids (Argus, Hydra, Aegis, Vulcan, Specter, Cerberus).\n` +
         `- **h1_integration**: Official HackerOne API client for authorized program and report synchronization.\n` +
         `- **qa_auditor**: Full-stack regression runner and cryptographic execution receipt generator.\n` +
+        `- **agent_reach_research**: Multi-platform public internet research (GitHub, Web, Reddit, YouTube, RSS) with zero API fees, SSRF firewall, and prompt injection defense.\n` +
         `- **model_router**: Central Brain dynamic latency/cost/quality multi-model evaluator.`;
     }
 

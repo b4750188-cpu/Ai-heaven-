@@ -4,6 +4,7 @@ Implements User/Admin role-based access control, token signing/verification, and
 """
 
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from fastapi import Depends, HTTPException, status
@@ -11,7 +12,13 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 
 # Secret and algorithm configured via environment variables
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "ai_heaven_production_insecure_default_key_change_in_prod")
+_IS_PROD = os.getenv("ENVIRONMENT") == "production" or os.getenv("NODE_ENV") == "production"
+_RAW_SECRET = os.getenv("JWT_SECRET_KEY")
+
+if _IS_PROD and not _RAW_SECRET:
+    raise RuntimeError("FATAL SECURITY ERROR: JWT_SECRET_KEY is required in production environment.")
+
+JWT_SECRET_KEY = _RAW_SECRET if _RAW_SECRET else secrets.token_hex(32)
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 

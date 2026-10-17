@@ -10,6 +10,7 @@ export type ToolCategory =
   | 'code_analysis'
   | 'security_audit'
   | 'memory_search'
+  | 'internet_research'
   | 'system_utility';
 
 export type ToolPermissionLevel = 'read_only' | 'sandbox_isolated' | 'network_restricted' | 'human_approval_required';

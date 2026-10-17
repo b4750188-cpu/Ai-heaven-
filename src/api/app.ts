@@ -38,6 +38,8 @@ import { beastEngineRegistry } from '../engines/registry';
 import { autonomousRealityRepairEngine } from '../services/reality/autonomousRealityRepairEngine';
 import { scannerRegistry } from '../services/security/scannerRegistry';
 import { temporalWorkflowAdapter } from '../services/workflow/temporalAdapter';
+import { agentReachService } from '../services/research/agentReachService';
+import { AGENT_REACH_UPSTREAM } from '../contracts/agentReach';
 
 dotenv.config();
 
@@ -347,6 +349,56 @@ const registeredTools: ToolDefinition[] = [
       timeout_seconds: 45,
       requires_confirmation: false,
       max_output_bytes: 2097152
+    },
+    is_enabled: true
+  },
+  {
+    id: 'agent_reach_research',
+    name: 'Agent Reach Internet Research',
+    provider: 'prov_agent_reach',
+    description: 'Multi-platform public internet research (GitHub, Web, Reddit, YouTube, RSS) with zero API fees, SSRF firewall, and prompt injection defense.',
+    capability: 'research',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Research query or technical topic to investigate.' },
+        platform: { type: 'string', enum: ['web', 'github', 'reddit', 'twitter', 'youtube', 'rss', 'all'], description: 'Target platform to search and read.' },
+        maxResults: { type: 'number', minimum: 1, maximum: 20, default: 5, description: 'Maximum number of items to retrieve.' },
+        depth: { type: 'string', enum: ['brief', 'standard', 'deep'], default: 'standard', description: 'Research depth.' },
+        targetUrl: { type: 'string', description: 'Optional specific public URL or GitHub repository to read.' },
+        outputFormat: { type: 'string', enum: ['summary', 'markdown', 'json', 'evidence_cards'], default: 'summary' }
+      },
+      required: ['query']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        query: { type: 'string' },
+        selectedPlatforms: { type: 'array' },
+        results: { type: 'array' },
+        summary: { type: 'string' },
+        receipts: { type: 'object' },
+        factsCount: { type: 'number' },
+        inferencesCount: { type: 'number' }
+      }
+    },
+    permissions: ['research:read', 'network:outbound'],
+    permission_requirements: ['research:read'],
+    risk_level: 'low',
+    availability: 'ready',
+    provenance: {
+      source_provider: 'Panniantong/Agent-Reach',
+      author: 'Neo Reid / Panniantong',
+      verified: true,
+      registered_at: '2026-10-17T00:00:00Z',
+      spec_url: 'https://github.com/Panniantong/Agent-Reach'
+    },
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 20,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
     },
     is_enabled: true
   }
@@ -2261,6 +2313,125 @@ export function createExpressApp(): express.Express {
       res.json({ success, jobId });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // 36. AGENT REACH REAL INTERNET RESEARCH (Panniantong/Agent-Reach)
+  // =========================================================================
+
+  apiRouter.get('/agent-reach/status', async (_req: Request, res: Response) => {
+    try {
+      const config = agentReachService.getConfig();
+      res.json({
+        enabled: config.isEnabled,
+        upstream: AGENT_REACH_UPSTREAM,
+        config,
+        historyCount: agentReachService.getHistory().length,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/agent-reach/doctor', async (_req: Request, res: Response) => {
+    try {
+      const report = await agentReachService.runDoctor();
+      res.json(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/agent-reach/research', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      if (process.env.NODE_ENV === 'production' && !user) {
+        return res.status(401).json({ error: 'Authentication required for internet research.' });
+      }
+
+      const { query, platform, maxResults, depth, targetUrl, outputFormat } = req.body || {};
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        return res.status(400).json({ error: 'Field "query" is required and cannot be empty.' });
+      }
+
+      const result = await agentReachService.executeResearch({
+        query,
+        platform,
+        maxResults,
+        depth,
+        targetUrl,
+        outputFormat,
+        tenantId: user?.tenantId || 'tenant_default',
+        userId: user?.id
+      });
+
+      logAuditEvent({
+        event_type: 'tool_execution',
+        actor_id: user?.id || 'anonymous',
+        actor_type: 'user',
+        action: 'agent_reach_research',
+        status: 'success',
+        metadata: {
+          tenant_id: user?.tenantId || 'tenant_default',
+          query: result.query,
+          platforms: result.selectedPlatforms,
+          factsCount: result.factsCount,
+          receiptHash: result.receipts.hash
+        }
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/agent-reach/history', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const history = agentReachService.getHistory(user?.tenantId);
+      res.json({ history });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/agent-reach/test', async (req: Request, res: Response) => {
+    try {
+      const { platform } = req.body || {};
+      if (!platform) {
+        return res.status(400).json({ error: 'Platform parameter is required (e.g. github, web, reddit, youtube, rss, twitter).' });
+      }
+      const testResult = await agentReachService.testPlatformConnection(platform);
+      res.json(testResult);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/agent-reach/configure', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      if (process.env.NODE_ENV === 'production' && user?.role !== 'admin' && user?.role !== 'security_researcher') {
+        return res.status(403).json({ error: 'Unauthorized to modify research configuration.' });
+      }
+      const updated = agentReachService.updateConfig(req.body || {});
+      logAuditEvent({
+        event_type: 'config_change',
+        actor_id: user?.id || 'anonymous',
+        actor_type: 'user',
+        action: 'agent_reach_config_update',
+        status: 'success',
+        metadata: {
+          tenant_id: user?.tenantId || 'tenant_default',
+          service: 'agent_reach'
+        }
+      });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   });
 

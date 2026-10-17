@@ -377,6 +377,7 @@ test('CONTINUITY & INTELLIGENCE ENGINE VERIFICATION SUITE', async (t) => {
   // =========================================================================
   await t.test('8. Measurable Outcomes: Requires >= 3 samples before modifying routing weights', async () => {
     const testModel = 'test-candidate-model-x';
+    continuityEngine.clearOutcomesForModel(testModel);
 
     // 1st sample: should NOT adjust weights (N < 3)
     await continuityEngine.recordTaskOutcome({

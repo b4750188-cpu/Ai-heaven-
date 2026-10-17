@@ -683,6 +683,11 @@ class ContinuityEngine {
   // 7. RECORD MEASURABLE OUTCOMES & ADAPTIVE ROUTING CALIBRATION
   // =========================================================================
 
+  public clearOutcomesForModel(modelId: string): void {
+    this.outcomes = this.outcomes.filter(o => o.modelUsed !== modelId);
+    this.persistState();
+  }
+
   public async recordTaskOutcome(outcome: TaskOutcome): Promise<void> {
     this.outcomes.push(outcome);
 

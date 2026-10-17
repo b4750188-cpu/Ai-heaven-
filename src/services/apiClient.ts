@@ -32,6 +32,11 @@ import {
 } from '../types/agentRuntime';
 import { GraphEdge, GraphNode, KnowledgeGraphData } from '../types/graph';
 import { Provider, RelationshipType, Resource, ResourceRelationship, ResourceType } from '../types/resource';
+import {
+  AgentReachDoctorReport,
+  AgentReachResearchQuery,
+  AgentReachResearchResult
+} from '../contracts/agentReach';
 
 export interface BackendStatus {
   connected: boolean;
@@ -2242,6 +2247,139 @@ class AIHeavenApiClient {
       body: JSON.stringify({ active })
     });
     if (!res.ok) throw new Error(`Kill switch update failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // =========================================================================
+  // 35. FIVE REPOSITORIES INTEGRATION: SECURITY AUDIT & TEMPORAL
+  // =========================================================================
+
+  public async getSecurityAuditStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-audit/status`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async runSecurityScan(scannerId: string, targetScope: any, parameters?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-audit/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ scannerId, targetScope, parameters })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Scan failed: HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getSecurityFindings(filter?: { scannerId?: string; status?: string; minSeverity?: string }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filter?.scannerId) params.append('scannerId', filter.scannerId);
+    if (filter?.status) params.append('status', filter.status);
+    if (filter?.minSeverity) params.append('minSeverity', filter.minSeverity);
+
+    const res = await fetch(`${this.baseUrl}/security-audit/findings?${params.toString()}`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async exportSecurityReport(format: 'json' | 'markdown' = 'json'): Promise<string> {
+    const res = await fetch(`${this.baseUrl}/security-audit/export?format=${format}`, {
+      headers: this.getAuthHeaders({ Accept: format === 'markdown' ? 'text/markdown' : 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Export failed: HTTP ${res.status}`);
+    return await res.text();
+  }
+
+  public async getTemporalStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/temporal/status`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getWorkflows(): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/workflows`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async startWorkflow(workflowType: string, input: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflows`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ workflowType, input })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // =========================================================================
+  // AGENT REACH INTERNET RESEARCH METHODS
+  // =========================================================================
+
+  public async getAgentReachStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/status`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getAgentReachDoctor(): Promise<AgentReachDoctorReport> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/doctor`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async executeAgentReachResearch(params: AgentReachResearchQuery): Promise<AgentReachResearchResult> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/research`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getAgentReachHistory(): Promise<{ history: AgentReachResearchResult[] }> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/history`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async testAgentReachPlatform(platform: string): Promise<{ success: boolean; message: string; latencyMs: number }> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/test`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ platform })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async configureAgentReach(configPatch: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/agent-reach/configure`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(configPatch)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   }
 }

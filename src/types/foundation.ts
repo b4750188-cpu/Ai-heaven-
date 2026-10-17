@@ -85,7 +85,8 @@ export type ToolCapability =
   | 'github'
   | 'browser'
   | 'mcp'
-  | 'ai_inference';
+  | 'ai_inference'
+  | 'research';
 
 export interface ExecutionPolicy {
   sandboxed_only: boolean;

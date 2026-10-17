@@ -130,8 +130,9 @@ describe('PART 1/6: CORE AUTONOMOUS BUG-HUNTING PLATFORM & AUTHENTICATION', () =
     });
 
     it('authenticates user with password and denies invalid credentials', () => {
-      const email = 'researcher@aiheaven.security';
+      const email = `researcher_${Date.now()}@aiheaven.security`;
       const validPass = 'Researcher2026!Secure';
+      authService.register(email, validPass, 'Lead Security Researcher');
 
       const validLogin = authService.loginWithPassword(email, validPass);
       assert.ok(validLogin.accessToken);

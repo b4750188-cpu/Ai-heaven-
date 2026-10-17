@@ -246,6 +246,14 @@ export const CentralBrainView: React.FC<CentralBrainViewProps> = ({ onNavigateTo
                   >
                     Sample Terminal
                   </button>
+                  <span className="text-slate-700">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setTestPrompt('Research these GitHub repositories and compare their capabilities: Panniantong/Agent-Reach')}
+                    className="text-[11px] text-blue-400 hover:text-blue-300 font-mono underline"
+                  >
+                    Sample Research
+                  </button>
                 </div>
 
                 <button
