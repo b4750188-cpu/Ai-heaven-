@@ -38,6 +38,7 @@ import {
 import { apiClient } from '../../services/apiClient';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { GitHubActionsWorkspace } from '../actions/GitHubActionsWorkspace';
 
 interface ToolsViewProps {
   tools: ToolDefinition[];
@@ -45,7 +46,7 @@ interface ToolsViewProps {
 }
 
 export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal }) => {
-  const [activeTab, setActiveTab] = useState<'sandbox' | 'agent_reach'>('agent_reach');
+  const [activeTab, setActiveTab] = useState<'sandbox' | 'agent_reach' | 'github_actions'>('agent_reach');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCapability, setSelectedCapability] = useState<string>('all');
 
@@ -249,6 +250,17 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
           >
             <Terminal className="h-3.5 w-3.5" />
             Sandbox Tools ({tools.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('github_actions')}
+            className={`px-3 py-1.5 rounded text-xs font-mono flex items-center gap-1.5 transition-colors ${
+              activeTab === 'github_actions'
+                ? 'bg-blue-600 text-white font-medium shadow-sm'
+                : 'bg-[#171F2B] text-[#9AA6B7] hover:text-[#F1F4F8]'
+            }`}
+          >
+            <Github className="h-3.5 w-3.5" />
+            GitHub Actions CI/CD
           </button>
         </div>
       </div>
@@ -849,6 +861,13 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
             </div>
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* GITHUB ACTIONS TAB                                                        */}
+      {/* ========================================================================= */}
+      {activeTab === 'github_actions' && (
+        <GitHubActionsWorkspace />
       )}
     </div>
   );

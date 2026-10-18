@@ -1162,6 +1162,15 @@ class CentralBrainService {
       return `### GitHub Integration Status\n- **State**: \`${gh?.state || 'NOT_CONFIGURED'}\` (Disconnected)\n- **Token Presence**: GITHUB_TOKEN environment variable is not active in this runtime.\n- **Actionable Guidance**: Add your GitHub Personal Access Token in the Connections tab to unlock autonomous repository synchronization.`;
     }
 
+    // 12b. "GitHub Actions" / "Workflows" / "CI/CD"
+    if (p.includes('github actions') || p.includes('workflow status') || p.includes('ci/cd') || p.includes('pipeline status')) {
+      const token = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || '';
+      if (token) {
+        return `### GitHub Actions CI/CD Status\n- **Engine**: GitHub Actions REST API v3 Client\n- **Authentication**: Token configured in environment\n- **Capabilities**: Workflow discovery, dispatch triggering, live run monitoring, job logs inspection\n- **Security**: SHA-256 dispatch receipts, secret masking, permission checking\n- **Actions UI**: Navigate to **Tools > GitHub Actions** to inspect workflows and trigger runs.`;
+      }
+      return `### GitHub Actions CI/CD Status\n- **Engine**: GitHub Actions REST API v3 Client\n- **State**: \`UNCONFIGURED\` (Token required)\n- **Actionable Guidance**: Configure a GitHub Personal Access Token with \`workflow\` and \`repo\` scopes in **Tools > GitHub Actions** or set \`GITHUB_TOKEN\` in your environment to discover workflows and trigger authorized CI/CD dispatches.`;
+    }
+
     // 13. "What models are available?" / "List models"
     if (p.includes('what models') || p.includes('models are available') || p.includes('list models') || p.includes('available models')) {
       const modelRows = this.models.map(m => `- **${m.name}** (\`${m.id}\`): ${m.provider.toUpperCase()} &bull; Context Window: ${(m.contextWindow / 1000).toFixed(0)}k &bull; Latency: ~${m.avgLatencyMs}ms &bull; Coding: ${m.codingScore}/100 &bull; Available: ${m.isAvailable ? 'Yes' : 'No (Key required)'}`);

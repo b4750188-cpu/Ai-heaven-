@@ -40,6 +40,7 @@ import { scannerRegistry } from '../services/security/scannerRegistry';
 import { temporalWorkflowAdapter } from '../services/workflow/temporalAdapter';
 import { agentReachService } from '../services/research/agentReachService';
 import { AGENT_REACH_UPSTREAM } from '../contracts/agentReach';
+import { githubActionsService } from '../services/github/githubActionsService';
 
 dotenv.config();
 
@@ -146,6 +147,7 @@ const defaultAgent: AgentDefinition = {
       'tool_fs_scoped',
       'tool_mcp_client',
       'tool_github_sync',
+      'tool_github_actions',
       'tool_nmap_scan',
       'tool_masscan_scan',
       'tool_nuclei_scan'
@@ -363,6 +365,53 @@ const registeredTools: ToolDefinition[] = [
       timeout_seconds: 45,
       requires_confirmation: false,
       max_output_bytes: 2097152
+    },
+    is_enabled: true
+  },
+  {
+    id: 'tool_github_actions',
+    name: 'GitHub Actions CI/CD Orchestrator',
+    provider: 'prov_github',
+    description: 'Discovers workflows, tracks workflow runs, monitors job logs, and triggers authorized GitHub Actions workflow dispatches.',
+    capability: 'github',
+    input_schema: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['status', 'list_workflows', 'list_runs', 'get_run', 'get_jobs', 'dispatch', 'cancel', 'rerun', 'get_logs'] },
+        owner: { type: 'string', description: 'Repository owner (user or organization)' },
+        repo: { type: 'string', description: 'Repository name' },
+        workflowId: { type: 'string', description: 'Workflow filename or ID' },
+        runId: { type: 'number', description: 'Workflow Run ID' },
+        jobId: { type: 'number', description: 'Job ID for log retrieval' },
+        ref: { type: 'string', default: 'main', description: 'Git branch or tag for dispatch' },
+        inputs: { type: 'object', description: 'Workflow input parameters' }
+      },
+      required: ['action']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        data: { type: 'object' },
+        evidenceChecksum: { type: 'string' }
+      }
+    },
+    permissions: ['github:actions:read', 'github:actions:write', 'network:outbound'],
+    permission_requirements: ['github:actions:read'],
+    risk_level: 'medium',
+    availability: 'ready',
+    provenance: {
+      source_provider: 'GitHub Inc.',
+      author: 'GitHub Actions REST API',
+      verified: true,
+      registered_at: '2026-10-18T00:00:00Z',
+      spec_url: 'https://docs.github.com/en/rest/actions'
+    },
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 60,
+      requires_confirmation: true,
+      max_output_bytes: 5242880
     },
     is_enabled: true
   },
@@ -2573,6 +2622,257 @@ export function createExpressApp(): express.Express {
         }
       });
       res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // GITHUB ACTIONS CI/CD & WORKFLOW API
+  // =========================================================================
+
+  // 1. Status & Auth Discovery
+  apiRouter.get('/github/actions/status', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const status = await githubActionsService.checkStatus(tokenOverride, user?.tenantId);
+      res.json(status);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 2. Tenant Token Configuration
+  apiRouter.post('/github/actions/config', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tenantId = user?.tenantId || 'tenant_default';
+      const { token } = req.body || {};
+
+      if (token && typeof token === 'string' && token.trim()) {
+        githubActionsService.setTenantToken(tenantId, token.trim());
+      } else {
+        githubActionsService.clearTenantToken(tenantId);
+      }
+
+      const status = await githubActionsService.checkStatus(undefined, tenantId);
+      logAuditEvent({
+        event_type: 'config_change',
+        actor_id: user?.id || 'anonymous',
+        actor_type: 'user',
+        action: 'github_actions_token_updated',
+        status: 'success',
+        metadata: {
+          tenant_id: tenantId,
+          is_configured: status.isConfigured,
+          authenticated_user: status.authenticatedUser
+        }
+      });
+      res.json(status);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 3. List Accessible Repositories
+  apiRouter.get('/github/actions/repos', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const repos = await githubActionsService.listAccessibleRepositories(tokenOverride, user?.tenantId);
+      res.json(repos);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 4. List Workflows in Repository
+  apiRouter.get('/github/actions/:owner/:repo/workflows', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const workflows = await githubActionsService.listWorkflows(owner, repo, tokenOverride, user?.tenantId);
+      res.json({ workflows });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 5. Get Single Workflow
+  apiRouter.get('/github/actions/:owner/:repo/workflows/:workflowId', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, workflowId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const workflow = await githubActionsService.getWorkflow(owner, repo, workflowId, tokenOverride, user?.tenantId);
+      res.json(workflow);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 6. List Workflow Runs
+  apiRouter.get('/github/actions/:owner/:repo/runs', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo } = req.params;
+      const { workflow_id, status, branch, per_page, page } = req.query;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const result = await githubActionsService.listWorkflowRuns(
+        owner,
+        repo,
+        {
+          workflowId: workflow_id ? String(workflow_id) : undefined,
+          status: status ? String(status) : undefined,
+          branch: branch ? String(branch) : undefined,
+          per_page: per_page ? parseInt(String(per_page), 10) : 30,
+          page: page ? parseInt(String(page), 10) : 1
+        },
+        tokenOverride,
+        user?.tenantId
+      );
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 7. Get Single Run Detail
+  apiRouter.get('/github/actions/:owner/:repo/runs/:runId', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, runId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const run = await githubActionsService.getWorkflowRun(owner, repo, runId, tokenOverride, user?.tenantId);
+      res.json(run);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 8. Get Run Jobs & Execution Steps
+  apiRouter.get('/github/actions/:owner/:repo/runs/:runId/jobs', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, runId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const jobs = await githubActionsService.getRunJobs(owner, repo, runId, tokenOverride, user?.tenantId);
+      res.json({ jobs });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 9. Trigger Authorized Workflow Dispatch
+  apiRouter.post('/github/actions/:owner/:repo/workflows/:workflowId/dispatch', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, workflowId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const operatorId = user?.id || 'usr_operator';
+      const tenantId = user?.tenantId || 'tenant_default';
+
+      const receipt = await githubActionsService.triggerWorkflowDispatch(
+        owner,
+        repo,
+        workflowId,
+        req.body || { ref: 'main' },
+        operatorId,
+        tenantId,
+        tokenOverride
+      );
+
+      logAuditEvent({
+        event_type: 'agent_action',
+        actor_id: operatorId,
+        actor_type: 'user',
+        action: 'github_actions_workflow_dispatch',
+        status: 'success',
+        metadata: {
+          repository: `${owner}/${repo}`,
+          workflow_id: workflowId,
+          ref: req.body?.ref || 'main',
+          receipt_checksum: receipt.evidenceChecksum
+        }
+      });
+
+      res.status(200).json(receipt);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 10. Cancel Active Workflow Run
+  apiRouter.post('/github/actions/:owner/:repo/runs/:runId/cancel', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, runId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const operatorId = user?.id || 'usr_operator';
+      const tenantId = user?.tenantId || 'tenant_default';
+
+      const result = await githubActionsService.cancelWorkflowRun(
+        owner,
+        repo,
+        runId,
+        operatorId,
+        tenantId,
+        tokenOverride
+      );
+
+      logAuditEvent({
+        event_type: 'agent_action',
+        actor_id: operatorId,
+        actor_type: 'user',
+        action: 'github_actions_run_cancel',
+        status: 'success',
+        metadata: {
+          repository: `${owner}/${repo}`,
+          run_id: runId,
+          evidence_checksum: result.evidenceChecksum
+        }
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 11. Rerun Workflow Run
+  apiRouter.post('/github/actions/:owner/:repo/runs/:runId/rerun', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, runId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const operatorId = user?.id || 'usr_operator';
+      const tenantId = user?.tenantId || 'tenant_default';
+
+      const result = await githubActionsService.rerunWorkflowRun(
+        owner,
+        repo,
+        runId,
+        operatorId,
+        tenantId,
+        tokenOverride
+      );
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 12. Get Job Logs with Secret Masking
+  apiRouter.get('/github/actions/:owner/:repo/jobs/:jobId/logs', async (req: Request, res: Response) => {
+    try {
+      const { owner, repo, jobId } = req.params;
+      const user = (req as any).user as AuthenticatedUser | undefined;
+      const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
+      const logs = await githubActionsService.getJobLogs(owner, repo, jobId, tokenOverride, user?.tenantId);
+      res.json(logs);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }

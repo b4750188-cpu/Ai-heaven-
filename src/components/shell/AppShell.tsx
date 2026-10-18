@@ -35,7 +35,8 @@ import {
   Crosshair,
   Cpu,
   History,
-  CheckCircle2
+  CheckCircle2,
+  Github
 } from 'lucide-react';
 import { SkullLogo } from '../common/SkullLogo';
 import { apiClient } from '../../services/apiClient';
@@ -56,6 +57,7 @@ export type ShellView =
   | 'agents'
   | 'graph'
   | 'tools'
+  | 'github-actions'
   | 'providers'
   | 'projects'
   | 'tasks'
@@ -146,6 +148,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   // Secondary Tools Sub-navigation
   const toolsNavItems = [
     { id: 'engines' as ShellView, label: 'Four Beasts & Reality', icon: Cpu },
+    { id: 'github-actions' as ShellView, label: 'GitHub Actions CI/CD', icon: Github },
     { id: 'home' as ShellView, label: 'Command Center', icon: Layers },
     { id: 'bughunt' as ShellView, label: 'Bug Bounty Workspace', icon: Crosshair },
     { id: 'review' as ShellView, label: 'Review Center', icon: ClipboardCheck },

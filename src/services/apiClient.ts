@@ -37,6 +37,16 @@ import {
   AgentReachResearchQuery,
   AgentReachResearchResult
 } from '../contracts/agentReach';
+import {
+  GitHubActionsStatus,
+  GitHubWorkflow,
+  GitHubWorkflowRun,
+  GitHubWorkflowJob,
+  WorkflowDispatchPayload,
+  WorkflowTriggerReceipt,
+  GitHubJobLogsResult,
+  GitHubRepositorySummary
+} from '../contracts/githubActions';
 
 export interface BackendStatus {
   connected: boolean;
@@ -2380,6 +2390,205 @@ class AIHeavenApiClient {
       body: JSON.stringify(configPatch)
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // =========================================================================
+  // GitHub Actions Client Methods
+  // =========================================================================
+
+  public async getGitHubActionsStatus(tokenOverride?: string): Promise<GitHubActionsStatus> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(`${this.baseUrl}/github/actions/status`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async configureGitHubActionsToken(token: string): Promise<GitHubActionsStatus> {
+    const res = await fetch(`${this.baseUrl}/github/actions/config`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ token })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async listGitHubAccessibleRepos(tokenOverride?: string): Promise<GitHubRepositorySummary[]> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(`${this.baseUrl}/github/actions/repos`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async listGitHubWorkflows(owner: string, repo: string, tokenOverride?: string): Promise<GitHubWorkflow[]> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(`${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/workflows`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    return Array.isArray(data.workflows) ? data.workflows : [];
+  }
+
+  public async getGitHubWorkflowRuns(
+    owner: string,
+    repo: string,
+    query?: { workflowId?: string | number; status?: string; branch?: string; per_page?: number; page?: number },
+    tokenOverride?: string
+  ): Promise<{ total_count: number; workflow_runs: GitHubWorkflowRun[] }> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const params = new URLSearchParams();
+    if (query?.workflowId) params.set('workflow_id', String(query.workflowId));
+    if (query?.status) params.set('status', query.status);
+    if (query?.branch) params.set('branch', query.branch);
+    if (query?.per_page) params.set('per_page', String(query.per_page));
+    if (query?.page) params.set('page', String(query.page));
+
+    const res = await fetch(`${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/runs?${params.toString()}`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getGitHubWorkflowRun(
+    owner: string,
+    repo: string,
+    runId: number | string,
+    tokenOverride?: string
+  ): Promise<GitHubWorkflowRun> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(`${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/runs/${encodeURIComponent(String(runId))}`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getGitHubRunJobs(
+    owner: string,
+    repo: string,
+    runId: number | string,
+    tokenOverride?: string
+  ): Promise<GitHubWorkflowJob[]> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(`${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/runs/${encodeURIComponent(String(runId))}/jobs`, {
+      headers: this.getAuthHeaders(headers)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return Array.isArray(data.jobs) ? data.jobs : [];
+  }
+
+  public async triggerGitHubWorkflowDispatch(
+    owner: string,
+    repo: string,
+    workflowId: string | number,
+    payload: WorkflowDispatchPayload,
+    tokenOverride?: string
+  ): Promise<WorkflowTriggerReceipt> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(
+      `${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/workflows/${encodeURIComponent(String(workflowId))}/dispatch`,
+      {
+        method: 'POST',
+        headers: this.getAuthHeaders(headers),
+        body: JSON.stringify(payload)
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async cancelGitHubWorkflowRun(
+    owner: string,
+    repo: string,
+    runId: number | string,
+    tokenOverride?: string
+  ): Promise<{ success: boolean; message: string; evidenceChecksum: string }> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(
+      `${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/runs/${encodeURIComponent(String(runId))}/cancel`,
+      {
+        method: 'POST',
+        headers: this.getAuthHeaders(headers)
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async rerunGitHubWorkflowRun(
+    owner: string,
+    repo: string,
+    runId: number | string,
+    tokenOverride?: string
+  ): Promise<{ success: boolean; message: string; evidenceChecksum: string }> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(
+      `${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/runs/${encodeURIComponent(String(runId))}/rerun`,
+      {
+        method: 'POST',
+        headers: this.getAuthHeaders(headers)
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getGitHubJobLogs(
+    owner: string,
+    repo: string,
+    jobId: number | string,
+    tokenOverride?: string
+  ): Promise<GitHubJobLogsResult> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (tokenOverride) headers['x-github-token'] = tokenOverride;
+    const res = await fetch(
+      `${this.baseUrl}/github/actions/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/jobs/${encodeURIComponent(String(jobId))}/logs`,
+      {
+        headers: this.getAuthHeaders(headers)
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 }

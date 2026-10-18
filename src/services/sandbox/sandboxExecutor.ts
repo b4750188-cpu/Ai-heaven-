@@ -10,6 +10,7 @@ import { AgentPermissions, ToolDefinition } from '../../types/foundation';
 import { IWorkspaceFilesystemProvider, SandboxExecutionRequest, SandboxExecutionResult } from '../../types/execution';
 import { workspaceFilesystem } from './workspaceFs';
 import { scannerRegistry } from '../security/scannerRegistry';
+import { githubActionsService } from '../github/githubActionsService';
 
 // Completely forbidden commands that can never run under any circumstances
 const FORBIDDEN_HOST_PATTERNS = [
@@ -267,6 +268,66 @@ export class SandboxExecutor {
         rawStdout = scanRes.summary + '\n' + JSON.stringify(scanRes.findings, null, 2) + '\n';
         if (scanRes.status === 'failed' || scanRes.status === 'scope_violation') {
           exitCode = 1;
+        }
+      } else if (command.startsWith('gh ') || command.startsWith('github-actions ')) {
+        const parts = command.split(/\s+/);
+        const sub1 = parts[1];
+        const sub2 = parts[2];
+        const defaultRepo = 'b4750188-cpu/Ai-heaven-';
+        const repoArg = parts.find(p => p.startsWith('-R=') || p.startsWith('--repo='))?.split('=')[1] || defaultRepo;
+        const repoParts = repoArg.split('/');
+        const owner = repoParts[0] || 'b4750188-cpu';
+        const repo = repoParts[1] || 'Ai-heaven-';
+
+        if (sub1 === 'actions' && (sub2 === 'status' || !sub2)) {
+          const st = await githubActionsService.checkStatus();
+          rawStdout = `GitHub Actions API Status:\n- Configured: ${st.isConfigured}\n- Auth Type: ${st.authType}\n- User: ${st.authenticatedUser || 'none'}\n- Scopes: ${st.scopes.join(', ') || 'none'}\n- Rate Limit: ${st.rateLimit.remaining}/${st.rateLimit.limit}\n- Message: ${st.message}\n`;
+        } else if (sub1 === 'workflow' && sub2 === 'list') {
+          const wfs = await githubActionsService.listWorkflows(owner, repo);
+          rawStdout = `Workflows in ${owner}/${repo}:\n` + (wfs.length === 0 ? 'No workflows found.\n' : wfs.map(w => `• ${w.name} (${w.path}) - ${w.state} [ID: ${w.id}]`).join('\n') + '\n');
+        } else if (sub1 === 'run' && sub2 === 'list') {
+          const res = await githubActionsService.listWorkflowRuns(owner, repo, { per_page: 10 });
+          rawStdout = `Recent Workflow Runs in ${owner}/${repo} (${res.total_count} total):\n` + (res.workflow_runs.length === 0 ? 'No runs found.\n' : res.workflow_runs.map(r => `• #${r.run_number} ${r.name || r.display_title}: ${r.status}/${r.conclusion || 'pending'} (branch: ${r.head_branch})`).join('\n') + '\n');
+        } else if (sub1 === 'workflow' && sub2 === 'run') {
+          const wfId = parts[3];
+          if (!wfId) {
+            rawStderr = 'Usage: gh workflow run <workflow_id_or_filename> [--ref <branch>]\n';
+            exitCode = 1;
+          } else {
+            const refIdx = parts.indexOf('--ref');
+            const targetRef = refIdx !== -1 && parts[refIdx + 1] ? parts[refIdx + 1] : 'main';
+            const receipt = await githubActionsService.triggerWorkflowDispatch(owner, repo, wfId, { ref: targetRef }, 'sandbox-agent', request.workspace_id);
+            rawStdout = `Dispatched workflow ${wfId} on branch ${targetRef}\nDispatch ID: ${receipt.dispatchId}\nReceipt: ${receipt.evidenceChecksum}\nStatus: ${receipt.status}\n`;
+          }
+        } else if (sub1 === 'run' && sub2 === 'cancel') {
+          const runId = parts[3];
+          if (!runId) {
+            rawStderr = 'Usage: gh run cancel <runId>\n';
+            exitCode = 1;
+          } else {
+            const cancelRes = await githubActionsService.cancelWorkflowRun(owner, repo, runId, 'sandbox-agent', request.workspace_id);
+            rawStdout = `${cancelRes.message}\nEvidence: ${cancelRes.evidenceChecksum}\n`;
+          }
+        } else if (sub1 === 'run' && sub2 === 'rerun') {
+          const runId = parts[3];
+          if (!runId) {
+            rawStderr = 'Usage: gh run rerun <runId>\n';
+            exitCode = 1;
+          } else {
+            const rerunRes = await githubActionsService.rerunWorkflowRun(owner, repo, runId, 'sandbox-agent', request.workspace_id);
+            rawStdout = `${rerunRes.message}\nEvidence: ${rerunRes.evidenceChecksum}\n`;
+          }
+        } else if (sub1 === 'run' && (sub2 === 'view' || sub2 === 'log')) {
+          const jobId = parts[3];
+          if (!jobId) {
+            rawStderr = 'Usage: gh run view <jobId>\n';
+            exitCode = 1;
+          } else {
+            const logs = await githubActionsService.getJobLogs(owner, repo, jobId);
+            rawStdout = logs.content + '\n';
+          }
+        } else {
+          rawStdout = `GitHub Actions CLI Bridge: command '${command}' executed.\nRun 'gh actions status' to check status, or 'gh workflow list' to inspect workflows.\n`;
         }
       } else if (command.includes('--simulate-error')) {
         exitCode = 1;

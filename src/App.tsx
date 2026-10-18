@@ -38,6 +38,7 @@ import { BugHuntWorkspace } from './components/bughunt/BugHuntWorkspace';
 import { CentralBrainChatView } from './components/chat/CentralBrainChatView';
 import { SettingsView } from './components/settings/SettingsView';
 import { FourBeastsView } from './components/engines/FourBeastsView';
+import { GitHubActionsWorkspace } from './components/actions/GitHubActionsWorkspace';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -356,6 +357,10 @@ export default function App() {
             tools={tools}
             onOpenNewTaskModal={() => handleNavigateView('tasks')}
           />
+        )}
+
+        {currentView === 'github-actions' && (
+          <GitHubActionsWorkspace />
         )}
 
         {currentView === 'activity' && (
