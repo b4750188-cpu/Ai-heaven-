@@ -329,6 +329,27 @@ export class SandboxExecutor {
         } else {
           rawStdout = `GitHub Actions CLI Bridge: command '${command}' executed.\nRun 'gh actions status' to check status, or 'gh workflow list' to inspect workflows.\n`;
         }
+      } else if (command.startsWith('fable ') || command === 'fable') {
+        const parts = command.split(/\s+/);
+        const sub = parts[1];
+        if (sub === 'doctor' || !sub) {
+          const { fableModeService } = await import('../fable/fableModeService');
+          const doc = await fableModeService.runDoctor();
+          rawStdout = `Fable Mode Doctor Report:\n- Overall Health: ${doc.overallHealth}\n- Version: ${doc.version}\n- Python Available: ${doc.pythonAvailable ? 'Yes' : 'No'}\n- Test Discovery: ${doc.testDiscovery.command} (${doc.testDiscovery.source})\n- Checks:\n` + doc.checks.map(c => `  • [${c.status.toUpperCase()}] ${c.name}: ${c.detail}`).join('\n') + '\n';
+        } else if (sub === 'test') {
+          const { fableModeService } = await import('../fable/fableModeService');
+          const testRes = await fableModeService.executeTestAfterEdit();
+          rawStdout = `Fable Test-After-Edit Hook Result:\n- Command: ${testRes.command}\n- Passed: ${testRes.passed}\n- Duration: ${testRes.durationMs}ms\n- Debounced: ${testRes.debounced}\n` + (testRes.stdoutSnippet ? `Output Snippet:\n${testRes.stdoutSnippet}\n` : '') + (testRes.stderrSnippet ? `Stderr Snippet:\n${testRes.stderrSnippet}\n` : '');
+          if (!testRes.passed) exitCode = testRes.exitCode || 1;
+        } else if (sub === 'ground') {
+          const { fableModeService } = await import('../fable/fableModeService');
+          const ledger = await fableModeService.verifyGroundingLedger('Sandbox cold verification check', [
+            { id: 'sb_1', claim: 'Workspace root directory exists and is readable', evidenceType: 'read', reference: 'package.json:1' }
+          ]);
+          rawStdout = `Fable Grounding Verifier Result:\n- Verdict: ${ledger.verdict}\n- Reason: ${ledger.primaryReason}\n- Checksum: ${ledger.evidenceChecksum}\n`;
+        } else {
+          rawStdout = `Fable Mode CLI: command '${command}' executed.\nUse 'fable doctor' for diagnostics, 'fable test' for test verification, or 'fable ground' for claim audits.\n`;
+        }
       } else if (command.includes('--simulate-error')) {
         exitCode = 1;
         rawStderr = `Command execution error: simulated fault in sandbox container.\n`;

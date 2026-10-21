@@ -39,6 +39,7 @@ import { CentralBrainChatView } from './components/chat/CentralBrainChatView';
 import { SettingsView } from './components/settings/SettingsView';
 import { FourBeastsView } from './components/engines/FourBeastsView';
 import { GitHubActionsWorkspace } from './components/actions/GitHubActionsWorkspace';
+import { ComfyUIWorkspace } from './components/engines/ComfyUIWorkspace';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -421,6 +422,10 @@ export default function App() {
 
         {currentView === 'engines' && (
           <FourBeastsView />
+        )}
+
+        {currentView === 'comfyui' && (
+          <ComfyUIWorkspace onNavigateToTools={() => setCurrentView('tools')} />
         )}
 
       {/* Global Search Modal */}

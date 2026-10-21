@@ -70,6 +70,18 @@ export const ProviderHub: React.FC<ProviderHubProps> = ({
       structuredOutput: 'Yes (Grammar / Guided decoding)',
       pricingBase: 'Free open weights (Host compute)',
       slug: 'llama-3-3-70b'
+    },
+    {
+      provider: 'Edge0-AI',
+      primaryPlatform: 'Local Streaming MoE (SSD-offload)',
+      flagshipModel: 'Edge0-35B-A3B (MoE)',
+      maxContext: '32,768 tokens (32k)',
+      modalities: 'Text, Code',
+      codeExecution: 'AI Heaven Sandboxed VFS (Exit-126)',
+      functionCalling: 'Yes (OpenAI /v1/chat format)',
+      structuredOutput: 'Yes (JSON Schema mode)',
+      pricingBase: 'Free / Local Consumer Hardware ($0)',
+      slug: 'edge0-engine'
     }
   ];
 

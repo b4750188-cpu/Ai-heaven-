@@ -2591,6 +2591,165 @@ class AIHeavenApiClient {
     }
     return await res.json();
   }
+
+  // --- Edge0 Local Inference Engine ---
+  public async getEdge0Status(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/edge0/status`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async configureEdge0(params: {
+    endpoint?: string;
+    timeoutMs?: number;
+    localOnlyMode?: boolean;
+    allowCloudFallback?: boolean;
+    preferredModel?: string;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/edge0/configure`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async testEdge0Connection(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/edge0/test-connection`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getEdge0Models(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/edge0/models`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getEdge0AndroidCompatibility(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/edge0/android-compatibility`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- ComfyUI Visual AI Workflow Engine ---
+  public async getComfyUIStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/status`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async configureComfyUI(params: {
+    endpoint?: string;
+    timeoutMs?: number;
+    clientId?: string;
+    allowCloudFallback?: boolean;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/configure`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async testComfyUIConnection(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/test-connection`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getComfyUIQueue(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/queue`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async interruptComfyUI(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/interrupt`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getComfyUIHistory(promptId?: string): Promise<any> {
+    const q = promptId ? `?promptId=${encodeURIComponent(promptId)}` : '';
+    const res = await fetch(`${this.baseUrl}/comfyui/history${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getComfyUITemplates(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/templates`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async saveComfyUITemplate(template: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/templates`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(template)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async executeComfyUIWorkflow(params: {
+    prompt?: any;
+    templateId?: string;
+    params?: any;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/comfyui/execute`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
 }
 
 export const apiClient = new AIHeavenApiClient();

@@ -32,7 +32,8 @@ export type CapabilityCategory =
   | 'code_repository'
   | 'security_platform'
   | 'execution_sandbox'
-  | 'quality_assurance';
+  | 'quality_assurance'
+  | 'workflow_engine';
 
 export type DataFreshness = 'live' | 'cached' | 'stale' | 'unavailable';
 

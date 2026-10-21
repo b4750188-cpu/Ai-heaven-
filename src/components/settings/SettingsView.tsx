@@ -28,7 +28,9 @@ import {
   Zap,
   Download,
   Smartphone,
-  Laptop
+  Laptop,
+  Cpu,
+  Workflow
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { CapabilityEntry, CredentialAuditItem, GoogleDriveAccountQuota } from '../../types/reality';
@@ -37,7 +39,7 @@ import { googleDriveService, DriveQuotaReport } from '../../services/google/goog
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 export const SettingsView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'capabilities' | 'credentials' | 'google' | 'database' | 'pwa'>('capabilities');
+  const [activeTab, setActiveTab] = useState<'capabilities' | 'credentials' | 'google' | 'database' | 'pwa' | 'edge0' | 'comfyui'>('capabilities');
   const pwa = usePWAInstall();
   const [capabilities, setCapabilities] = useState<CapabilityEntry[]>([]);
   const [credentials, setCredentials] = useState<CredentialAuditItem[]>([]);
@@ -46,6 +48,23 @@ export const SettingsView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
   const [statusNotification, setStatusNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Edge0 Local Inference State
+  const [edge0Status, setEdge0Status] = useState<any>(null);
+  const [edge0Endpoint, setEdge0Endpoint] = useState<string>('http://127.0.0.1:8000');
+  const [edge0Timeout, setEdge0Timeout] = useState<number>(30000);
+  const [edge0LocalOnly, setEdge0LocalOnly] = useState<boolean>(false);
+  const [edge0AllowFallback, setEdge0AllowFallback] = useState<boolean>(true);
+  const [edge0PreferredModel, setEdge0PreferredModel] = useState<string>('Edge0-35B-A3B-preview');
+  const [edge0AndroidReport, setEdge0AndroidReport] = useState<any>(null);
+  const [isTestingEdge0, setIsTestingEdge0] = useState<boolean>(false);
+  const [isSavingEdge0, setIsSavingEdge0] = useState<boolean>(false);
+
+  // ComfyUI Visual Workflow State
+  const [comfyStatus, setComfyStatus] = useState<any>(null);
+  const [comfyEndpoint, setComfyEndpoint] = useState<string>('http://127.0.0.1:8188');
+  const [isTestingComfy, setIsTestingComfy] = useState<boolean>(false);
+  const [isSavingComfy, setIsSavingComfy] = useState<boolean>(false);
 
   useEffect(() => {
     loadData();
@@ -56,18 +75,138 @@ export const SettingsView: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [capsRes, credsRes, quotaRes] = await Promise.all([
-        apiClient.getRealityRegistry(),
-        apiClient.getCredentialAudit(),
-        googleDriveService.getDriveQuota()
+      const [capsRes, credsRes, quotaRes, edge0Res, edge0Android, comfyRes] = await Promise.all([
+        apiClient.getRealityRegistry().catch(() => []),
+        apiClient.getCredentialAudit().catch(() => []),
+        googleDriveService.getDriveQuota().catch(() => null),
+        apiClient.getEdge0Status().catch(() => null),
+        apiClient.getEdge0AndroidCompatibility().catch(() => null),
+        apiClient.getComfyUIStatus().catch(() => null)
       ]);
       setCapabilities(capsRes || []);
       setCredentials(credsRes || []);
       setDriveQuota(quotaRes);
+      if (edge0Res) {
+        setEdge0Status(edge0Res);
+        setEdge0Endpoint(edge0Res.endpoint || 'http://127.0.0.1:8000');
+        setEdge0LocalOnly(Boolean(edge0Res.localOnlyMode));
+        setEdge0AllowFallback(Boolean(edge0Res.allowCloudFallback));
+      }
+      if (edge0Android) {
+        setEdge0AndroidReport(edge0Android);
+      }
+      if (comfyRes) {
+        setComfyStatus(comfyRes);
+        if (comfyRes.endpoint) setComfyEndpoint(comfyRes.endpoint);
+      }
     } catch (err: any) {
       console.error('Failed to load reality registry:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTestComfyUI = async () => {
+    setIsTestingComfy(true);
+    try {
+      const res = await apiClient.testComfyUIConnection();
+      setComfyStatus(res.status);
+      await loadData();
+      if (res.success) {
+        setStatusNotification({
+          type: 'success',
+          message: `Connected to ComfyUI successfully (${res.latencyMs}ms, ${res.nodeCount || 0} nodes registered).`
+        });
+      } else {
+        setStatusNotification({
+          type: 'error',
+          message: `ComfyUI offline: ${res.error || 'Server unreachable'}`
+        });
+      }
+    } catch (err: any) {
+      setStatusNotification({
+        type: 'error',
+        message: `ComfyUI check failed: ${err.message}`
+      });
+    } finally {
+      setIsTestingComfy(false);
+    }
+  };
+
+  const handleSaveComfyUIConfig = async () => {
+    setIsSavingComfy(true);
+    try {
+      const res = await apiClient.configureComfyUI({
+        endpoint: comfyEndpoint
+      });
+      if (res.success) {
+        setComfyStatus(res.status);
+        setStatusNotification({
+          type: 'success',
+          message: 'ComfyUI endpoint configuration updated successfully.'
+        });
+      }
+    } catch (err: any) {
+      setStatusNotification({
+        type: 'error',
+        message: `Failed to update ComfyUI config: ${err.message}`
+      });
+    } finally {
+      setIsSavingComfy(false);
+    }
+  };
+
+  const handleTestEdge0 = async () => {
+    setIsTestingEdge0(true);
+    try {
+      const res = await apiClient.testEdge0Connection();
+      setEdge0Status(res.status);
+      await loadData();
+      if (res.success) {
+        setStatusNotification({
+          type: 'success',
+          message: `Edge0 connected successfully! Latency: ${res.latencyMs}ms, Models loaded: ${res.models?.length || 0}`
+        });
+      } else {
+        setStatusNotification({
+          type: 'error',
+          message: `Edge0 connection failed: ${res.error || 'Server unreachable at ' + edge0Endpoint}`
+        });
+      }
+    } catch (err: any) {
+      setStatusNotification({
+        type: 'error',
+        message: `Edge0 test failed: ${err.message}`
+      });
+    } finally {
+      setIsTestingEdge0(false);
+    }
+  };
+
+  const handleSaveEdge0Config = async () => {
+    setIsSavingEdge0(true);
+    try {
+      const res = await apiClient.configureEdge0({
+        endpoint: edge0Endpoint,
+        timeoutMs: edge0Timeout,
+        localOnlyMode: edge0LocalOnly,
+        allowCloudFallback: edge0AllowFallback,
+        preferredModel: edge0PreferredModel
+      });
+      if (res.success) {
+        setEdge0Status(res.status);
+        setStatusNotification({
+          type: 'success',
+          message: 'Edge0 configuration saved successfully.'
+        });
+      }
+    } catch (err: any) {
+      setStatusNotification({
+        type: 'error',
+        message: `Failed to save Edge0 config: ${err.message}`
+      });
+    } finally {
+      setIsSavingEdge0(false);
     }
   };
 
@@ -224,6 +363,48 @@ export const SettingsView: React.FC = () => {
           {pwa.isInstalled && (
             <span className="px-1.5 py-0.2 text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-mono">
               INSTALLED
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('edge0')}
+          className={`px-4 py-2.5 border-b-2 font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeTab === 'edge0'
+              ? 'border-[#42D9F5] text-[#42D9F5] bg-[#42D9F5]/5'
+              : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
+          }`}
+        >
+          <Cpu className="h-4 w-4" />
+          <span>Edge0 Local Engine</span>
+          {edge0Status?.isConnected ? (
+            <span className="px-1.5 py-0.2 text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-mono">
+              ONLINE
+            </span>
+          ) : (
+            <span className="px-1.5 py-0.2 text-[9px] bg-[#171F2B] text-[#9AA6B7] border border-[#283242] rounded font-mono">
+              STANDBY
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('comfyui')}
+          className={`px-4 py-2.5 border-b-2 font-medium transition-colors whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+            activeTab === 'comfyui'
+              ? 'border-[#42D9F5] text-[#42D9F5] bg-[#42D9F5]/5'
+              : 'border-transparent text-[#9AA6B7] hover:text-[#F1F4F8]'
+          }`}
+        >
+          <Workflow className="h-4 w-4" />
+          <span>ComfyUI Workflows</span>
+          {comfyStatus?.isConnected ? (
+            <span className="px-1.5 py-0.2 text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 rounded font-mono">
+              ONLINE
+            </span>
+          ) : (
+            <span className="px-1.5 py-0.2 text-[9px] bg-[#171F2B] text-[#9AA6B7] border border-[#283242] rounded font-mono">
+              STANDBY
             </span>
           )}
         </button>
@@ -595,6 +776,417 @@ export const SettingsView: React.FC = () => {
                   <p className="text-[#9AA6B7] text-[11px] leading-relaxed">
                     Click the <strong>Install icon (&darr;)</strong> in the right side of the browser URL bar, or choose <strong>Install AI Heaven</strong> from the browser menu.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 6: Edge0 Local Inference Engine */}
+      {activeTab === 'edge0' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="p-5 bg-[#121822]/60 border border-[#283242] rounded-xl space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-[#42D9F5]/10 border border-[#42D9F5]/30 rounded-lg text-[#42D9F5]">
+                  <Cpu className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#F1F4F8] flex items-center gap-2">
+                    Edge0 Local MoE Inference Engine
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#171F2B] border border-[#283242] text-[#9AA6B7]">
+                      v2026.09-preview
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#9AA6B7]">
+                    Official Project:{' '}
+                    <a
+                      href="https://github.com/Edge0-AI/Edge0"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#42D9F5] hover:underline inline-flex items-center gap-1 font-mono"
+                    >
+                      Edge0-AI/Edge0 <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleTestEdge0}
+                  disabled={isTestingEdge0}
+                  className="px-3.5 py-2 bg-[#42D9F5] hover:bg-[#32B9D5] text-[#080B10] font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isTestingEdge0 ? 'animate-spin' : ''}`} />
+                  {isTestingEdge0 ? 'Testing...' : 'Test Connection'}
+                </button>
+                <button
+                  onClick={handleSaveEdge0Config}
+                  disabled={isSavingEdge0}
+                  className="px-3.5 py-2 bg-[#1B2432] hover:bg-[#283242] text-[#F1F4F8] text-xs font-medium rounded-md border border-[#283242] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingEdge0 ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#9AA6B7] leading-relaxed pt-1">
+              Edge0 is an open-source streaming Mixture-of-Experts (MoE) inference framework designed to serve 35B models with only ~2.5 to 3.0 GB of active RAM by streaming weights on-demand from high-speed SSD/UFS storage.
+            </p>
+          </div>
+
+          {/* Status & Telemetry Card */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+            <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-lg space-y-1">
+              <span className="text-[10px] text-[#9AA6B7] uppercase">Runtime Status</span>
+              <div className="pt-0.5">
+                {edge0Status?.isConnected ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                    CONNECTED &amp; OPERATIONAL
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#171F2B] text-[#9AA6B7] border border-[#283242]">
+                    DISCONNECTED / STANDBY
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-lg space-y-1">
+              <span className="text-[10px] text-[#9AA6B7] uppercase">Endpoint Target</span>
+              <div className="text-[#F1F4F8] font-bold truncate">
+                {edge0Status?.endpoint || edge0Endpoint}
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-lg space-y-1">
+              <span className="text-[10px] text-[#9AA6B7] uppercase">Roundtrip Latency</span>
+              <div className="text-[#42D9F5] font-bold">
+                {edge0Status?.latencyMs !== undefined ? `${edge0Status.latencyMs} ms` : 'N/A'}
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-[#080B10] border border-[#283242] rounded-lg space-y-1">
+              <span className="text-[10px] text-[#9AA6B7] uppercase">Confirmed Models</span>
+              <div className="text-emerald-400 font-bold">
+                {edge0Status?.loadedModels?.length || 0} model(s)
+              </div>
+            </div>
+          </div>
+
+          {/* Runtime Error or Notice if Offline */}
+          {edge0Status?.error && (
+            <div className="p-3.5 rounded-lg border bg-amber-950/30 border-amber-800/80 text-amber-300 text-xs font-mono flex items-start gap-2.5">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
+              <div>
+                <div className="font-bold text-amber-200">Runtime Telemetry Notice:</div>
+                <div className="text-[11px] mt-0.5 leading-relaxed">{edge0Status.error}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Endpoint Configuration & SSRF Shield */}
+          <div className="p-5 bg-[#080B10] border border-[#283242] rounded-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#283242] pb-3">
+              <h4 className="text-xs font-bold text-[#F1F4F8] uppercase tracking-wider flex items-center gap-2">
+                <Server className="h-4 w-4 text-[#42D9F5]" />
+                Endpoint &amp; Connection Configuration
+              </h4>
+              <span className="text-[10px] font-mono text-[#9AA6B7]">OpenAI-compatible REST API</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="text-[11px] font-mono text-[#9AA6B7]">
+                  Local Daemon Server URL (Loopback / LAN only)
+                </label>
+                <input
+                  type="text"
+                  value={edge0Endpoint}
+                  onChange={e => setEdge0Endpoint(e.target.value)}
+                  placeholder="http://127.0.0.1:8000"
+                  className="w-full bg-[#121822] border border-[#283242] rounded-md px-3 py-2 text-xs font-mono text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono text-[#9AA6B7]">
+                  Request Timeout (ms)
+                </label>
+                <input
+                  type="number"
+                  value={edge0Timeout}
+                  onChange={e => setEdge0Timeout(Number(e.target.value))}
+                  min={2000}
+                  max={120000}
+                  className="w-full bg-[#121822] border border-[#283242] rounded-md px-3 py-2 text-xs font-mono text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* SSRF Security Barrier Notice */}
+            <div className="p-3 bg-[#121822]/60 border border-[#283242] rounded-lg text-xs flex items-start gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                <strong className="text-[#F1F4F8]">SSRF Security Boundary Active: </strong>
+                Connections are restricted to loopback (<code className="text-neutral-300">localhost</code>, <code className="text-neutral-300">127.0.0.1</code>, <code className="text-neutral-300">::1</code>) and private LAN subnets. Cloud instance metadata destinations (<code className="text-neutral-300">169.254.169.254</code>) are blocked.
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy & Routing Policy Controls */}
+          <div className="p-5 bg-[#080B10] border border-[#283242] rounded-xl space-y-4">
+            <h4 className="text-xs font-bold text-[#F1F4F8] uppercase tracking-wider flex items-center gap-2 border-b border-[#283242] pb-3">
+              <Lock className="h-4 w-4 text-emerald-400" />
+              Privacy &amp; Central Brain Routing Policy
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Local-Only Mode Toggle */}
+              <div className="p-4 bg-[#121822]/50 border border-[#283242] rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-xs text-[#F1F4F8] flex items-center gap-1.5">
+                    <Zap className="h-4 w-4 text-[#42D9F5]" />
+                    Local-Only Inference Mode
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={edge0LocalOnly}
+                    onChange={e => setEdge0LocalOnly(e.target.checked)}
+                    className="h-4 w-4 rounded accent-[#42D9F5] cursor-pointer"
+                  />
+                </div>
+                <p className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                  When enabled, Central Brain routes prompts strictly to the Edge0 local runtime. Prompts, source files, and memory never leave your device.
+                </p>
+              </div>
+
+              {/* Allow Cloud Fallback Toggle */}
+              <div className="p-4 bg-[#121822]/50 border border-[#283242] rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-xs text-[#F1F4F8] flex items-center gap-1.5">
+                    <Cloud className="h-4 w-4 text-[#9AA6B7]" />
+                    Allow Cloud Fallback Permission
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={edge0AllowFallback}
+                    onChange={e => setEdge0AllowFallback(e.target.checked)}
+                    className="h-4 w-4 rounded accent-[#42D9F5] cursor-pointer"
+                  />
+                </div>
+                <p className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                  Allows fallback to Gemini or other configured cloud models if the Edge0 server is offline. If disabled in Local-Only Mode, queries fail safely instead of leaking data.
+                </p>
+              </div>
+            </div>
+
+            {/* Preferred Model */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] font-mono text-[#9AA6B7]">
+                Preferred Edge0 Model Tier
+              </label>
+              <select
+                value={edge0PreferredModel}
+                onChange={e => setEdge0PreferredModel(e.target.value)}
+                className="w-full bg-[#121822] border border-[#283242] rounded-md px-3 py-2 text-xs font-mono text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none cursor-pointer"
+              >
+                <option value="Edge0-35B-A3B-preview">Edge0-35B-A3B-preview (35B MoE, ~3GB RAM via SSD)</option>
+                <option value="Edge0-8B-A1B-preview">Edge0-8B-A1B-preview (8B MoE, Ultra-Lightweight)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Android & Mobile Hardware Compatibility */}
+          <div className="p-5 bg-[#080B10] border border-[#283242] rounded-xl space-y-4">
+            <h4 className="text-xs font-bold text-[#F1F4F8] uppercase tracking-wider flex items-center gap-2 border-b border-[#283242] pb-3">
+              <Smartphone className="h-4 w-4 text-[#42D9F5]" />
+              Android Hardware &amp; Web Platform Compatibility Analysis
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">ARCHITECTURE</div>
+                <div className="text-emerald-400 font-bold mt-1">ARM64-v8a</div>
+                <div className="text-[10px] text-[#9AA6B7] mt-0.5">64-bit SoC required</div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">MINIMUM RAM</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">4.0 GB Physical</div>
+                <div className="text-[10px] text-[#9AA6B7] mt-0.5">~2.5GB active buffer</div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">STORAGE TYPE</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">UFS 3.1 / 4.0</div>
+                <div className="text-[10px] text-[#9AA6B7] mt-0.5">&gt;1500 MB/s read speed</div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">OS VERSION</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">Android 12+</div>
+                <div className="text-[10px] text-[#9AA6B7] mt-0.5">API Level 31+</div>
+              </div>
+            </div>
+
+            {/* W3C Sandbox Boundary & Truthful Execution Path */}
+            <div className="p-4 bg-[#121822]/40 border border-[#283242] rounded-lg space-y-2 text-xs">
+              <div className="font-semibold text-[#F1F4F8] flex items-center gap-1.5">
+                <Info className="h-4 w-4 text-[#42D9F5]" />
+                Web Application &amp; PWA Sandbox Boundary
+              </div>
+              <p className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                Due to standard W3C browser security sandboxing, web applications cannot directly launch native NDK ELF binaries or bypass file permissions to raw mmap flash sectors.
+              </p>
+              <div className="text-[11px] text-[#F1F4F8] pt-1">
+                <strong>Supported Real-World Android Workflows:</strong>
+                <ul className="list-disc list-inside space-y-1 text-[#9AA6B7] mt-1 pl-1">
+                  <li><strong>Edge0 Companion Daemon:</strong> Run native Edge0 Android foreground service listening on <code className="text-neutral-300">127.0.0.1:8000</code>.</li>
+                  <li><strong>Termux NDK Environment:</strong> Launch <code className="text-neutral-300">edge0 serve Edge0-8B-A1B-preview</code> inside Termux ARM64.</li>
+                  <li><strong>Host USB/Wi-Fi Bridge:</strong> Connect phone to laptop/workstation and execute <code className="text-neutral-300">adb reverse tcp:8000 tcp:8000</code>.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Thermal and Battery Notice */}
+            <div className="p-3 bg-[#121822]/30 border border-[#283242] rounded-lg text-xs flex items-start gap-2.5">
+              <Clock className="h-4 w-4 text-[#9AA6B7] shrink-0 mt-0.5" />
+              <div className="text-[11px] text-[#9AA6B7] leading-relaxed">
+                <strong className="text-neutral-300">Thermal &amp; Battery Note: </strong>
+                Continuous MoE weight streaming generates sustained UFS bus read operations. On-demand inference is recommended for battery longevity and thermal stability.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 7: ComfyUI Visual AI Workflow Engine */}
+      {activeTab === 'comfyui' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="p-5 bg-[#121822]/60 border border-[#283242] rounded-xl space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-[#42D9F5]/10 border border-[#42D9F5]/30 rounded-lg text-[#42D9F5]">
+                  <Workflow className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#F1F4F8] flex items-center gap-2">
+                    ComfyUI Visual AI Workflow Engine
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#171F2B] border border-[#283242] text-[#9AA6B7]">
+                      v0.3.14 · GPL-3.0
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#9AA6B7]">
+                    Official node-based DAG workflow engine (<a href="https://github.com/Comfy-Org/ComfyUI" target="_blank" rel="noopener noreferrer" className="text-[#42D9F5] hover:underline">Comfy-Org/ComfyUI</a>) for image, video, and audio synthesis.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleTestComfyUI}
+                  disabled={isTestingComfy}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#42D9F5] hover:bg-[#42D9F5]/90 text-[#080B10] font-bold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isTestingComfy ? 'animate-spin' : ''}`} />
+                  <span>{isTestingComfy ? 'Testing...' : 'Test Connection'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Connection & Endpoint Settings */}
+          <div className="p-5 bg-[#0D1118] border border-[#283242] rounded-xl space-y-4">
+            <div className="border-b border-[#283242] pb-3 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-[#F1F4F8]">Runtime Endpoint Configuration</h4>
+                <p className="text-xs text-[#9AA6B7]">HTTP REST and WebSocket URL for the local ComfyUI daemon.</p>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${
+                comfyStatus?.isConnected
+                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                  : 'bg-[#171F2B] text-[#9AA6B7] border border-[#283242]'
+              }`}>
+                {comfyStatus?.isConnected ? 'CONNECTED' : 'DISCONNECTED'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="text-xs font-semibold text-[#9AA6B7]">Endpoint URL</label>
+                <input
+                  type="text"
+                  value={comfyEndpoint}
+                  onChange={(e) => setComfyEndpoint(e.target.value)}
+                  placeholder="http://127.0.0.1:8188"
+                  className="w-full p-2.5 rounded-lg bg-[#121822] border border-[#283242] text-xs text-[#F1F4F8] font-mono focus:border-[#42D9F5] focus:outline-none"
+                />
+                <p className="text-[10px] text-[#9AA6B7]">
+                  Enforces strict SSRF protection: only loopback (127.0.0.1) and private LAN IPs are permitted.
+                </p>
+              </div>
+
+              <div className="space-y-1.5 flex flex-col justify-end">
+                <button
+                  onClick={handleSaveComfyUIConfig}
+                  disabled={isSavingComfy}
+                  className="w-full py-2.5 px-4 rounded-lg bg-[#171F2B] hover:bg-[#283242] border border-[#283242] text-xs font-bold text-[#F1F4F8] transition-colors disabled:opacity-50"
+                >
+                  {isSavingComfy ? 'Saving...' : 'Save Configuration'}
+                </button>
+              </div>
+            </div>
+
+            {comfyStatus?.error && (
+              <div className="p-3 bg-[#F87171]/10 border border-[#F87171]/30 rounded-lg text-xs text-[#F87171] font-mono flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <strong>Runtime Notice: </strong> {comfyStatus.error}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Hardware & System Telemetry */}
+          <div className="p-5 bg-[#0D1118] border border-[#283242] rounded-xl space-y-4">
+            <h4 className="text-sm font-semibold text-[#F1F4F8] flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-[#8A83FF]" />
+              Verified Hardware Telemetry &amp; Node Registry
+            </h4>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">ACCELERATOR DEVICE</div>
+                <div className="text-[#F1F4F8] font-bold mt-1 truncate">
+                  {comfyStatus?.systemStats?.devices?.[0]?.name || (comfyStatus?.isConnected ? 'CPU' : 'Offline')}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">VRAM CAPACITY</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">
+                  {comfyStatus?.systemStats?.devices?.[0]?.vram_total
+                    ? `${Math.round(comfyStatus.systemStats.devices[0].vram_total / (1024 * 1024))} MB`
+                    : 'N/A'}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">REGISTERED NODES</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">
+                  {comfyStatus?.nodeCount !== undefined ? `${comfyStatus.nodeCount} nodes` : '0'}
+                </div>
+              </div>
+
+              <div className="p-3 bg-[#121822] border border-[#283242] rounded-lg">
+                <div className="text-[10px] text-[#9AA6B7]">ACTIVE QUEUE</div>
+                <div className="text-[#F1F4F8] font-bold mt-1">
+                  {comfyStatus?.queueRemaining || 0} remaining
                 </div>
               </div>
             </div>

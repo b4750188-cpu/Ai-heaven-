@@ -98,6 +98,36 @@ export const PROVIDERS: Provider[] = [
     external_identifiers: {
       domain: 'huggingface.co'
     }
+  },
+  {
+    id: 'prov_edge0',
+    slug: 'edge0',
+    name: 'Edge0-AI',
+    legal_name: 'Edge0-AI Open Source Project',
+    website_url: 'https://github.com/Edge0-AI/Edge0',
+    documentation_url: 'https://github.com/Edge0-AI/Edge0#readme',
+    headquarters: 'Open Source Community',
+    description: 'Open-source streaming Mixture-of-Experts (MoE) inference framework running 35B models with 2.5-3GB RAM via SSD expert offload.',
+    resource_types_provided: ['platform', 'model', 'api', 'tool'],
+    verified: true,
+    external_identifiers: {
+      domain: 'github.com'
+    }
+  },
+  {
+    id: 'prov_comfyui',
+    slug: 'comfy-org',
+    name: 'Comfy-Org',
+    legal_name: 'Comfy-Org Open Source Project',
+    website_url: 'https://github.com/Comfy-Org/ComfyUI',
+    documentation_url: 'https://github.com/Comfy-Org/ComfyUI#readme',
+    headquarters: 'Open Source Community',
+    description: 'The official Comfy-Org organization behind the modular node-based diffusion model execution GUI and backend engine.',
+    resource_types_provided: ['platform', 'tool', 'api'],
+    verified: true,
+    external_identifiers: {
+      domain: 'github.com'
+    }
   }
 ];
 
@@ -922,10 +952,154 @@ export const RESOURCES: Resource[] = [
       compatibility: ['Experimental'],
       alternatives: ['None']
     }
+  },
+  // 12. EDGE0 LOCAL MOE ENGINE
+  {
+    id: 'res_edge0_engine',
+    slug: 'edge0-engine',
+    name: 'Edge0 Local MoE Inference Engine',
+    resource_type: 'platform',
+    provider_id: 'prov_edge0',
+    description: 'Streaming Mixture-of-Experts (MoE) local inference framework running 35B models on consumer hardware (Mac, iPhone, Android, Windows) with ~2.5-3GB active RAM via SSD expert weight streaming.',
+    summary: 'Open-source on-device MoE inference engine streaming weights from SSD.',
+    source_url: 'https://github.com/Edge0-AI/Edge0',
+    documentation_url: 'https://github.com/Edge0-AI/Edge0#readme',
+    repository_url: 'https://github.com/Edge0-AI/Edge0',
+    publisher: 'Edge0-AI Community',
+    author: 'Edge0-AI',
+    version: '2026.09-preview',
+    license: 'Apache-2.0',
+    capabilities: [
+      'ssd_moe_weight_streaming',
+      'openai_compatible_api',
+      'on_device_privacy',
+      'zero_cloud_egress',
+      'android_arm64_inference'
+    ],
+    modalities: {
+      input: ['text', 'code'],
+      output: ['text', 'code']
+    },
+    context_limit: 32768,
+    dependencies: ['ARM64/Apple Silicon/CUDA/Vulkan', 'Fast NVMe/UFS 3.1+ SSD'],
+    tags: ['local-ai', 'moe', 'inference', 'open-source', 'android', 'apple-silicon'],
+    categories: ['Platforms', 'Inference Engines'],
+    verification_status: 'verified',
+    trust_score: 95,
+    provenance: {
+      source_provider: 'Edge0-AI',
+      source_url: 'https://github.com/Edge0-AI/Edge0',
+      source_identifier: 'edge0-core-repo',
+      source_type: 'verified_git_repository',
+      first_seen_at: '2026-09-01T00:00:00Z',
+      last_seen_at: '2026-10-19T00:00:00Z',
+      last_verified_at: '2026-10-19T00:00:00Z',
+      sync_status: 'synced',
+      is_demo_data: false
+    },
+    external_identifiers: {
+      github: 'Edge0-AI/Edge0'
+    },
+    agent_contract: {
+      what_is_it: 'Open-source streaming Mixture-of-Experts (MoE) local inference engine streaming weights from SSD.',
+      what_does_it_do: 'Provides on-device OpenAI-compatible local AI inference without cloud data transmission.',
+      who_provides_it: 'Edge0-AI Project',
+      inputs: ['Chat completion prompt', 'OpenAI format messages'],
+      outputs: ['Generated text completion', 'Token metrics'],
+      authentication: {
+        type: 'none',
+        required: false,
+        header_or_param: 'None (Local Loopback)',
+        description: 'Local loopback inference daemon'
+      },
+      permissions: ['Local Loopback Network (127.0.0.1)'],
+      rate_limits: 'Hardware and SSD throughput bound',
+      cost_model: 'Free / Zero Token Cost (Open-Source Apache-2.0)',
+      compatibility: ['OpenAI API', 'Android Termux', 'Apple Silicon', 'Linux ARM64/x86_64'],
+      alternatives: ['Ollama', 'llama.cpp', 'vLLM']
+    }
+  },
+  // 13. COMFYUI VISUAL AI WORKFLOW ENGINE
+  {
+    id: 'res_comfyui_engine',
+    slug: 'comfyui-engine',
+    name: 'ComfyUI Visual AI Workflow Engine',
+    resource_type: 'platform',
+    provider_id: 'prov_comfyui',
+    description: 'Modular, node-based directed acyclic graph (DAG) execution GUI and backend engine for Stable Diffusion, SDXL, Flux, AnimateDiff, and multimodal generative pipelines.',
+    summary: 'Modular node-based visual AI workflow execution engine.',
+    source_url: 'https://github.com/Comfy-Org/ComfyUI',
+    documentation_url: 'https://github.com/Comfy-Org/ComfyUI#readme',
+    repository_url: 'https://github.com/Comfy-Org/ComfyUI',
+    publisher: 'Comfy-Org Community',
+    author: 'comfyanonymous & Comfy-Org',
+    version: '0.3.14-release',
+    license: 'GPL-3.0',
+    capabilities: [
+      'node_based_workflow_execution',
+      'stable_diffusion_pipelines',
+      'animatediff_video',
+      'custom_node_extensibility',
+      'websocket_progress_streaming'
+    ],
+    modalities: {
+      input: ['text', 'image', 'audio', 'latent'],
+      output: ['image', 'video', 'audio', 'latent']
+    },
+    context_limit: 4096,
+    dependencies: ['Python 3.10+', 'PyTorch 2.0+', 'CUDA/ROCm/MPS/DirectML'],
+    tags: ['visual-ai', 'diffusion', 'nodes', 'workflow', 'comfyui', 'sdxl', 'flux'],
+    categories: ['Platforms', 'Workflow Engines'],
+    verification_status: 'verified',
+    trust_score: 98,
+    provenance: {
+      source_provider: 'Comfy-Org',
+      source_url: 'https://github.com/Comfy-Org/ComfyUI',
+      source_identifier: 'comfyui-core-repo',
+      source_type: 'verified_git_repository',
+      first_seen_at: '2026-01-01T00:00:00Z',
+      last_seen_at: '2026-10-20T00:00:00Z',
+      last_verified_at: '2026-10-20T00:00:00Z',
+      sync_status: 'synced',
+      is_demo_data: false
+    },
+    external_identifiers: {
+      github: 'Comfy-Org/ComfyUI'
+    },
+    agent_contract: {
+      what_is_it: 'Modular node-based directed acyclic graph (DAG) visual AI workflow engine.',
+      what_does_it_do: 'Executes generative diffusion workflows for image synthesis, inpainting, style transfer, and video animation.',
+      who_provides_it: 'Comfy-Org Open Source Project',
+      inputs: ['Workflow prompt DAG JSON', 'Text conditioning', 'Latent seeds', 'Checkpoint reference'],
+      outputs: ['Generated images (PNG)', 'Animation frames', 'Decoded latent representations'],
+      authentication: {
+        type: 'none',
+        required: false,
+        header_or_param: 'None (Local Loopback / Tailscale)',
+        description: 'Local loopback inference daemon'
+      },
+      permissions: ['Local Loopback Network (127.0.0.1:8188)'],
+      rate_limits: 'VRAM and GPU compute speed bound',
+      cost_model: 'Free / Zero Token Cost (Open-Source GPL-3.0)',
+      compatibility: ['PyTorch', 'NVIDIA CUDA', 'Apple MPS', 'DirectML', 'AMD ROCm'],
+      alternatives: ['Automatic1111 WebUI', 'Diffusers CLI', 'Fooocus']
+    }
   }
 ];
 
 export const RELATIONSHIPS: ResourceRelationship[] = [
+  // Comfy-Org -> ComfyUI Engine
+  {
+    id: 'rel_comfy_01',
+    source_slug: 'comfy-org',
+    target_slug: 'comfyui-engine',
+    relationship_type: 'provides',
+    evidence_url: 'https://github.com/Comfy-Org/ComfyUI',
+    confidence: 1.0,
+    verified: true,
+    created_at: '2026-01-01T00:00:00Z',
+    description: 'Comfy-Org maintains and publishes the official ComfyUI node execution engine.'
+  },
   // Google AI Studio -> Gemini Models
   {
     id: 'rel_01',
@@ -1025,5 +1199,16 @@ export const RELATIONSHIPS: ResourceRelationship[] = [
     verified: true,
     created_at: '2024-12-06T00:00:00Z',
     description: 'Hugging Face Hub hosts the official safetensors repository and model card for Meta Llama 3.3 70B Instruct.'
+  },
+  {
+    id: 'rel_10',
+    source_slug: 'edge0-engine',
+    target_slug: 'llama-3-3-70b',
+    relationship_type: 'alternative_to',
+    evidence_url: 'https://github.com/Edge0-AI/Edge0',
+    confidence: 0.95,
+    verified: true,
+    created_at: '2026-09-30T00:00:00Z',
+    description: 'Edge0 serves as a streaming MoE low-RAM local alternative to dense open-weight models like Llama 3.3 70B.'
   }
 ];

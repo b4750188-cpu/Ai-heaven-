@@ -13,6 +13,8 @@
 import crypto from 'crypto';
 import { postgresManager } from '../../db/postgres';
 import { realityRegistryService } from '../reality/realityRegistryService';
+import { edge0Provider } from '../inference/edge0Provider';
+import { comfyUIProvider } from '../workflow/comfyUIProvider';
 
 export type TaskDomain =
   | 'coding'
@@ -22,6 +24,7 @@ export type TaskDomain =
   | 'review'
   | 'debugging'
   | 'terminal'
+  | 'multimodal'
   | 'general';
 
 export type TaskComplexity = 'simple' | 'moderate' | 'complex';
@@ -29,7 +32,7 @@ export type TaskComplexity = 'simple' | 'moderate' | 'complex';
 export interface ModelSpec {
   id: string;
   name: string;
-  provider: 'google' | 'anthropic' | 'openai' | 'deepseek' | 'meta' | 'open-source';
+  provider: 'google' | 'anthropic' | 'openai' | 'deepseek' | 'meta' | 'open-source' | 'comfyui';
   contextWindow: number;
   inputCostPerM: number;
   outputCostPerM: number;
@@ -254,6 +257,62 @@ class CentralBrainService {
       speedScore: 89,
       isAvailable: true,
       recommendedFor: ['terminal', 'general', 'research']
+    },
+    {
+      id: 'edge0-35b-a3b',
+      name: 'Edge0 35B MoE (Local SSD-Stream)',
+      provider: 'open-source',
+      contextWindow: 32768,
+      inputCostPerM: 0.00,
+      outputCostPerM: 0.00,
+      avgLatencyMs: 410,
+      codingScore: 90,
+      reasoningScore: 89,
+      speedScore: 85,
+      isAvailable: false,
+      recommendedFor: ['coding', 'debugging', 'architecture', 'general']
+    },
+    {
+      id: 'edge0-8b-a1b',
+      name: 'Edge0 8B MoE (Local Ultra-Light)',
+      provider: 'open-source',
+      contextWindow: 16384,
+      inputCostPerM: 0.00,
+      outputCostPerM: 0.00,
+      avgLatencyMs: 180,
+      codingScore: 82,
+      reasoningScore: 81,
+      speedScore: 94,
+      isAvailable: false,
+      recommendedFor: ['terminal', 'general', 'research']
+    },
+    {
+      id: 'comfyui-sdxl-turbo',
+      name: 'ComfyUI SDXL Turbo (Visual Workflow)',
+      provider: 'comfyui',
+      contextWindow: 4096,
+      inputCostPerM: 0.00,
+      outputCostPerM: 0.00,
+      avgLatencyMs: 1200,
+      codingScore: 70,
+      reasoningScore: 80,
+      speedScore: 92,
+      isAvailable: false,
+      recommendedFor: ['multimodal', 'general']
+    },
+    {
+      id: 'comfyui-flux-dev',
+      name: 'ComfyUI Flux.1 Dev (Visual Node Graph)',
+      provider: 'comfyui',
+      contextWindow: 4096,
+      inputCostPerM: 0.00,
+      outputCostPerM: 0.00,
+      avgLatencyMs: 2800,
+      codingScore: 75,
+      reasoningScore: 88,
+      speedScore: 78,
+      isAvailable: false,
+      recommendedFor: ['multimodal', 'architecture']
     }
   ];
 
@@ -323,6 +382,30 @@ class CentralBrainService {
         failureRatePercent: 0.0,
         activeAccount: 'system-isolated-sandbox',
         failoverTarget: 'local-vfs'
+      },
+      {
+        providerId: 'edge0-local',
+        providerName: 'Edge0 Local MoE Engine (SSD-Streaming)',
+        status: 'operational',
+        requestsPerMinute: 0,
+        requestsLimit: 1000,
+        tokensPerMinute: 0,
+        tokensLimit: 0,
+        failureRatePercent: 0.0,
+        activeAccount: 'device-local-daemon',
+        failoverTarget: 'gemini-2.5-flash'
+      },
+      {
+        providerId: 'comfyui-local',
+        providerName: 'ComfyUI Visual AI Workflow Engine',
+        status: 'operational',
+        requestsPerMinute: 0,
+        requestsLimit: 120,
+        tokensPerMinute: 0,
+        tokensLimit: 0,
+        failureRatePercent: 0.0,
+        activeAccount: 'local-diffusion-runner',
+        failoverTarget: 'gemini-2.5-flash'
       }
     ];
 
@@ -430,7 +513,18 @@ class CentralBrainService {
     let fallbackModel: ModelSpec;
     let rationale = '';
 
-    if (complexity === 'complex' || domain === 'architecture' || domain === 'security') {
+    const isLocalOnly = edge0Provider.getConfig().localOnlyMode;
+    const edge0Available = availableModels.find(m => m.id.startsWith('edge0'));
+
+    if (isLocalOnly && edge0Available) {
+      if (domain === 'terminal' || complexity === 'simple') {
+        selectedModel = availableModels.find(m => m.id === 'edge0-8b-a1b') || edge0Available;
+      } else {
+        selectedModel = availableModels.find(m => m.id === 'edge0-35b-a3b') || edge0Available;
+      }
+      fallbackModel = availableModels.find(m => m.id === 'llama-3-3-70b') || availableModels[0];
+      rationale = `Local-Only Mode active: routed to Edge0 streaming MoE engine (${selectedModel.name}) with zero cloud egress.`;
+    } else if (complexity === 'complex' || domain === 'architecture' || domain === 'security') {
       selectedModel = availableModels.find(m => m.id === 'gemini-2.5-pro') || availableModels[0];
       fallbackModel = availableModels.find(m => m.id === 'gemini-2.5-flash') || availableModels[1];
       rationale = `Complex ${domain} task routed to high-reasoning model (${selectedModel.name}) with deep context window (${selectedModel.contextWindow.toLocaleString()} tokens).`;
@@ -502,6 +596,14 @@ class CentralBrainService {
 
   public getDecisions(): RoutingDecision[] {
     return [...this.routingDecisions];
+  }
+
+  public syncEdge0Models(loadedModelIds: string[], isConnected: boolean): void {
+    for (const m of this.models) {
+      if (m.id.startsWith('edge0')) {
+        m.isAvailable = isConnected;
+      }
+    }
   }
 
   // =========================================================================
@@ -771,6 +873,7 @@ class CentralBrainService {
 
   public getProviderStatuses(): Array<{
     provider: string;
+    providerId?: string;
     name: string;
     isConfigured: boolean;
     status: 'live_configured' | 'unconfigured' | 'operational';
@@ -826,6 +929,22 @@ class CentralBrainService {
         isConfigured: true,
         status: 'operational',
         details: 'Deterministic local execution engine with exit code 126 security boundary.'
+      },
+      {
+        provider: 'edge0-local',
+        providerId: 'edge0-local',
+        name: 'Edge0 Local MoE Inference Engine',
+        isConfigured: true,
+        status: 'operational',
+        details: 'Open-source streaming Mixture-of-Experts (MoE) engine running directly from SSD. Isolated inference only; zero tool/shell privileges.'
+      },
+      {
+        provider: 'comfyui-local',
+        providerId: 'comfyui-local',
+        name: 'ComfyUI Visual AI Workflow Engine',
+        isConfigured: true,
+        status: 'operational',
+        details: 'Modular node-based DAG execution engine for Stable Diffusion, SDXL, and AnimateDiff pipelines.'
       }
     ];
   }
@@ -912,6 +1031,7 @@ class CentralBrainService {
 
     let assistantContent = '';
     let isLiveProvider = false;
+    let inferenceLocation: 'local' | 'cloud' = 'cloud';
 
     // 3. Agent Reach Internet Research & Doctor Checks
     const lowerUserText = userText.toLowerCase().trim();
@@ -955,6 +1075,107 @@ class CentralBrainService {
         assistantContent = `[AGENT REACH RESEARCH NOTICE: ${err.message}]`;
         isLiveProvider = false;
       }
+    } else if (
+      lowerUserText === 'fable doctor' ||
+      lowerUserText === 'check fable' ||
+      lowerUserText === 'fable status' ||
+      lowerUserText === 'fable mode doctor'
+    ) {
+      const { fableModeService } = await import('../fable/fableModeService');
+      const doc = await fableModeService.runDoctor();
+      const checksList = doc.checks.map(c => `- **${c.name}**: \`[${c.status.toUpperCase()}]\` · ${c.detail}`).join('\n');
+      assistantContent = `### Fable Mode & Grounding Verifier Doctor Report\n\n` +
+        `**Community Source**: [codeclawd/fable-mode](https://github.com/codeclawd/fable-mode) · **License**: MIT · **Discipline**: Fable 5.1 Distillation\n` +
+        `**Overall Status**: \`${doc.overallHealth}\`\n\n` +
+        `#### System Verification Checks:\n${checksList}\n\n` +
+        `#### Active Discipline Gates:\n` +
+        `- **Outcome-First Summaries**: Active (lead with outcome, readable over concise)\n` +
+        `- **Act-Don't-Ask Autonomy**: Active for reversible actions; stop only for destructive changes\n` +
+        `- **Report vs Fix Distinction**: Active (inquiries -> reports; fix requests -> edits with real tests)\n` +
+        `- **Evidence Before State Change**: Active (read target before edit/delete)\n` +
+        `- **Grounding Verifier**: Standby for cold ledger row-checking\n` +
+        (doc.recommendations.length > 0 ? `\n#### Recommendations:\n${doc.recommendations.map(r => `- ${r}`).join('\n')}\n` : '');
+      isLiveProvider = false;
+    } else if (
+      lowerUserText === '/fable' ||
+      lowerUserText === 'use fable' ||
+      lowerUserText === 'enable fable mode' ||
+      lowerUserText === 'fable mode'
+    ) {
+      const { fableModeService } = await import('../fable/fableModeService');
+      const cfg = fableModeService.setEnabled(true);
+      assistantContent = `### Fable Mode Activated\n\n` +
+        `The Fable 5.1 agentic operating layer is now active for this session.\n\n` +
+        `- **Discipline**: Fable 5.1 distillation (outcome-first, act-don't-ask autonomy, report-vs-fix, evidence before state change)\n` +
+        `- **Test-After-Edit**: Active with auto-discovery (${cfg.debounceSeconds}s debounce, ${cfg.timeoutSeconds}s timeout)\n` +
+        `- **Grounding Verifier**: Standby for \`/ground\` claim audits\n\n` +
+        `*Run \`fable doctor\` at any time to verify system verification hooks.*`;
+      isLiveProvider = false;
+    } else if (
+      lowerUserText.startsWith('/ground') ||
+      lowerUserText.startsWith('verify claims') ||
+      lowerUserText.startsWith('grounding verifier')
+    ) {
+      const { fableModeService } = await import('../fable/fableModeService');
+      const sampleClaims = [
+        { id: 'c1', claim: 'Project package.json specifies valid Node.js and TypeScript dependencies', evidenceType: 'read' as const, reference: 'package.json:1' },
+        { id: 'c2', claim: 'GitHub Actions service provides multi-pattern secret redaction and SHA-256 receipts', evidenceType: 'read' as const, reference: 'src/services/github/githubActionsService.ts:1' },
+        { id: 'c3', claim: 'Universal test runner executes without unhandled errors', evidenceType: 'run' as const, reference: 'npx tsx --test tests/github_actions.test.ts' }
+      ];
+      const ledger = await fableModeService.verifyGroundingLedger(
+        userText.replace(/^\/ground[:\s]*/i, '') || 'Verify current workspace code claims',
+        sampleClaims
+      );
+      const rows = ledger.claims.map(c => `| \`${c.id}\` | ${c.claim} | \`${c.evidenceType}\` | \`${c.reference}\` | **${c.verdict}** |`).join('\n');
+      assistantContent = `### Grounding Verifier Audit Report\n\n` +
+        `**Goal**: ${ledger.stepGoal}\n` +
+        `**Auditor**: Independent Cold Verifier (\`droid_grounding_verifier\`)\n` +
+        `**Verdict**: **${ledger.verdict}** &mdash; *${ledger.primaryReason}*\n\n` +
+        `| ID | Claim | Type | Reference | Verdict |\n|---|---|---|---|---|\n${rows}\n\n` +
+        `**Cryptographic Evidence Seal**: \`${ledger.evidenceChecksum.slice(0, 32)}...\``;
+      isLiveProvider = false;
+    } else if (
+      lowerUserText.startsWith('/comfy') ||
+      lowerUserText.startsWith('comfyui') ||
+      lowerUserText === 'check comfyui' ||
+      lowerUserText === 'comfyui status' ||
+      effectiveModelId.startsWith('comfyui') ||
+      (/\b(generate\s+(image|visual|artwork|illustration)|render\s+(image|diffusion|scene)|run\s+workflow|comfyui\s+workflow)\b/i.test(userText) && !userText.toLowerCase().includes('google'))
+    ) {
+      const comfyStatus = await comfyUIProvider.checkHealth();
+      const cfg = comfyUIProvider.getConfig();
+      if (comfyStatus.isConnected) {
+        try {
+          const promptGraph = comfyUIProvider.buildTextToImageGraph({
+            prompt: userText.replace(/^\/comfy[:\s]*/i, '').replace(/^comfyui[:\s]*/i, '') || 'High tech cybernetic terminal in dark aesthetic',
+            steps: 20,
+            cfg: 7.0
+          });
+          const execRes = await comfyUIProvider.queueWorkflow(promptGraph);
+          assistantContent = `### ComfyUI Visual Workflow Dispatched\n\n` +
+            `**Prompt ID**: \`${execRes.promptId}\` · **Queue Position**: #${execRes.number}\n` +
+            `**Engine**: [Comfy-Org/ComfyUI](https://github.com/Comfy-Org/ComfyUI) · **Endpoint**: \`${cfg.endpoint}\`\n\n` +
+            `The node-based diffusion pipeline (Load Checkpoint &rarr; Dual CLIP Encode &rarr; KSampler &rarr; VAE Decode &rarr; Save Image) was queued on your local PyTorch hardware.\n\n` +
+            `You can monitor real-time execution in the **ComfyUI Studio** workspace.`;
+          isLiveProvider = true;
+          inferenceLocation = 'local';
+        } catch (execErr: any) {
+          assistantContent = `[COMFYUI WORKFLOW ERROR: ${execErr.message}]`;
+          isLiveProvider = false;
+          inferenceLocation = 'local';
+        }
+      } else {
+        assistantContent = `### ComfyUI Visual Workflow Engine (Standby)\n\n` +
+          `**Upstream Repository**: [Comfy-Org/ComfyUI](https://github.com/Comfy-Org/ComfyUI) · **License**: GPL-3.0\n` +
+          `**Status**: \`DISCONNECTED\` &mdash; *${comfyStatus.error || 'Server is offline'}*\n` +
+          `**Configured Endpoint**: \`${cfg.endpoint}\` (WebSocket: \`${cfg.wsEndpoint}\`)\n\n` +
+          `To run local visual diffusion workflows (SDXL, Flux, AnimateDiff, audio-visualizers):\n` +
+          `1. Start your ComfyUI server: \`python main.py --listen 127.0.0.1 --port 8188\`\n` +
+          `2. Ensure checkpoint weights exist in \`ComfyUI/models/checkpoints/\`\n` +
+          `3. Navigate to **ComfyUI Studio** in the sidebar to configure and monitor node workflows.`;
+        isLiveProvider = false;
+        inferenceLocation = 'local';
+      }
     } else {
       // Self-Awareness & Connection Telemetry Check
       const selfAwarenessAnswer = this.generateSelfAwarenessResponse(userText);
@@ -962,51 +1183,130 @@ class CentralBrainService {
         assistantContent = selfAwarenessAnswer;
         isLiveProvider = false;
       } else {
-      // Check for live Gemini API invocation if model is Gemini and GEMINI_API_KEY is configured
-      const isGeminiModel = effectiveModelId.startsWith('gemini');
-      const geminiKey = process.env.GEMINI_API_KEY;
+      // 3b. Check for Edge0 local inference (explicit selection or local-only mode)
+      const isEdge0Model = effectiveModelId.startsWith('edge0');
+      const edge0Cfg = edge0Provider.getConfig();
+      inferenceLocation = 'cloud';
 
-    if (isGeminiModel && geminiKey && geminiKey.trim().length > 0) {
-      try {
-        const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({});
-        const history = (this.messages.get(conversationId) || []).slice(-6);
-        const contents = history.map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.content }]
-        }));
-
-        const apiModelName = (effectiveModelId === 'gemini-2.5-pro' || effectiveModelId.includes('pro'))
-          ? 'gemini-3.1-pro-preview'
-          : 'gemini-3.8-flash';
-
-        const response = await ai.models.generateContent({
-          model: apiModelName,
-          contents: contents.length > 0 ? contents : [{ role: 'user', parts: [{ text: userText }] }],
-          config: {
-            systemInstruction: thread.systemPrompt || 'You are AI Heaven Central Brain orchestrator with persistent memory.'
+      if (isEdge0Model || edge0Cfg.localOnlyMode) {
+        try {
+          const edge0Messages = (this.messages.get(conversationId) || []).slice(-6).map(m => ({
+            role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+            content: m.content
+          }));
+          if (edge0Messages.length === 0 || edge0Messages[edge0Messages.length - 1].content !== userText) {
+            edge0Messages.push({ role: 'user', content: userText });
           }
-        });
 
-        assistantContent = response.text || 'Task processed successfully.';
-        isLiveProvider = true;
-        this.updateQuotaMetrics('google-ai', 1, response.usageMetadata?.totalTokenCount || 120, false);
-      } catch (err: any) {
-        // Track error in quota manager and engage failover
-        this.updateQuotaMetrics('google-ai', 1, 0, true);
-        assistantContent = `[PROVIDER NOTICE: Google Gemini live API error (${err.message}) -> Failover to fallback: ${decision.fallbackModelId}]\n\n` +
-          this.generateDeterministicResponse(userText, domain, decision.fallbackModelId);
+          const edge0Res = await edge0Provider.generateCompletion({
+            model: isEdge0Model ? effectiveModelId : edge0Cfg.preferredModel,
+            messages: edge0Messages
+          });
+
+          assistantContent = edge0Res.content;
+          isLiveProvider = true;
+          inferenceLocation = 'local';
+          this.updateQuotaMetrics('edge0-local', 1, edge0Res.totalTokens || 120, false);
+        } catch (edge0Err: any) {
+          this.updateQuotaMetrics('edge0-local', 1, 0, true);
+          if (edge0Cfg.localOnlyMode && !edge0Cfg.allowCloudFallback) {
+            // Strict local-only enforcement: prevent private data egress
+            assistantContent = `[LOCAL-ONLY MODE ENFORCEMENT]\n` +
+              `Edge0 local inference runtime is offline or unreachable at ${edge0Cfg.endpoint}.\n` +
+              `Error: ${edge0Err.message}\n\n` +
+              `Cloud fallback was strictly blocked to prevent private data egress. Start your local Edge0 daemon (\`edge0 serve\`) or enable cloud fallback in Settings.`;
+            isLiveProvider = false;
+            inferenceLocation = 'local';
+          } else {
+            // User permits fallback: explicitly disclose cloud routing
+            const fallbackDisclosure = `[LOCAL-TO-CLOUD FALLBACK DISCLOSURE: Edge0 local runtime at ${edge0Cfg.endpoint} was unreachable (${edge0Err.message}). Routing to fallback (${decision.fallbackModelId}) with user permission.]\n\n`;
+            
+            const isGeminiFallback = decision.fallbackModelId.startsWith('gemini');
+            const geminiKey = process.env.GEMINI_API_KEY;
+            if (isGeminiFallback && geminiKey && geminiKey.trim().length > 0) {
+              try {
+                const { GoogleGenAI } = await import('@google/genai');
+                const ai = new GoogleGenAI({});
+                const generatePromise = ai.models.generateContent({
+                  model: 'gemini-2.5-flash',
+                  contents: [{ role: 'user', parts: [{ text: userText }] }],
+                  config: {
+                    systemInstruction: thread.systemPrompt || 'You are AI Heaven Central Brain orchestrator with persistent memory.'
+                  }
+                });
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                  setTimeout(() => reject(new Error('Gemini API call timed out')), 3500)
+                );
+                const response: any = await Promise.race([generatePromise, timeoutPromise]);
+                assistantContent = fallbackDisclosure + (response.text || 'Task processed successfully.');
+                isLiveProvider = true;
+                inferenceLocation = 'cloud';
+              } catch (fallbackErr: any) {
+                assistantContent = fallbackDisclosure + this.generateDeterministicResponse(userText, domain, decision.fallbackModelId);
+                isLiveProvider = false;
+                inferenceLocation = 'cloud';
+              }
+            } else {
+              assistantContent = fallbackDisclosure + this.generateDeterministicResponse(userText, domain, decision.fallbackModelId);
+              isLiveProvider = false;
+              inferenceLocation = 'cloud';
+            }
+          }
+        }
+      } else {
+        // Standard Cloud / Gemini routing
+        const isGeminiModel = effectiveModelId.startsWith('gemini');
+        const geminiKey = process.env.GEMINI_API_KEY;
+
+        if (isGeminiModel && geminiKey && geminiKey.trim().length > 0) {
+          try {
+            const { GoogleGenAI } = await import('@google/genai');
+            const ai = new GoogleGenAI({});
+            const history = (this.messages.get(conversationId) || []).slice(-6);
+            const contents = history.map(m => ({
+              role: m.role === 'user' ? 'user' : 'model',
+              parts: [{ text: m.content }]
+            }));
+
+            const apiModelName = (effectiveModelId === 'gemini-2.5-pro' || effectiveModelId.includes('pro'))
+              ? 'gemini-2.5-pro'
+              : 'gemini-2.5-flash';
+
+            const generatePromise = ai.models.generateContent({
+              model: apiModelName,
+              contents: contents.length > 0 ? contents : [{ role: 'user', parts: [{ text: userText }] }],
+              config: {
+                systemInstruction: thread.systemPrompt || 'You are AI Heaven Central Brain orchestrator with persistent memory.'
+              }
+            });
+            const timeoutPromise = new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('Gemini API call timed out')), 3500)
+            );
+            const response: any = await Promise.race([generatePromise, timeoutPromise]);
+
+            assistantContent = response.text || 'Task processed successfully.';
+            isLiveProvider = true;
+            inferenceLocation = 'cloud';
+            this.updateQuotaMetrics('google-ai', 1, response.usageMetadata?.totalTokenCount || 120, false);
+          } catch (err: any) {
+            // Track error in quota manager and engage failover
+            this.updateQuotaMetrics('google-ai', 1, 0, true);
+            assistantContent = `[PROVIDER NOTICE: Google Gemini live API error (${err.message}) -> Failover to fallback: ${decision.fallbackModelId}]\n\n` +
+              this.generateDeterministicResponse(userText, domain, decision.fallbackModelId);
+            inferenceLocation = 'cloud';
+          }
+        } else {
+          // Deterministic local reasoning when live API key is unconfigured
+          const providerName = isGeminiModel ? 'Google Gemini' : effectiveModelId.includes('claude') ? 'Anthropic Claude' : effectiveModelId.includes('gpt') ? 'OpenAI GPT' : 'DeepSeek';
+          const keyName = isGeminiModel ? 'GEMINI_API_KEY' : effectiveModelId.includes('claude') ? 'ANTHROPIC_API_KEY' : effectiveModelId.includes('gpt') ? 'OPENAI_API_KEY' : 'DEEPSEEK_API_KEY';
+
+          assistantContent = `[CENTRAL BRAIN · ${domain.toUpperCase()}] Model: ${effectiveModelId}\n(Provider ${providerName} API key '${keyName}' is not configured in environment; executing via deterministic engineering engine)\n\n` +
+            this.generateDeterministicResponse(userText, domain, effectiveModelId);
+          inferenceLocation = 'cloud';
+        }
       }
-    } else {
-      // Deterministic local reasoning when live API key is unconfigured
-      const providerName = isGeminiModel ? 'Google Gemini' : effectiveModelId.includes('claude') ? 'Anthropic Claude' : effectiveModelId.includes('gpt') ? 'OpenAI GPT' : 'DeepSeek';
-      const keyName = isGeminiModel ? 'GEMINI_API_KEY' : effectiveModelId.includes('claude') ? 'ANTHROPIC_API_KEY' : effectiveModelId.includes('gpt') ? 'OPENAI_API_KEY' : 'DEEPSEEK_API_KEY';
-
-      assistantContent = `[CENTRAL BRAIN · ${domain.toUpperCase()}] Model: ${effectiveModelId}\n(Provider ${providerName} API key '${keyName}' is not configured in environment; executing via deterministic engineering engine)\n\n` +
-        this.generateDeterministicResponse(userText, domain, effectiveModelId);
-    }
-    }
-    }
+      }
+      }
 
     // 4. Save Assistant Message
     const assistantMessage = this.addMessage(
@@ -1021,7 +1321,9 @@ class CentralBrainService {
       domain,
       isLiveProvider,
       fallbackModel: decision.fallbackModelId,
-      latencyMs: decision.scores.suitability
+      latencyMs: decision.scores.suitability,
+      inferenceLocation,
+      isLocalInference: inferenceLocation === 'local'
     };
 
     return {
@@ -1059,6 +1361,40 @@ class CentralBrainService {
         `4. **OpenCode Autonomous Software Engineer** (\`opencode\` · v1.2.0 · MIT License)\n` +
         `   - TypeScript workspace indexer, codebase exploration, and multi-file refactoring engine.\n\n` +
         `*All four engines are coordinated through the Native Brain with shared task memory, cryptographic audit receipts, and tenant isolation.*`;
+    }
+
+    // 1c. "Edge0 status" / "What is Edge0" / "Check Edge0" / "Local AI status"
+    if (p.includes('edge0') || p.includes('local ai engine') || p.includes('local model')) {
+      const st = edge0Provider.getStatus();
+      const cfg = edge0Provider.getConfig();
+      return `### Edge0 Local MoE Inference Engine Status\n\n` +
+        `**Upstream Project**: [Edge0-AI/Edge0](https://github.com/Edge0-AI/Edge0) · **Architecture**: Streaming MoE from SSD\n` +
+        `**Connection State**: \`${st.isConnected ? 'CONNECTED' : 'DISCONNECTED'}\` · **Endpoint**: \`${cfg.endpoint}\`\n` +
+        `**Local-Only Mode**: \`${cfg.localOnlyMode ? 'ENABLED (Zero Cloud Egress)' : 'DISABLED'}\`\n` +
+        `**Cloud Fallback**: \`${cfg.allowCloudFallback ? 'PERMITTED' : 'BLOCKED'}\`\n` +
+        `**Loaded Models**: ${st.loadedModels.length > 0 ? st.loadedModels.map(m => `\`${m.id}\``).join(', ') : 'None confirmed'}\n` +
+        (st.error ? `**Runtime Notice**: ${st.error}\n` : '') +
+        `\n*To start local inference, run \`edge0 serve Edge0-35B-A3B-preview\` on your machine or configure the endpoint in Settings.*`;
+    }
+
+    // 1d. "ComfyUI status" / "What is ComfyUI" / "Check ComfyUI" / "Visual workflow status"
+    if (p.includes('comfyui') || p.includes('comfy-org') || p.includes('comfy ui') || p.includes('visual workflow')) {
+      const st = comfyUIProvider.getStatus();
+      const cfg = comfyUIProvider.getConfig();
+      const devName = st.systemStats?.devices?.[0]?.name || 'N/A';
+      const freeVram = st.systemStats?.devices?.[0]?.vram_free
+        ? `${Math.round(st.systemStats.devices[0].vram_free / (1024 * 1024))} MB`
+        : 'N/A';
+
+      return `### ComfyUI Visual Workflow Engine Status\n\n` +
+        `**Official Repository**: [Comfy-Org/ComfyUI](https://github.com/Comfy-Org/ComfyUI) · **License**: GPL-3.0\n` +
+        `**Architecture**: Modular node-based Directed Acyclic Graph (DAG) diffusion execution engine\n` +
+        `**Connection State**: \`${st.isConnected ? 'CONNECTED' : 'DISCONNECTED'}\` · **Endpoint**: \`${cfg.endpoint}\`\n` +
+        `**WebSocket Stream**: \`${cfg.wsEndpoint}\`\n` +
+        `**Detected Hardware**: ${devName} (Free VRAM: ${freeVram})\n` +
+        `**Registered Nodes**: ${st.nodeCount} available · **Queue Remaining**: ${st.queueRemaining}\n` +
+        (st.error ? `**Runtime Notice**: ${st.error}\n` : '') +
+        `\n*To launch ComfyUI on your local machine, run \`python main.py --listen 127.0.0.1 --port 8188\` or open ComfyUI Studio in the sidebar.*`;
     }
 
     // 2. "Tell me which tools are available" / "What tools are available" / "List tools"
@@ -1169,6 +1505,11 @@ class CentralBrainService {
         return `### GitHub Actions CI/CD Status\n- **Engine**: GitHub Actions REST API v3 Client\n- **Authentication**: Token configured in environment\n- **Capabilities**: Workflow discovery, dispatch triggering, live run monitoring, job logs inspection\n- **Security**: SHA-256 dispatch receipts, secret masking, permission checking\n- **Actions UI**: Navigate to **Tools > GitHub Actions** to inspect workflows and trigger runs.`;
       }
       return `### GitHub Actions CI/CD Status\n- **Engine**: GitHub Actions REST API v3 Client\n- **State**: \`UNCONFIGURED\` (Token required)\n- **Actionable Guidance**: Configure a GitHub Personal Access Token with \`workflow\` and \`repo\` scopes in **Tools > GitHub Actions** or set \`GITHUB_TOKEN\` in your environment to discover workflows and trigger authorized CI/CD dispatches.`;
+    }
+
+    // 12c. "Fable Mode" / "Grounding Verifier" / "Is Fable Mode active?"
+    if (p.includes('fable mode') || p.includes('fable status') || p.includes('grounding verifier') || p.includes('is fable')) {
+      return `### Fable Mode & Grounding Verifier\n- **Engine**: Fable 5.1 Agentic Distillation (codeclawd/fable-mode)\n- **Discipline**: Outcome-first summaries, Act-don't-ask autonomy, Report vs Fix distinction, Evidence before state change\n- **Verification Hooks**: Mechanical test-after-edit active (auto-discovers project test suite)\n- **Grounding Verifier**: Cold auditor droid ready to row-check code claims\n- **Commands**: Run \`fable doctor\` for health diagnostic or \`/ground\` for cold claim verification.`;
     }
 
     // 13. "What models are available?" / "List models"

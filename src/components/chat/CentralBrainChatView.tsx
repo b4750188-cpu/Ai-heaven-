@@ -64,6 +64,9 @@ interface ChatMessage {
     isLiveProvider?: boolean;
     fallbackModel?: string;
     latencyMs?: number;
+    inferenceLocation?: 'local' | 'cloud';
+    isLocalInference?: boolean;
+    [key: string]: any;
   };
 }
 
@@ -591,11 +594,17 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                 className="text-xs font-mono bg-[#161822] text-[#F3F4F6] border border-[#2E3342] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-white cursor-pointer"
               >
                 <option value="auto">Auto-Routing (Central Brain)</option>
-                <option value="gemini-3.8-flash">Gemini 3.8 Flash (Active Inference)</option>
-                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Deep Reasoning)</option>
-                <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
-                <option value="gpt-4o">GPT-4o</option>
-                <option value="deepseek-r1">DeepSeek R1</option>
+                <optgroup label="Local On-Device Engine (Edge0 SSD-MoE)">
+                  <option value="edge0-35b-a3b">Edge0 35B MoE (Local SSD-Stream)</option>
+                  <option value="edge0-8b-a1b">Edge0 8B MoE (Local Ultra-Light)</option>
+                </optgroup>
+                <optgroup label="Cloud Providers">
+                  <option value="gemini-3.8-flash">Gemini 3.8 Flash (Active Inference)</option>
+                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Deep Reasoning)</option>
+                  <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+                  <option value="gpt-4o">GPT-4o</option>
+                  <option value="deepseek-r1">DeepSeek R1</option>
+                </optgroup>
               </select>
             </div>
 
@@ -848,7 +857,12 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                           {isUser ? 'You' : (msg.agentName || 'AI Heaven Brain')}
                         </span>
                         {msg.modelUsed && (
-                          <span className="px-1.5 py-0.2 rounded-md bg-[#1C1E26] border border-[#2B2D3A] text-[10px]">
+                          <span className={`px-2 py-0.5 rounded text-[10px] border font-mono ${
+                            msg.metadata?.inferenceLocation === 'local' || msg.metadata?.isLocalInference
+                              ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300 font-semibold shadow-xs'
+                              : 'bg-[#1C1E26] border-[#2B2D3A] text-neutral-300'
+                          }`}>
+                            {msg.metadata?.inferenceLocation === 'local' || msg.metadata?.isLocalInference ? '⚡ Local · ' : '☁️ Cloud · '}
                             {msg.modelUsed}
                           </span>
                         )}

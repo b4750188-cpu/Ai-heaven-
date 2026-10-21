@@ -39,6 +39,7 @@ import { apiClient } from '../../services/apiClient';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { GitHubActionsWorkspace } from '../actions/GitHubActionsWorkspace';
+import { ComfyUIWorkspace } from '../engines/ComfyUIWorkspace';
 
 interface ToolsViewProps {
   tools: ToolDefinition[];
@@ -46,7 +47,7 @@ interface ToolsViewProps {
 }
 
 export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal }) => {
-  const [activeTab, setActiveTab] = useState<'sandbox' | 'agent_reach' | 'github_actions'>('agent_reach');
+  const [activeTab, setActiveTab] = useState<'sandbox' | 'agent_reach' | 'github_actions' | 'comfyui'>('agent_reach');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCapability, setSelectedCapability] = useState<string>('all');
 
@@ -261,6 +262,17 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
           >
             <Github className="h-3.5 w-3.5" />
             GitHub Actions CI/CD
+          </button>
+          <button
+            onClick={() => setActiveTab('comfyui')}
+            className={`px-3 py-1.5 rounded text-xs font-mono flex items-center gap-1.5 transition-colors ${
+              activeTab === 'comfyui'
+                ? 'bg-blue-600 text-white font-medium shadow-sm'
+                : 'bg-[#171F2B] text-[#9AA6B7] hover:text-[#F1F4F8]'
+            }`}
+          >
+            <Workflow className="h-3.5 w-3.5" />
+            ComfyUI Workflows
           </button>
         </div>
       </div>
@@ -868,6 +880,13 @@ export const ToolsView: React.FC<ToolsViewProps> = ({ tools, onOpenNewTaskModal 
       {/* ========================================================================= */}
       {activeTab === 'github_actions' && (
         <GitHubActionsWorkspace />
+      )}
+
+      {/* ========================================================================= */}
+      {/* COMFYUI VISUAL WORKFLOW TAB                                               */}
+      {/* ========================================================================= */}
+      {activeTab === 'comfyui' && (
+        <ComfyUIWorkspace />
       )}
     </div>
   );

@@ -88,7 +88,8 @@ export type ToolCapability =
   | 'ai_inference'
   | 'research'
   | 'port_scan'
-  | 'vulnerability_scan';
+  | 'vulnerability_scan'
+  | 'workflow_engine';
 
 export interface ExecutionPolicy {
   sandboxed_only: boolean;

@@ -41,6 +41,9 @@ import { temporalWorkflowAdapter } from '../services/workflow/temporalAdapter';
 import { agentReachService } from '../services/research/agentReachService';
 import { AGENT_REACH_UPSTREAM } from '../contracts/agentReach';
 import { githubActionsService } from '../services/github/githubActionsService';
+import { fableModeService } from '../services/fable/fableModeService';
+import { edge0Provider } from '../services/inference/edge0Provider';
+import { comfyUIProvider } from '../services/workflow/comfyUIProvider';
 
 dotenv.config();
 
@@ -184,13 +187,59 @@ const defaultAgentSecOps: AgentDefinition = {
   updated_at: new Date().toISOString()
 };
 
+const defaultAgentGroundingVerifier: AgentDefinition = {
+  id: 'agent_droid_verifier',
+  owner_id: currentUser.id,
+  project_id: defaultProject.id,
+  workspace_id: defaultWorkspace.id,
+  name: 'AI Heaven Droid Grounding Verifier (Cold Auditor)',
+  description: 'Independent, cold verifier inspired by Fable Mode: row-checks claims against live code, gap-scans omissions, and strictly prevents speculative assertions.',
+  status: 'idle',
+  permissions: {
+    allowed_tools: [
+      'tool_terminal_sandbox',
+      'tool_fs_scoped',
+      'tool_fable_mode'
+    ],
+    network_access: false,
+    filesystem_scope: 'read_only',
+    requires_approval_for_destructive: true
+  },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+const defaultAgentComfyVisualist: AgentDefinition = {
+  id: 'agent_droid_comfy_visualist',
+  owner_id: currentUser.id,
+  project_id: defaultProject.id,
+  workspace_id: defaultWorkspace.id,
+  name: 'AI Heaven Droid Visualist (ComfyUI Workflow Engine)',
+  description: 'Specialized generative AI droid for node-based diffusion graphs, style synthesis, and image/video artifact pipelines.',
+  status: 'idle',
+  permissions: {
+    allowed_tools: [
+      'tool_terminal_sandbox',
+      'tool_fs_scoped',
+      'tool_comfyui_workflow'
+    ],
+    network_access: true,
+    filesystem_scope: 'workspace_only',
+    requires_approval_for_destructive: false
+  },
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
 let projects: Project[] = [defaultProject];
 let workspaces: Workspace[] = [defaultWorkspace];
-let agents: AgentDefinition[] = [defaultAgent, defaultAgentSecOps];
+let agents: AgentDefinition[] = [defaultAgent, defaultAgentSecOps, defaultAgentGroundingVerifier, defaultAgentComfyVisualist];
 
 workspaceFilesystem.ensureWorkspaceInitialized(defaultWorkspace.id);
 agentRuntimeService.registerWorker(defaultAgent);
 agentRuntimeService.registerWorker(defaultAgentSecOps);
+agentRuntimeService.registerWorker(defaultAgentGroundingVerifier);
+agentRuntimeService.registerWorker(defaultAgentComfyVisualist);
 
 const registeredTools: ToolDefinition[] = [
   {
@@ -593,6 +642,94 @@ const registeredTools: ToolDefinition[] = [
       max_output_bytes: 1048576
     },
     is_enabled: false
+  },
+  {
+    id: 'tool_fable_mode',
+    name: 'Fable Mode & Grounding Verifier',
+    provider: 'prov_fable_mode',
+    description: 'Enforces Fable 5.1 agentic discipline, runs Fable Doctor diagnostics, validates code grounding ledgers, and triggers mechanical test-after-edit hooks.',
+    capability: 'research',
+    input_schema: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['doctor', 'ground', 'test_hook', 'status', 'toggle'] },
+        stepGoal: { type: 'string', description: 'Goal or claim being verified' },
+        claims: { type: 'array', description: 'List of claims to row-check' },
+        enabled: { type: 'boolean', description: 'Enable or disable Fable mode' }
+      },
+      required: ['action']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        data: { type: 'object' }
+      }
+    },
+    permissions: ['fable:read', 'fable:verify'],
+    permission_requirements: [],
+    risk_level: 'low',
+    availability: 'ready',
+    is_enabled: true,
+    provenance: {
+      source_provider: 'codeclawd / Fable Mode Community',
+      author: 'codeclawd/fable-mode',
+      verified: true,
+      registered_at: '2026-10-19T00:00:00Z',
+      spec_url: 'https://github.com/codeclawd/fable-mode'
+    },
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 60,
+      requires_confirmation: false,
+      max_output_bytes: 1048576
+    }
+  },
+  {
+    id: 'tool_comfyui_workflow',
+    name: 'ComfyUI Visual AI Workflow Dispatcher',
+    provider: 'prov_comfyui',
+    description: 'Generates and dispatches modular node-based DAG diffusion workflows (SDXL, Stable Diffusion, AnimateDiff) to local ComfyUI runtime.',
+    capability: 'workflow_engine',
+    input_schema: {
+      type: 'object',
+      properties: {
+        templateId: { type: 'string', description: 'Template ID, e.g. "txt2img-standard" or "sdxl-photoreal"' },
+        prompt: { type: 'string', description: 'Positive conditioning prompt' },
+        negativePrompt: { type: 'string', description: 'Negative conditioning prompt' },
+        steps: { type: 'number', minimum: 5, maximum: 50, default: 20 },
+        cfg: { type: 'number', minimum: 1, maximum: 20, default: 7.0 },
+        width: { type: 'number', default: 512 },
+        height: { type: 'number', default: 512 }
+      },
+      required: ['prompt']
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        promptId: { type: 'string' },
+        number: { type: 'number' },
+        status: { type: 'string' }
+      }
+    },
+    permissions: ['workflow:dispatch', 'network:loopback'],
+    permission_requirements: ['workflow:dispatch'],
+    risk_level: 'low',
+    availability: 'ready',
+    is_enabled: true,
+    provenance: {
+      source_provider: 'Comfy-Org',
+      author: 'Comfy-Org/ComfyUI Community',
+      verified: true,
+      registered_at: '2026-10-20T00:00:00Z',
+      spec_url: 'https://github.com/Comfy-Org/ComfyUI'
+    },
+    execution_policy: {
+      sandboxed_only: true,
+      timeout_seconds: 60,
+      requires_confirmation: false,
+      max_output_bytes: 2097152
+    }
   }
 ];
 
@@ -2023,6 +2160,209 @@ export function createExpressApp(): express.Express {
   });
 
   // =========================================================================
+  // EDGE0 LOCAL INFERENCE ENGINE ROUTES (https://github.com/Edge0-AI/Edge0)
+  // =========================================================================
+  apiRouter.get('/edge0/status', (req: Request, res: Response) => {
+    res.json(edge0Provider.getStatus());
+  });
+
+  apiRouter.post('/edge0/configure', (req: Request, res: Response) => {
+    try {
+      const { endpoint, timeoutMs, localOnlyMode, allowCloudFallback, preferredModel } = req.body || {};
+      const result = edge0Provider.updateConfig({
+        endpoint,
+        timeoutMs,
+        localOnlyMode,
+        allowCloudFallback,
+        preferredModel
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({
+        success: true,
+        config: edge0Provider.getConfig(),
+        status: edge0Provider.getStatus()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/edge0/test-connection', async (req: Request, res: Response) => {
+    try {
+      const status = await edge0Provider.checkHealth();
+      centralBrainService.syncEdge0Models(
+        status.loadedModels.map(m => m.id),
+        status.isConnected
+      );
+      res.json({
+        success: status.isConnected,
+        status,
+        models: status.loadedModels,
+        latencyMs: status.latencyMs,
+        error: status.error
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/edge0/models', async (req: Request, res: Response) => {
+    try {
+      const st = edge0Provider.getStatus();
+      res.json({
+        models: st.loadedModels,
+        isConnected: st.isConnected,
+        endpoint: st.endpoint
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/edge0/chat', async (req: Request, res: Response) => {
+    try {
+      const { messages, model, temperature, max_tokens } = req.body || {};
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: 'messages array is required' });
+      }
+      const response = await edge0Provider.generateCompletion({
+        messages,
+        model,
+        temperature,
+        max_tokens
+      });
+      res.json(response);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/edge0/android-compatibility', (req: Request, res: Response) => {
+    res.json(edge0Provider.getAndroidCompatibilityReport());
+  });
+
+  // =========================================================================
+  // COMFYUI VISUAL AI WORKFLOW ENGINE ROUTES (https://github.com/Comfy-Org/ComfyUI)
+  // =========================================================================
+  apiRouter.get('/comfyui/status', (req: Request, res: Response) => {
+    res.json(comfyUIProvider.getStatus());
+  });
+
+  apiRouter.post('/comfyui/configure', (req: Request, res: Response) => {
+    try {
+      const { endpoint, timeoutMs, clientId, allowCloudFallback } = req.body || {};
+      const result = comfyUIProvider.updateConfig({
+        endpoint,
+        timeoutMs,
+        clientId,
+        allowCloudFallback
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({
+        success: true,
+        config: comfyUIProvider.getConfig(),
+        status: comfyUIProvider.getStatus()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/comfyui/test-connection', async (req: Request, res: Response) => {
+    try {
+      const status = await comfyUIProvider.checkHealth();
+      res.json({
+        success: status.isConnected,
+        status,
+        systemStats: status.systemStats,
+        nodeCount: status.nodeCount,
+        latencyMs: status.latencyMs,
+        error: status.error
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/comfyui/queue', async (req: Request, res: Response) => {
+    try {
+      const queue = await comfyUIProvider.getQueue();
+      res.json(queue);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/comfyui/interrupt', async (req: Request, res: Response) => {
+    try {
+      const result = await comfyUIProvider.interruptExecution();
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/comfyui/history', async (req: Request, res: Response) => {
+    try {
+      const promptId = req.query.promptId as string | undefined;
+      const history = await comfyUIProvider.getHistory(promptId);
+      res.json(history);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/comfyui/templates', (req: Request, res: Response) => {
+    res.json({ templates: comfyUIProvider.getTemplates() });
+  });
+
+  apiRouter.post('/comfyui/templates', (req: Request, res: Response) => {
+    try {
+      const template = req.body;
+      if (!template || !template.id || !template.name || !template.promptGraph) {
+        return res.status(400).json({ error: 'Valid template with id, name, and promptGraph is required' });
+      }
+      comfyUIProvider.saveTemplate(template);
+      res.json({ success: true, templates: comfyUIProvider.getTemplates() });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/comfyui/execute', async (req: Request, res: Response) => {
+    try {
+      const { prompt, templateId, params } = req.body || {};
+      let graphToQueue = prompt;
+
+      if (!graphToQueue && templateId) {
+        const tmpl = comfyUIProvider.getTemplate(templateId);
+        if (tmpl) graphToQueue = tmpl.promptGraph;
+      }
+
+      if (!graphToQueue && params?.prompt) {
+        graphToQueue = comfyUIProvider.buildTextToImageGraph(params);
+      }
+
+      if (!graphToQueue) {
+        return res.status(400).json({ error: 'Workflow prompt graph or parameters are required' });
+      }
+
+      const outcome = await comfyUIProvider.queueWorkflow(graphToQueue);
+      res.json(outcome);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
   // UNIFIED REALITY & CAPABILITY REGISTRY ROUTES
   // =========================================================================
   apiRouter.get('/reality/registry', (req: Request, res: Response) => {
@@ -2873,6 +3213,71 @@ export function createExpressApp(): express.Express {
       const tokenOverride = (req.headers['x-github-token'] as string) || undefined;
       const logs = await githubActionsService.getJobLogs(owner, repo, jobId, tokenOverride, user?.tenantId);
       res.json(logs);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // FABLE MODE & GROUNDING VERIFIER API (codeclawd/fable-mode distillation)
+  // =========================================================================
+
+  // 1. Fable Mode Status & Config
+  apiRouter.get('/fable/status', (req: Request, res: Response) => {
+    try {
+      const config = fableModeService.getConfig();
+      res.json(config);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 2. Fable Doctor Health Diagnostics
+  apiRouter.post('/fable/doctor', async (req: Request, res: Response) => {
+    try {
+      const report = await fableModeService.runDoctor();
+      res.json(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Grounding Verifier Audit
+  apiRouter.post('/fable/ground', async (req: Request, res: Response) => {
+    try {
+      const { stepGoal, claims, diff, diffSummary } = req.body || {};
+      if (!stepGoal || !Array.isArray(claims)) {
+        return res.status(400).json({ error: 'stepGoal and claims array are required.' });
+      }
+      const report = await fableModeService.verifyGroundingLedger(stepGoal, claims, { diff, diffSummary });
+      res.json(report);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 4. Test-After-Edit Mechanical Hook
+  apiRouter.post('/fable/test-hook', async (req: Request, res: Response) => {
+    try {
+      const { editedFile } = req.body || {};
+      const result = await fableModeService.executeTestAfterEdit(editedFile);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 5. Configure Fable Mode
+  apiRouter.post('/fable/config', (req: Request, res: Response) => {
+    try {
+      const { enabled, debounceSeconds, timeoutSeconds } = req.body || {};
+      if (typeof enabled === 'boolean') {
+        fableModeService.setEnabled(enabled);
+      }
+      if (typeof debounceSeconds === 'number' || typeof timeoutSeconds === 'number') {
+        fableModeService.configureTestHook({ debounceSeconds, timeoutSeconds });
+      }
+      res.json(fableModeService.getConfig());
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }

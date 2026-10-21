@@ -318,6 +318,72 @@ class RealityRegistryService {
         requiresUserApproval: false,
         state: 'CONNECTED',
         nextRequiredAction: 'None - operational'
+      },
+      {
+        id: 'edge0_local_engine',
+        displayName: 'Edge0 Local MoE Inference Engine',
+        provider: 'Edge0-AI (SSD-Streaming MoE)',
+        category: 'ai_model',
+        isImplemented: true,
+        isConfigured: true,
+        isAuthorized: true,
+        isConnected: false,
+        hasSufficientPermissions: true,
+        isReachable: false,
+        lastOperationSucceeded: false,
+        lastVerifiedAt: null,
+        lastError: null,
+        actionableExplanation: 'Edge0 local inference provider registered. Standby for local runtime daemon (http://127.0.0.1:8000).',
+        dataFreshness: 'unavailable',
+        supportedCapabilities: [
+          'Edge0-35B-A3B-preview',
+          'Edge0-8B-A1B-preview',
+          'SSD Expert Weight Streaming',
+          '2.5GB RAM Footprint',
+          'Zero Cloud Egress / Local-Only Mode'
+        ],
+        limitations: [
+          'Requires native Edge0 server daemon running on host/Android',
+          'Web browser cannot directly mmap raw SSD weights'
+        ],
+        owningUser: 'system',
+        owningWorkspace: 'default',
+        requiresUserApproval: false,
+        state: 'DISCONNECTED',
+        nextRequiredAction: 'Start local Edge0 server (`edge0 serve`) and click Test Connection in Settings'
+      },
+      {
+        id: 'comfyui_workflow_engine',
+        displayName: 'ComfyUI Visual Workflow Engine',
+        provider: 'Comfy-Org (Modular Diffusion Node Graph)',
+        category: 'workflow_engine',
+        isImplemented: true,
+        isConfigured: true,
+        isAuthorized: true,
+        isConnected: false,
+        hasSufficientPermissions: true,
+        isReachable: false,
+        lastOperationSucceeded: false,
+        lastVerifiedAt: null,
+        lastError: null,
+        actionableExplanation: 'ComfyUI visual workflow provider registered. Standby for local runtime daemon (http://127.0.0.1:8188).',
+        dataFreshness: 'unavailable',
+        supportedCapabilities: [
+          'Node-based DAG Workflow Execution',
+          'Stable Diffusion & SDXL Pipeline',
+          'AnimateDiff Video Synthesis',
+          'Dynamic /object_info Node Discovery',
+          'Real-time WebSocket Execution Telemetry'
+        ],
+        limitations: [
+          'Requires ComfyUI server runtime running on host with GPU/Torch acceleration',
+          'Requires local checkpoint weights in models/checkpoints/'
+        ],
+        owningUser: 'system',
+        owningWorkspace: 'default',
+        requiresUserApproval: false,
+        state: 'DISCONNECTED',
+        nextRequiredAction: 'Launch ComfyUI (`python main.py --listen 127.0.0.1 --port 8188`) and click Test Connection'
       }
     ];
 
@@ -343,6 +409,24 @@ class RealityRegistryService {
     const updated = { ...entry, ...updates };
     this.capabilities.set(id, updated);
     return updated;
+  }
+
+  public updateStatus(
+    id: string,
+    state: CapabilityState,
+    isConnected: boolean,
+    explanation?: string
+  ): void {
+    const entry = this.capabilities.get(id);
+    if (!entry) return;
+    this.updateCapabilityState(id, {
+      state,
+      isConnected,
+      isReachable: isConnected,
+      lastOperationSucceeded: isConnected,
+      lastVerifiedAt: new Date().toISOString(),
+      actionableExplanation: explanation || entry.actionableExplanation
+    });
   }
 
   public getCredentialAudit(): CredentialAuditItem[] {
