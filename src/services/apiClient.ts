@@ -47,6 +47,12 @@ import {
   GitHubJobLogsResult,
   GitHubRepositorySummary
 } from '../contracts/githubActions';
+import {
+  TurnitoutStatus,
+  TurnitoutProcessResult,
+  TurnitoutAnalysisResult,
+  TurnitoutProcessOptions
+} from '../types/turnitout';
 
 export interface BackendStatus {
   connected: boolean;
@@ -152,6 +158,169 @@ class AIHeavenApiClient {
         lastChecked: new Date().toISOString(),
         error: err.message || 'Network unreachable'
       };
+    }
+  }
+
+  public async getDatabaseStatus(): Promise<{
+    configured: boolean;
+    status: string;
+    mode?: string;
+    health?: any;
+    migrations?: any;
+    message?: string;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/database/status`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      return await response.json();
+    } catch (err: any) {
+      return {
+        configured: false,
+        status: 'UNREACHABLE',
+        message: err.message || 'Database status endpoint unreachable'
+      };
+    }
+  }
+
+  // --- Infisical Secret Manager ---
+  public async getInfisicalStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/security/infisical/status`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { status: 'unreachable', error: err.message };
+    }
+  }
+
+  public async getInfisicalSecrets(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/security/infisical/secrets`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' }),
+        signal: AbortSignal.timeout(4000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { count: 0, secrets: [], error: err.message };
+    }
+  }
+
+  // --- Policy Guard ---
+  public async evaluatePolicyGuard(request: {
+    agentId?: string;
+    agentRole: string;
+    actionType: string;
+    targetResource: string;
+    parameters?: Record<string, any>;
+  }): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/security/policy-guard/evaluate`, {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(request),
+        signal: AbortSignal.timeout(4000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { decision: 'denied', reason: err.message, isCompliant: false };
+    }
+  }
+
+  public async getPolicyGuardRules(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/security/policy-guard/rules`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      const data = await res.json();
+      return data.rules || [];
+    } catch {
+      return [];
+    }
+  }
+
+  // --- Model Context Protocol (MCP) ---
+  public async getMCPStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/mcp/status`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { status: 'unreachable', error: err.message };
+    }
+  }
+
+  public async getMCPServers(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/mcp/servers`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      const data = await res.json();
+      return data.servers || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getMCPTools(serverId?: string): Promise<any[]> {
+    try {
+      const url = serverId ? `${this.baseUrl}/mcp/tools?serverId=${encodeURIComponent(serverId)}` : `${this.baseUrl}/mcp/tools`;
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      const data = await res.json();
+      return data.tools || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async callMCPTool(serverId: string, toolName: string, args: Record<string, any> = {}): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/mcp/call`, {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ serverId, toolName, arguments: args }),
+        signal: AbortSignal.timeout(10000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { isError: true, content: [{ type: 'text', text: err.message }] };
+    }
+  }
+
+  // --- Browser Automation ---
+  public async getBrowserStatus(): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/browser/status`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(4000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { status: 'unreachable', error: err.message };
+    }
+  }
+
+  public async navigateBrowser(options: { url: string; timeoutMs?: number; extractLinks?: boolean; extractMetadata?: boolean }): Promise<any> {
+    try {
+      const res = await fetch(`${this.baseUrl}/browser/navigate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options),
+        signal: AbortSignal.timeout(options.timeoutMs || 12000)
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { error: err.message };
     }
   }
 
@@ -2394,6 +2563,57 @@ class AIHeavenApiClient {
   }
 
   // =========================================================================
+  // Turnitout Document Refiner Client Methods
+  // =========================================================================
+
+  public async getTurnitoutStatus(): Promise<TurnitoutStatus> {
+    const res = await fetch(`${this.baseUrl}/research/turnitout/status`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Turnitout status failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getTurnitoutTaxonomies(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/research/turnitout/taxonomies`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.taxonomies || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async analyzeTurnitoutDocument(text: string): Promise<TurnitoutAnalysisResult> {
+    const res = await fetch(`${this.baseUrl}/research/turnitout/analyze`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `Analysis failed: HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async processTurnitoutDocument(options: TurnitoutProcessOptions & { text: string }): Promise<TurnitoutProcessResult> {
+    const res = await fetch(`${this.baseUrl}/research/turnitout/process`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify(options)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `Processing failed: HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  // =========================================================================
   // GitHub Actions Client Methods
   // =========================================================================
 
@@ -2748,6 +2968,337 @@ class AIHeavenApiClient {
       const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
       throw new Error(err.error || `HTTP ${res.status}`);
     }
+    return await res.json();
+  }
+
+  // ==========================================
+  // MISSION CONTROL NAI (builderz-labs/mission-control)
+  // ==========================================
+  public async getMissionControlOverview(tenantId?: string): Promise<any> {
+    const q = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : '';
+    const res = await fetch(`${this.baseUrl}/operations/mission-control/overview${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async dispatchMissionControlTask(agentId: string, goal: string, tenantId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/operations/mission-control/dispatch`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ agentId, goal, tenantId })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // OMA - OPEN MULTI-AGENT (open-multi-agent/open-multi-agent)
+  // ==========================================
+  public async createOMARun(goal: string, tenantId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflow/oma/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ goal, tenantId })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOMARun(runId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflow/oma/run/${encodeURIComponent(runId)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async advanceOMANode(runId: string, nodeId: string, result?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflow/oma/run/${encodeURIComponent(runId)}/advance`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ nodeId, result })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async approveOMANode(runId: string, nodeId: string, approvedBy?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflow/oma/run/${encodeURIComponent(runId)}/approve`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ nodeId, approvedBy })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async verifyOMARun(runId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/workflow/oma/run/${encodeURIComponent(runId)}/verify`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // AGENTLENS (agentkitai/agentlens)
+  // ==========================================
+  public async getAgentLensFlights(tenantId?: string): Promise<any> {
+    const q = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : '';
+    const res = await fetch(`${this.baseUrl}/observability/agent-lens/flights${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getAgentLensFlight(flightId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/observability/agent-lens/flight/${encodeURIComponent(flightId)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async startAgentLensFlight(taskId: string, goal: string, tenantId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/observability/agent-lens/flight`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ taskId, goal, tenantId })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // AGENTGATE (agentkitai/agentgate)
+  // ==========================================
+  public async evaluateAgentGate(payload: {
+    agentId: string;
+    toolId: string;
+    commandOrPayload: string;
+    parameters?: Record<string, unknown>;
+    tenantId?: string;
+    projectId?: string;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security/agent-gate/evaluate`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getAgentGatePolicies(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security/agent-gate/policies`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // THINKLESS (VainF/Thinkless)
+  // ==========================================
+  public async evaluateThinkLessBudget(query: string, domain?: string, complexity?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/decision/thinkless`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ query, domain, complexity })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // THALAMUS & DECISION BACKENDS (cobaltcore-dev/Thalamus, NandhaKishorM/laya, fastino-ai/GLiNER2)
+  // ==========================================
+  public async routeThalamusDecision(text: string, candidateLabels: string[], parameters?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/decision/thalamus`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ text, candidateLabels, parameters })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getDecisionBackendsStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/brain/decision/backends/status`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // LAZYCODEX HIERARCHICAL MEMORY (code-yeongyu/lazycodex)
+  // ==========================================
+  public async getHierarchicalInstructions(path?: string): Promise<any> {
+    const q = path ? `?path=${encodeURIComponent(path)}` : '';
+    const res = await fetch(`${this.baseUrl}/memory/hierarchical/instructions${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getHierarchicalLandmarks(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/memory/hierarchical/landmarks`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // AGENT SWARM (openai/swarm pattern)
+  // ==========================================
+  public async executeSwarmRun(payload: {
+    prompt: string;
+    initialAgentId?: string;
+    contextVariables?: Record<string, unknown>;
+    maxHandoffs?: number;
+    tenantId?: string;
+  }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/swarm/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getSwarmAgents(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/swarm/agents`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // OPENWOP (openwop/openwop, openwop.dev)
+  // ==========================================
+  public async createOpenWOPRun(workflowName: string, inputs?: Record<string, unknown>, tenantId?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ workflowName, inputs, tenantId })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOpenWOPRun(runId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs/${encodeURIComponent(runId)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async advanceOpenWOPRun(runId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs/${encodeURIComponent(runId)}/advance`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async approveOpenWOPRun(runId: string, approved: boolean, actor?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs/${encodeURIComponent(runId)}/approve`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ approved, actor })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async replayOpenWOPRun(runId: string, checkpointId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs/${encodeURIComponent(runId)}/replay`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ checkpointId })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOpenWOPEvents(runId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/wop/v1/runs/${encodeURIComponent(runId)}/events`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // OMA (open-multi-agent) LIST RUNS
+  // ==========================================
+  public async listOMARuns(tenantId?: string): Promise<any> {
+    const q = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : '';
+    const res = await fetch(`${this.baseUrl}/workflow/oma/runs${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // AMA-BENCH (AMA-Bench/AMA-Hub)
+  // ==========================================
+  public async evaluateAMABench(payload: { domain: string; trajectory: any[]; queries: any[] }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/benchmark/ama-bench/evaluate`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getAMABenchTestCases(domain?: string): Promise<any> {
+    const q = domain ? `?domain=${encodeURIComponent(domain)}` : '';
+    const res = await fetch(`${this.baseUrl}/benchmark/ama-bench/test-cases${q}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // POLOS (polos-dev/polos)
+  // ==========================================
+  public async createPolosSession(options: { agentId?: string; tenantId?: string; maxRetries?: number }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/runtime/polos/session`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(options)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async listPolosSessions(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/runtime/polos/sessions`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getPolosSession(sessionId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/runtime/polos/session/${encodeURIComponent(sessionId)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   }
 }

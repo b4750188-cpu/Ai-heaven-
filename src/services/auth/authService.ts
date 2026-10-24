@@ -724,8 +724,19 @@ class AuthService {
     return this.toAuthenticatedUser(user);
   }
 
-  public switchAccount(targetUserId: string): AuthTokens {
-    const user = this.users.get(targetUserId);
+  public switchAccount(actorOrTargetId: string, targetUserId?: string, isAdmin = false): any {
+    if (targetUserId !== undefined) {
+      if (!isAdmin) {
+        return {
+          success: false,
+          error: 'Unauthorized impersonation attempt: only administrators can switch to another user identity.'
+        };
+      }
+      const target = this.users.get(targetUserId);
+      if (!target) return { success: false, error: 'Target user not found.' };
+      return { success: true, tokens: this.createSession(target) };
+    }
+    const user = this.users.get(actorOrTargetId);
     if (!user) throw new Error('Target user account not found.');
     if (!user.isActive) throw new Error('Target user account is disabled.');
     return this.createSession(user);
@@ -750,6 +761,7 @@ class AuthService {
 
     return {
       accessToken: token,
+      token,
       tokenType: 'Bearer',
       expiresIn: 7 * 24 * 60 * 60,
       user: this.toAuthenticatedUser(user)

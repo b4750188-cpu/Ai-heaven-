@@ -17,6 +17,8 @@ import {
 } from '../../types/execution';
 import { SandboxExecutor, sandboxExecutor } from './sandboxExecutor';
 import { postgresManager } from '../../db/postgres';
+import { policyGuardService } from '../security/policyGuardService';
+import { agentGateAdapter } from '../security/agentGateAdapter';
 
 export class ExecutionManager {
   private jobs = new Map<string, ExecutionJob>();
@@ -78,14 +80,16 @@ export class ExecutionManager {
   ): Promise<ExecutionJob> {
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
+    const projectId = request.project_id || agent.project_id || 'proj_default';
+    const workspaceId = request.workspace_id || agent.workspace_id || 'ws_default';
 
     // 1. Tool authorization validation against agent permissions
     if (!agent.permissions.allowed_tools.includes(tool.id)) {
       const failedJob: ExecutionJob = {
         id: jobId,
         agent_id: agent.id,
-        project_id: request.project_id,
-        workspace_id: request.workspace_id,
+        project_id: projectId,
+        workspace_id: workspaceId,
         tool_id: tool.id,
         command: request.command,
         state: 'failed',
@@ -99,7 +103,7 @@ export class ExecutionManager {
         updated_at: now
       };
       this.jobs.set(jobId, failedJob);
-      this.logAudit('tool_execution', agent.id, 'tool_authorization_failed', 'failure', { jobId, toolId: tool.id }, request.project_id, request.workspace_id, failedJob.stderr);
+      this.logAudit('tool_execution', agent.id, 'tool_authorization_failed', 'failure', { jobId, toolId: tool.id }, projectId, workspaceId, failedJob.stderr);
       return failedJob;
     }
 
@@ -107,8 +111,8 @@ export class ExecutionManager {
       const failedJob: ExecutionJob = {
         id: jobId,
         agent_id: agent.id,
-        project_id: request.project_id,
-        workspace_id: request.workspace_id,
+        project_id: projectId,
+        workspace_id: workspaceId,
         tool_id: tool.id,
         command: request.command,
         state: 'failed',
@@ -122,7 +126,78 @@ export class ExecutionManager {
         updated_at: now
       };
       this.jobs.set(jobId, failedJob);
-      this.logAudit('tool_execution', agent.id, 'tool_disabled', 'failure', { jobId, toolId: tool.id }, request.project_id, request.workspace_id, failedJob.stderr);
+      this.logAudit('tool_execution', agent.id, 'tool_disabled', 'failure', { jobId, toolId: tool.id }, projectId, workspaceId, failedJob.stderr);
+      return failedJob;
+    }
+
+    // 1c. Policy Guard evaluation against security boundary rules
+    const agentRole = agent.id.includes('research') ? 'researcher' : agent.id.includes('sec') ? 'auditor' : 'coder';
+    const policyResult = policyGuardService.evaluateAction({
+      agentId: agent.id,
+      agentRole,
+      actionType: 'tool_execution',
+      targetResource: request.command,
+      tenantId: workspaceId
+    });
+
+    if (policyResult.decision === 'denied') {
+      const failedJob: ExecutionJob = {
+        id: jobId,
+        agent_id: agent.id,
+        project_id: projectId,
+        workspace_id: workspaceId,
+        tool_id: tool.id,
+        command: request.command,
+        state: 'failed',
+        is_destructive: false,
+        requires_approval: false,
+        stdout: '',
+        stderr: policyResult.reason,
+        output_truncated: false,
+        error_message: policyResult.reason,
+        created_at: now,
+        updated_at: now
+      };
+      this.jobs.set(jobId, failedJob);
+      this.logAudit('tool_execution', agent.id, 'policy_guard_denied', 'failure', { jobId, toolId: tool.id, matchedRule: policyResult.matchedRuleId }, projectId, workspaceId, policyResult.reason);
+      return failedJob;
+    }
+
+    // 1d. AgentGate Zero-Trust payload inspection & interception (agentkitai/agentgate)
+    const gateResult = await agentGateAdapter.evaluateToolCall({
+      agentId: agent.id,
+      toolId: tool.id,
+      commandOrPayload: request.command,
+      parameters: request.parameters || {},
+      tenantId: workspaceId,
+      projectId: projectId
+    });
+
+    if (gateResult.decision === 'intercept_and_reject') {
+      const failedJob: ExecutionJob = {
+        id: jobId,
+        agent_id: agent.id,
+        project_id: projectId,
+        workspace_id: workspaceId,
+        tool_id: tool.id,
+        command: request.command,
+        state: 'failed',
+        is_destructive: false,
+        requires_approval: false,
+        stdout: '',
+        stderr: gateResult.reason,
+        output_truncated: false,
+        error_message: gateResult.reason,
+        created_at: now,
+        updated_at: now
+      };
+      this.jobs.set(jobId, failedJob);
+      this.logAudit('tool_execution', agent.id, 'agent_gate_rejected', 'failure', {
+        jobId,
+        toolId: tool.id,
+        violatedPolicy: gateResult.violatedPolicyId,
+        evidenceHash: gateResult.auditEvidenceHash
+      }, projectId, workspaceId, gateResult.reason);
       return failedJob;
     }
 
@@ -130,13 +205,15 @@ export class ExecutionManager {
     const isDestructive = this.executor.isDestructive(request.command);
     const requiresApproval =
       (isDestructive && agent.permissions.requires_approval_for_destructive) ||
-      tool.execution_policy.requires_confirmation;
+      tool.execution_policy.requires_confirmation ||
+      policyResult.decision === 'approval_required' ||
+      gateResult.decision === 'route_to_human_approval';
 
     let initialJob: ExecutionJob = {
       id: jobId,
       agent_id: agent.id,
-      project_id: request.project_id,
-      workspace_id: request.workspace_id,
+      project_id: projectId,
+      workspace_id: workspaceId,
       tool_id: tool.id,
       command: request.command,
       state: 'planned',
@@ -152,14 +229,14 @@ export class ExecutionManager {
     if (requiresApproval) {
       // Create Human Approval Record
       const approvalId = `appr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const fingerprint = this.generateFingerprint(request.command, request.workspace_id, tool.id);
+      const fingerprint = this.generateFingerprint(request.command, workspaceId, tool.id);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes TTL
 
       const approval: ExecutionApproval = {
         id: approvalId,
         execution_id: jobId,
-        project_id: request.project_id,
-        workspace_id: request.workspace_id,
+        project_id: projectId,
+        workspace_id: workspaceId,
         agent_id: agent.id,
         command: request.command,
         command_fingerprint: fingerprint,
@@ -470,6 +547,13 @@ export class ExecutionManager {
     if (projectId) list = list.filter(a => a.project_id === projectId);
     if (status) list = list.filter(a => a.status === status);
     return list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+
+  public getPendingApprovals(workspaceId?: string): ExecutionApproval[] {
+    this.cleanupExpiredApprovals();
+    let list = Array.from(this.approvals.values()).filter(a => a.status === 'pending');
+    if (workspaceId) list = list.filter(a => a.workspace_id === workspaceId);
+    return list;
   }
 }
 

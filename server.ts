@@ -71,6 +71,20 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('[AI Heaven Server] Unhandled rejection intercepted (preventing crash):', reason);
 });
 
+const handleShutdown = async (signal: string) => {
+  console.log(`[AI Heaven Server] Intercepted ${signal}. Commencing graceful resource cleanup...`);
+  try {
+    const { postgresManager } = await import('./src/db/postgres');
+    await postgresManager.closePool();
+  } catch {
+    // Non-fatal
+  }
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
+
 const isMainModule = Boolean(process.argv[1] && (
   process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js')
 ));

@@ -350,6 +350,59 @@ export class SandboxExecutor {
         } else {
           rawStdout = `Fable Mode CLI: command '${command}' executed.\nUse 'fable doctor' for diagnostics, 'fable test' for test verification, or 'fable ground' for claim audits.\n`;
         }
+      } else if (command.startsWith('mcp ') || command === 'mcp') {
+        const parts = command.split(/\s+/);
+        const sub = parts[1];
+        const { mcpClientService } = await import('../mcp/mcpClientService');
+        if (sub === 'servers' || sub === 'list' || !sub) {
+          const servers = mcpClientService.getServers();
+          rawStdout = `MCP Server Catalog (${servers.length} configured):\n` +
+            servers.map(s => `• [${s.id}] ${s.name} (${s.transport}) - Status: ${s.status}`).join('\n') + '\n';
+        } else if (sub === 'tools') {
+          const tools = mcpClientService.getTools(parts[2]);
+          rawStdout = `MCP Available Tools (${tools.length}):\n` +
+            tools.map(t => `• ${t.name} (server: ${t.serverId}): ${t.description}`).join('\n') + '\n';
+        } else if (sub === 'call') {
+          const serverId = parts[2] || 'mcp_core_memory';
+          const toolName = parts[3] || 'memory_query';
+          let callArgs: Record<string, any> = {};
+          if (parts[4]) {
+            try {
+              callArgs = JSON.parse(parts.slice(4).join(' '));
+            } catch {
+              callArgs = { query: parts.slice(4).join(' ') };
+            }
+          }
+          const callRes = await mcpClientService.callTool(serverId, toolName, callArgs, request.workspace_id);
+          rawStdout = (callRes.content[0]?.text || '') + `\nReceipt: ${callRes.receipt.receiptId} (Status: ${callRes.receipt.status})\n`;
+          if (callRes.isError) exitCode = 1;
+        } else {
+          rawStdout = `MCP CLI: command '${command}' executed.\nUse 'mcp servers' to list servers, 'mcp tools' to list tools, or 'mcp call <server> <tool> <args_json>' to invoke.\n`;
+        }
+      } else if (command.startsWith('browser ') || command === 'browser') {
+        const parts = command.split(/\s+/);
+        const sub = parts[1];
+        const targetUrl = parts[2];
+        const { browserAutomationService } = await import('../browser/browserAutomationService');
+        if (sub === 'status' || !sub) {
+          const st = browserAutomationService.getStatus();
+          rawStdout = `Browser Automation Engine Status:\n- Engine: ${st.engine}\n- Available: ${st.isAvailable}\n- SSRF Guard: ${st.ssrfGuardActive ? 'ACTIVE' : 'OFF'}\n- Max Payload: ${st.maxPayloadBytes}B\n`;
+        } else if (sub === 'navigate' || sub === 'fetch') {
+          if (!targetUrl) {
+            rawStderr = 'Usage: browser navigate <url>\n';
+            exitCode = 1;
+          } else {
+            try {
+              const navRes = await browserAutomationService.navigate({ url: targetUrl });
+              rawStdout = `Browser Navigation Success:\n- Title: ${navRes.title}\n- HTTP Status: ${navRes.httpStatus}\n- Words: ${navRes.wordCount}\n- Links: ${navRes.links.length}\n- Checksum: ${navRes.evidenceChecksum}\n\nSummary:\n${navRes.extractedText.slice(0, 500)}...\n`;
+            } catch (err: any) {
+              rawStderr = `Browser Navigation Error: ${err.message}\n`;
+              exitCode = 1;
+            }
+          }
+        } else {
+          rawStdout = `Browser CLI: Use 'browser status' or 'browser navigate <url>'.\n`;
+        }
       } else if (command.includes('--simulate-error')) {
         exitCode = 1;
         rawStderr = `Command execution error: simulated fault in sandbox container.\n`;

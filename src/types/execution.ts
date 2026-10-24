@@ -82,11 +82,12 @@ export interface IWorkspaceFilesystemProvider {
 }
 
 export interface SandboxExecutionRequest {
-  agent_id: string;
-  project_id: string;
+  agent_id?: string;
+  project_id?: string;
   workspace_id: string;
-  tool_id: string;
+  tool_id?: string;
   command: string;
+  parameters?: Record<string, any>;
   environment_overrides?: Record<string, string>;
 }
 

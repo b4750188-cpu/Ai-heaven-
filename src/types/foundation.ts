@@ -64,6 +64,8 @@ export interface AgentPermissions {
   network_access: boolean;      // Default false for security
   filesystem_scope: 'workspace_only' | 'read_only' | 'none';
   requires_approval_for_destructive: boolean;
+  max_execution_time_seconds?: number;
+  allowed_file_patterns?: string[];
 }
 
 export interface AgentDefinition {
@@ -73,6 +75,10 @@ export interface AgentDefinition {
   workspace_id?: string;
   name: string;
   description: string;
+  version?: string;
+  system_prompt?: string;
+  capabilities?: string[];
+  lifecycle?: Record<string, unknown>;
   status: AgentStatus;
   permissions: AgentPermissions;
   created_at: string;
@@ -93,6 +99,7 @@ export type ToolCapability =
 
 export interface ExecutionPolicy {
   sandboxed_only: boolean;
+  is_sandboxed?: boolean;
   timeout_seconds: number;
   requires_confirmation: boolean;
   max_output_bytes: number;
@@ -117,14 +124,16 @@ export interface ToolDefinition {
   id: string;
   name: string;
   provider?: string;
+  version?: string;
   description: string;
   capability: ToolCapability;
+  parameters?: unknown[];
   input_schema?: Record<string, unknown>;
   output_schema?: Record<string, unknown>;
   permissions?: string[];
   risk_level?: 'low' | 'medium' | 'high' | 'destructive';
   authentication_requirements?: ToolAuthentication;
-  availability?: 'ready' | 'degraded' | 'disabled' | 'unavailable' | 'unconfigured';
+  availability?: 'ready' | 'degraded' | 'disabled' | 'unavailable' | 'unconfigured' | 'available';
   provenance?: ToolProvenance;
   permission_requirements: string[];
   execution_policy: ExecutionPolicy;

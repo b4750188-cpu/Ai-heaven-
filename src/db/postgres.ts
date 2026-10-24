@@ -24,10 +24,25 @@ class PostgresManager {
   private pool: pg.Pool | null = null;
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
+  private lastMigrationError: string | null = null;
 
   public isConfigured(): boolean {
     const url = process.env.DATABASE_URL;
     return Boolean(url && url.trim().length > 0);
+  }
+
+  public assertProductionPersistence(): void {
+    if (process.env.NODE_ENV === 'production' && !this.isConfigured()) {
+      throw new Error('FATAL DATABASE ERROR: DATABASE_URL must be configured in production. Silent in-memory fallback is permanently prohibited.');
+    }
+  }
+
+  public getMigrationStatus(): { isInitialized: boolean; lastError: string | null; isConfigured: boolean } {
+    return {
+      isInitialized: this.isInitialized,
+      lastError: this.lastMigrationError,
+      isConfigured: this.isConfigured()
+    };
   }
 
   public getRedactedConfig() {
@@ -390,8 +405,10 @@ class PostgresManager {
 
         await client.query('COMMIT');
         this.isInitialized = true;
+        this.lastMigrationError = null;
       } catch (err: any) {
         await client.query('ROLLBACK');
+        this.lastMigrationError = err.message;
         console.error('[PostgreSQL Migration Error]:', err.message);
         throw err;
       } finally {
@@ -719,6 +736,14 @@ class PostgresManager {
     query += ' ORDER BY created_at DESC';
     const res = await pool.query(query, params);
     return res.rows;
+  }
+
+  public async closePool(): Promise<void> {
+    if (this.pool) {
+      await this.pool.end();
+      this.pool = null;
+      this.isInitialized = false;
+    }
   }
 }
 

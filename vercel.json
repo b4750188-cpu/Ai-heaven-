@@ -51,6 +51,14 @@
       "destination": "/api/index.ts"
     },
     {
+      "source": "/health",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/health/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index.ts"
     },

@@ -82,6 +82,7 @@ export interface AuthProviderStatus {
 
 export interface AuthTokens {
   accessToken: string;
+  token?: string;
   refreshToken?: string;
   tokenType: 'Bearer';
   expiresIn: number;

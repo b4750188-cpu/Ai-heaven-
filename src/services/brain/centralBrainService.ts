@@ -15,6 +15,7 @@ import { postgresManager } from '../../db/postgres';
 import { realityRegistryService } from '../reality/realityRegistryService';
 import { edge0Provider } from '../inference/edge0Provider';
 import { comfyUIProvider } from '../workflow/comfyUIProvider';
+import { turnitoutEngine } from '../research/turnitoutEngine';
 
 export type TaskDomain =
   | 'coding'
@@ -25,6 +26,7 @@ export type TaskDomain =
   | 'debugging'
   | 'terminal'
   | 'multimodal'
+  | 'document_refinement'
   | 'general';
 
 export type TaskComplexity = 'simple' | 'moderate' | 'complex';
@@ -482,6 +484,8 @@ class CentralBrainService {
 
     if (/\b(terminal|exec|bash|shell|git|npm|curl|mkdir|cd|cat|ls|pwd)\b/.test(q)) {
       domain = 'terminal';
+    } else if (/\b(humanize|turnitout|turnitin|paraphrase|latex|bibtex|manuscript|document cleanup|academic paper|citation|readability|code comments)\b/.test(q)) {
+      domain = 'document_refinement';
     } else if (/\b(refactor|code|function|class|component|tsx|ts|bug|fix|api|endpoint|typescript|javascript)\b/.test(q)) {
       domain = 'coding';
     } else if (/\b(vulnerability|xss|sql-injection|cve|exploit|firewall|unauthorized)\b/.test(q) || (/\b(security|audit)\b/.test(q) && !/\b(code|refactor)\b/.test(q))) {
@@ -524,6 +528,10 @@ class CentralBrainService {
       }
       fallbackModel = availableModels.find(m => m.id === 'llama-3-3-70b') || availableModels[0];
       rationale = `Local-Only Mode active: routed to Edge0 streaming MoE engine (${selectedModel.name}) with zero cloud egress.`;
+    } else if (domain === 'document_refinement') {
+      selectedModel = availableModels.find(m => m.id === 'gemini-2.5-pro') || availableModels[0];
+      fallbackModel = availableModels.find(m => m.id === 'gemini-2.5-flash') || availableModels[1];
+      rationale = `Academic document processing and syntax preservation routed to ${selectedModel.name} with Turnitout-compatible LaTeX & code syntax zone protection.`;
     } else if (complexity === 'complex' || domain === 'architecture' || domain === 'security') {
       selectedModel = availableModels.find(m => m.id === 'gemini-2.5-pro') || availableModels[0];
       fallbackModel = availableModels.find(m => m.id === 'gemini-2.5-flash') || availableModels[1];
@@ -610,7 +618,25 @@ class CentralBrainService {
   // 2. MULTI-AGENT EXECUTION & SUBTASK DAG DECOMPOSITION
   // =========================================================================
 
-  public createOrchestrationPlan(goal: string, domain?: TaskDomain): OrchestrationPlan {
+  public createOrchestrationPlan(goal: string, domain?: TaskDomain, idempotencyKey?: string): OrchestrationPlan {
+    // 1. Idempotency & Duplicate Prevention: Check for active identical goal in progress
+    if (idempotencyKey) {
+      for (const existing of this.plans.values()) {
+        if ((existing as any).idempotencyKey === idempotencyKey) {
+          return existing;
+        }
+      }
+    }
+    const cleanGoal = goal.trim().toLowerCase();
+    const recentDuplicate = Array.from(this.plans.values()).find(p => 
+      p.goal.trim().toLowerCase() === cleanGoal &&
+      (p.status === 'planning' || p.status === 'in_progress' || p.status === 'waiting_approval') &&
+      Date.now() - new Date(p.createdAt).getTime() < 60000
+    );
+    if (recentDuplicate) {
+      return recentDuplicate;
+    }
+
     const classification = this.classifyRequest(goal);
     const chosenDomain = domain || classification.domain;
     const planId = `plan_${crypto.randomUUID().slice(0, 8)}`;
@@ -741,6 +767,17 @@ class CentralBrainService {
     const subtask = plan.subtasks.find(s => s.id === subtaskId);
     if (!subtask) return null;
 
+    // Infinite loop & execution iteration guard (max 25 step transitions)
+    const MAX_STEP_ITERATIONS = 25;
+    (plan as any).iterationCount = ((plan as any).iterationCount || 0) + 1;
+    if ((plan as any).iterationCount > MAX_STEP_ITERATIONS) {
+      plan.status = 'failed';
+      subtask.status = 'failed';
+      subtask.output = 'EXECUTION HALTED: Exceeded maximum allowed step iterations (25). Infinite loop barrier enforced.';
+      plan.updatedAt = new Date().toISOString();
+      return plan;
+    }
+
     subtask.status = 'completed';
     subtask.output = resultOutput || `Completed step: ${subtask.title}`;
     plan.updatedAt = new Date().toISOString();
@@ -768,6 +805,50 @@ class CentralBrainService {
     });
 
     return plan;
+  }
+
+  /**
+   * Reaps stalled or abandoned plans in progress exceeding inactivity cutoff.
+   */
+  public reapStalledPlans(maxIdleMinutes = 15): number {
+    const cutoff = Date.now() - maxIdleMinutes * 60 * 1000;
+    let reaped = 0;
+    for (const plan of this.plans.values()) {
+      if ((plan.status === 'in_progress' || plan.status === 'planning') && new Date(plan.updatedAt).getTime() < cutoff) {
+        plan.status = 'failed';
+        plan.updatedAt = new Date().toISOString();
+        const pending = plan.subtasks.find(s => s.status === 'in_progress' || s.status === 'pending');
+        if (pending) {
+          pending.status = 'failed';
+          pending.output = `Task timed out: worker inactive for >${maxIdleMinutes}m. Stalled task barrier enforced.`;
+        }
+        reaped++;
+      }
+    }
+    return reaped;
+  }
+
+  /**
+   * Executes an asynchronous operation with retry and exponential backoff
+   */
+  public async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    options: { maxRetries?: number; initialDelayMs?: number; maxDelayMs?: number } = {}
+  ): Promise<T> {
+    const maxRetries = options.maxRetries ?? 3;
+    let delay = options.initialDelayMs ?? 200;
+    const maxDelay = options.maxDelayMs ?? 2000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (err: any) {
+        if (attempt === maxRetries) throw err;
+        await new Promise(r => setTimeout(r, delay));
+        delay = Math.min(delay * 2, maxDelay);
+      }
+    }
+    throw new Error('Operation failed after retries.');
   }
 
   // =========================================================================
@@ -1532,6 +1613,17 @@ class CentralBrainService {
       return `### Central Brain & Droid Task Queue\n- **Active Autonomous Droids**: 6 Specialized Droids Armed (Argus, Hydra, Aegis, Vulcan, Specter, Cerberus)\n- **Current Queue**: Ready for target dispatch.\n- **Permitted Operations**: Scope Verification, Passive Reconnaissance, Static Source Code Audit, Non-Destructive HTTP Header Inspection, Deterministic Evidence Hashing.\n- **Approval Barrier**: Any destructive mutations or active exploit checks require human operator approval.`;
     }
 
+    // 16. "Turnitout status" / "Document Refinement" / "Is Turnitout active?"
+    if (p.includes('turnitout') || p.includes('humanizer') || p.includes('document refiner') || p.includes('academic writing module')) {
+      const status = turnitoutEngine.getStatus();
+      return `### Turnitout Academic Writing & Document Refiner\n` +
+        `- **Architecture**: ${status.architecture} (Zero-Cloud, In-Memory)\n` +
+        `- **Preservation**: LaTeX Math Zones ($...$, $$...$$, \\begin{equation}), Code Blocks, and Code Comments (8 Languages)\n` +
+        `- **Discipline Taxonomies**: Computer Science & AI, Systems & Engineering, Math & Stats, Quantitative Finance, Medical Sciences\n` +
+        `- **Scientific Honesty Disclosure**: ${status.scientificHonestyDisclosure}\n` +
+        `- **Access**: Integrated in **Tools > Document Refiner (Turnitout)** and Central Brain routing.`;
+    }
+
     return null;
   }
 
@@ -1545,6 +1637,14 @@ class CentralBrainService {
 
       case 'research':
         return `### Knowledge Retrieval & Analysis\n**Query**: "${prompt.slice(0, 100)}..."\n\n- **Knowledge Graph Entities**: Correlated with authoritative ecosystem sources.\n- **Official Documentation**: Verified against official SDK specifications.\n- **Integration Boundary**: Differentiates live credentials from sandbox fallbacks.`;
+
+      case 'document_refinement': {
+        const processed = turnitoutEngine.processDocument(prompt, { mode: 'academic_refine', preserveLatex: true, preserveCode: true });
+        return `### Academic Writing & Document Refinement (Turnitout Engine)\n` +
+          `**Analysis**: Detected ${processed.metricsBefore.clicheMatches} AI cliches, Flesch Reading Ease: ${processed.metricsBefore.fleschKincaidReadingEase}/100 &bull; Preserved ${processed.protectedZones.length} protected LaTeX/code zones.\n\n` +
+          `**Refined Output**:\n${processed.processedText}\n\n` +
+          `*Note: Deterministic syntactic and lexical permutation preserves math integrity and code syntax without fabricating unverified AI detection bypass claims.*`;
+      }
 
       case 'terminal':
         return `### Sandboxed Terminal Execution\n**Command Intent**: "${prompt.slice(0, 100)}..."\n\n- **Workspace Isolation**: Executed within virtual filesystem (\`ws_default_demo\`).\n- **Policy Enforcement**: Permanent blacklist enforced for host-modifying utilities.\n- **Approval Workflow**: Destructive mutations require explicit human confirmation.`;
