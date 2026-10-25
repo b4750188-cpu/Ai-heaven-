@@ -6,7 +6,7 @@
  */
 
 import http from 'http';
-import { apiApp } from '../server.ts';
+import { app as apiApp } from '../src/api/app.ts';
 
 async function runSmokeTests() {
   console.log('======================================================');

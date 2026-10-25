@@ -6,11 +6,14 @@
 import React, { useEffect, useState } from 'react';
 import { AgentContractModal } from './components/common/AgentContractModal';
 import { AuthModal } from './components/auth/AuthModal';
+import { AuthGateScreen } from './components/auth/AuthGateScreen';
+import { SkullLogo } from './components/common/SkullLogo';
 import { ResourceExplorer } from './components/explorer/ResourceExplorer';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { AppShell, ShellView } from './components/shell/AppShell';
 import { HomeView } from './components/home/HomeView';
 import { apiClient } from './services/apiClient';
+import { mobileNativeService } from './services/native/mobileNativeService';
 import { KnowledgeGraphData } from './types/graph';
 import { Provider, Resource, ResourceRelationship } from './types/resource';
 import { AgentDefinition, AuditEvent, Project, ToolDefinition, Workspace } from './types/foundation';
@@ -72,10 +75,46 @@ export default function App() {
   const [agentModalResource, setAgentModalResource] = useState<Resource | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState(false);
 
-  // Initial Load
+  // Initial Load & Native Capacitor Bridge Initialization
   useEffect(() => {
+    mobileNativeService.initialize();
     loadData();
+
+    const unsubConnectivity = mobileNativeService.onConnectivityChange((status) => {
+      if (!status.connected) {
+        setIsBackendConnected(false);
+      } else {
+        syncBackgroundStatus();
+      }
+    });
+
+    return () => {
+      unsubConnectivity();
+    };
   }, []);
+
+  // Android Hardware Back Button & Mobile Stack Handling
+  useEffect(() => {
+    return mobileNativeService.registerBackHandler(() => {
+      if (isSearchOpen) {
+        setIsSearchOpen(false);
+        return true;
+      }
+      if (isAuthModalOpen) {
+        setIsAuthModalOpen(false);
+        return true;
+      }
+      if (agentModalResource) {
+        setAgentModalResource(null);
+        return true;
+      }
+      if (currentView !== 'home') {
+        setCurrentView('home');
+        return true;
+      }
+      return false;
+    });
+  }, [isSearchOpen, isAuthModalOpen, agentModalResource, currentView]);
 
   // Periodic polling for status and approvals (only active when tab is visible)
   useEffect(() => {
@@ -238,6 +277,38 @@ export default function App() {
     setAuditEvents(auditData);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#080B10] text-[#F1F4F8] flex flex-col items-center justify-center p-4">
+        <div className="h-10 w-10 rounded-xl border border-[#283242] bg-[#121822] flex items-center justify-center animate-pulse mb-3">
+          <SkullLogo className="h-6 w-6" />
+        </div>
+        <div className="text-xs font-mono text-[#9AA6B7] tracking-wider uppercase">Initializing AI Heaven...</div>
+      </div>
+    );
+  }
+
+  // Login must appear before the protected workspace
+  if (!authCurrentUser) {
+    return (
+      <AuthGateScreen
+        onAuthenticated={(user) => {
+          setAuthCurrentUser(user);
+        }}
+        isBackendConnected={isBackendConnected}
+      />
+    );
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await apiClient.logoutAuth();
+    } catch {
+      // safe fallback
+    }
+    setAuthCurrentUser(null);
+  };
+
   return (
     <AppShell
       currentView={currentView}
@@ -247,6 +318,7 @@ export default function App() {
       pendingApprovalsCount={pendingApprovalsCount}
       isKillSwitchActive={isKillSwitchActive}
       onOpenAuth={() => setIsAuthModalOpen(true)}
+      onSignOut={handleSignOut}
       currentUser={authCurrentUser}
     >
       {loadError && (
@@ -283,6 +355,8 @@ export default function App() {
 
         {currentView === 'chat' && (
           <CentralBrainChatView
+            currentUser={authCurrentUser}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
             onNavigateToProject={() => setCurrentView('projects')}
             onNavigateToHunt={() => setCurrentView('bughunt')}
             onNavigateToTools={() => setCurrentView('tools')}

@@ -1,0 +1,140 @@
+name: Android APK Build & Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (debug)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'android/**'
+      - 'public/**'
+      - 'index.html'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android-build.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - '.github/workflows/android-build.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-android-apk:
+    name: Build AI Heaven Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java 17 (JDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Project Dependencies
+        run: |
+          npm ci || npm install
+
+      - name: Run Type & Lint Checks
+        run: |
+          npm run lint
+
+      - name: Run Platform Tests & Reality Audit
+        run: |
+          npm test
+
+      - name: Build Web Application
+        run: |
+          npm run build
+
+      - name: Synchronize Capacitor Android Assets
+        run: |
+          npx cap sync android
+
+      - name: Grant Executable Permissions to Gradle Wrapper
+        run: |
+          chmod +x android/gradlew
+
+      - name: Compile Android Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Verify Generated APK
+        id: check_apk
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            FILE_SIZE=$(stat -c%s "$APK_PATH")
+            FILE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $FILE_SIZE/1024/1024}")
+            SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
+            echo "apk_exists=true" >> $GITHUB_OUTPUT
+            echo "apk_size=$FILE_SIZE_MB MB" >> $GITHUB_OUTPUT
+            echo "apk_sha256=$SHA256" >> $GITHUB_OUTPUT
+            echo "Found debug APK at $APK_PATH ($FILE_SIZE_MB MB)"
+          else
+            echo "FATAL: APK file was not produced." >&2
+            exit 1
+          fi
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-heaven-android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Generate Workflow Summary
+        if: always()
+        run: |
+          echo "## 📱 AI Heaven Android APK Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Application Name** | AI Heaven |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Package ID** | \`com.aiheaven.app\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Artifact Name** | \`ai-heaven-android-debug-apk\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Size** | ${{ steps.check_apk.outputs.apk_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **SHA-256** | \`${{ steps.check_apk.outputs.apk_sha256 }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Git Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 How to Download & Install on GitHub Mobile / Web:" >> $GITHUB_STEP_SUMMARY
+          echo "1. In GitHub mobile or browser, tap on the **Actions** tab." >> $GITHUB_STEP_SUMMARY
+          echo "2. Select this workflow run: **${{ github.workflow }}**." >> $GITHUB_STEP_SUMMARY
+          echo "3. Scroll to the **Artifacts** section at the bottom." >> $GITHUB_STEP_SUMMARY
+          echo "4. Tap **ai-heaven-android-debug-apk** to download \`app-debug.apk\` directly to your device." >> $GITHUB_STEP_SUMMARY
+          echo "5. On your Android phone, enable *Install unknown apps* for your browser or file manager and open the APK." >> $GITHUB_STEP_SUMMARY

@@ -358,9 +358,9 @@ export const ConversationsView: React.FC = () => {
       )}
 
       {/* Main 2-Column Chat Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[720px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px] lg:h-[720px]">
         {/* Left Column: Thread List with Search */}
-        <div className="lg:col-span-4 bg-[#121822]/40 border border-[#283242] rounded-lg p-3 flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-4 bg-[#121822]/40 border border-[#283242] rounded-lg p-3 flex flex-col max-h-[280px] lg:max-h-none h-full overflow-hidden">
           {/* Search Box */}
           <div className="relative mb-3">
             <Search className="h-3.5 w-3.5 text-[#9AA6B7]/70 absolute left-3 top-2.5" />
@@ -452,7 +452,7 @@ export const ConversationsView: React.FC = () => {
         </div>
 
         {/* Right Column: Active Conversation */}
-        <div className="lg:col-span-8 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-8 bg-[#121822]/40 border border-[#283242] rounded-lg flex flex-col min-h-[480px] lg:h-full overflow-hidden">
           {/* Active Conversation Control Strip */}
           <div className="p-3 border-b border-[#283242] bg-[#080B10]/60 flex flex-wrap items-center justify-between gap-3">
             {/* Model Selector & Project Association */}

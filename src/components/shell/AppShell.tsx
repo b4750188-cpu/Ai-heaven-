@@ -84,6 +84,7 @@ interface AppShellProps {
   pendingApprovalsCount?: number;
   isKillSwitchActive?: boolean;
   onOpenAuth?: () => void;
+  onSignOut?: () => void;
   currentUser?: any;
   children: React.ReactNode;
 }
@@ -110,6 +111,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   pendingApprovalsCount = 0,
   isKillSwitchActive = false,
   onOpenAuth,
+  onSignOut,
   currentUser,
   children
 }) => {
@@ -152,10 +154,17 @@ export const AppShell: React.FC<AppShellProps> = ({
     setIsMobileMenuOpen(false);
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      await apiClient.logoutAuth();
+    } catch {
+      // Best effort
+    }
     apiClient.setAuthToken(null);
     setIsUserMenuOpen(false);
-    if (typeof window !== 'undefined') {
+    if (onSignOut) {
+      onSignOut();
+    } else if (typeof window !== 'undefined') {
       window.location.reload();
     }
   };

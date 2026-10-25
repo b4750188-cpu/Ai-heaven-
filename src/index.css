@@ -54,3 +54,42 @@
   border-color: #283242;
 }
 
+/* Mobile Safe Area Insets for Android Notch / Gesture Bar */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Touch targets >= 44px for Android Accessibility */
+.touch-target-44 {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Glassmorphism surfaces matching #080B10, #0D1118, #121822, #171F2B, #283242 */
+.glass-panel {
+  background: rgba(18, 24, 34, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #283242;
+}
+
+.glass-nav {
+  background: rgba(13, 17, 24, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid #283242;
+}
+
+

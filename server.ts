@@ -85,11 +85,9 @@ const handleShutdown = async (signal: string) => {
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 
-const isMainModule = Boolean(process.argv[1] && (
-  process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js')
-));
+const isTest = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
 
-if (isMainModule && !process.env.VERCEL) {
+if (!isTest && !process.env.VERCEL) {
   startServer().catch(err => {
     console.error('[AI Heaven] Server startup error:', err);
   });

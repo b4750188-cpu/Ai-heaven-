@@ -6,3 +6,14 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Android build outputs and sensitive signing keys
+android/.gradle/
+android/app/build/
+android/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+.gradle/
+

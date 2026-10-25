@@ -53,6 +53,7 @@ import {
   TurnitoutAnalysisResult,
   TurnitoutProcessOptions
 } from '../types/turnitout';
+import { Capacitor } from '@capacitor/core';
 
 export interface BackendStatus {
   connected: boolean;
@@ -62,7 +63,42 @@ export interface BackendStatus {
   error?: string;
 }
 
-const API_BASE_URL = '/api';
+export const DEPLOYED_PRODUCTION_API_URL = 'https://ais-dev-3akprr5cwy775swhpvqbqo-355977231344.asia-southeast1.run.app/api';
+
+export function resolveEffectiveApiBaseUrl(): string {
+  // 1. Explicit Vite client-side environment variable (e.g. VITE_API_URL)
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) {
+    const raw = String(import.meta.env.VITE_API_URL).trim();
+    if (raw) {
+      return raw.endsWith('/api') ? raw : `${raw.replace(/\/$/, '')}/api`;
+    }
+  }
+
+  // 2. Window-injected configuration override
+  if (typeof window !== 'undefined' && (window as any).__AI_HEAVEN_API_URL__) {
+    const raw = String((window as any).__AI_HEAVEN_API_URL__).trim();
+    if (raw) {
+      return raw.endsWith('/api') ? raw : `${raw.replace(/\/$/, '')}/api`;
+    }
+  }
+
+  // 3. Native Android / iOS container: NEVER use localhost on physical device
+  const isNative = typeof window !== 'undefined' && (
+    Capacitor.isNativePlatform() ||
+    window.location.protocol === 'capacitor:' ||
+    window.location.protocol === 'file:' ||
+    (window.location.protocol === 'https:' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && Boolean((window as any)?.Capacitor?.isPluginAvailable))
+  );
+
+  if (isNative) {
+    return DEPLOYED_PRODUCTION_API_URL;
+  }
+
+  // 4. In web browser environment: relative '/api' proxies to host
+  return '/api';
+}
+
+const API_BASE_URL = resolveEffectiveApiBaseUrl();
 
 interface CacheEntry<T> {
   data: T;
@@ -76,7 +112,7 @@ class AIHeavenApiClient {
   private inFlight = new Map<string, Promise<any>>();
 
   constructor() {
-    this.baseUrl = API_BASE_URL.replace(/\/$/, '');
+    this.baseUrl = resolveEffectiveApiBaseUrl().replace(/\/$/, '');
   }
 
   public clearCache() {
@@ -2018,6 +2054,8 @@ class AIHeavenApiClient {
   }
 
   public async getAuthCurrentUser(): Promise<any> {
+    const token = this.getAuthToken();
+    if (!token) return null;
     try {
       const res = await fetch(`${this.baseUrl}/auth/me`, {
         headers: this.getAuthHeaders({ Accept: 'application/json' })

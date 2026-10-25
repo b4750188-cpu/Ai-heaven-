@@ -535,50 +535,51 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
   const isGeminiLive = geminiProvider?.isConfigured;
 
   return (
-    <div className="flex flex-col min-h-[600px] h-[calc(100vh-8rem)] md:h-[calc(100vh-6.5rem)] rounded-xl border border-[#222632] bg-[#0E1015] overflow-hidden shadow-2xl">
+    <div className="flex flex-col min-h-[360px] sm:min-h-[480px] h-[calc(100dvh-9rem)] md:h-[calc(100vh-6.5rem)] rounded-2xl border border-[#283242] bg-[#080B10] overflow-hidden shadow-2xl">
       {/* Top Header Bar with Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 border-b border-[#222632] bg-[#12141C]">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 sm:px-4 py-2.5 border-b border-[#283242] bg-[#0D1118]/95 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
           {chatMode === 'normal' && (
             <button
               onClick={() => setIsSidebarOpenMobile(prev => !prev)}
-              className="md:hidden p-1.5 rounded-lg border border-[#222632] bg-[#161822] text-[#9CA3AF] hover:text-[#F3F4F6]"
+              className="md:hidden p-2 rounded-lg border border-[#283242] bg-[#121822] text-[#9AA6B7] hover:text-[#F1F4F8] touch-target-44 cursor-pointer"
               title="Toggle Sessions Drawer"
+              aria-label="Toggle Sessions Drawer"
             >
               <Layers className="h-4 w-4" />
             </button>
           )}
 
           {/* Mode Switcher: Normal Chat vs Bug Hunting */}
-          <div className="flex items-center rounded-lg border border-[#262B37] bg-[#0A0B0E] p-0.5">
+          <div className="flex items-center rounded-lg border border-[#283242] bg-[#121822] p-0.5">
             <button
               onClick={() => setChatMode('normal')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
                 chatMode === 'normal'
-                  ? 'bg-[#F4F4F6] text-[#090A0D] font-semibold shadow-xs'
-                  : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
+                  ? 'bg-[#171F2B] text-[#42D9F5] border border-[#42D9F5]/40 font-semibold shadow-xs'
+                  : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
               }`}
             >
-              <Brain className="h-3 w-3" />
-              <span>Normal Chat</span>
+              <Brain className="h-3.5 w-3.5" />
+              <span>Brain Chat</span>
             </button>
             <button
               onClick={() => setChatMode('bughunt')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
                 chatMode === 'bughunt'
-                  ? 'bg-[#F4F4F6] text-[#090A0D] font-semibold shadow-xs'
-                  : 'text-[#9CA3AF] hover:text-[#F3F4F6]'
+                  ? 'bg-[#171F2B] text-[#42D9F5] border border-[#42D9F5]/40 font-semibold shadow-xs'
+                  : 'text-[#9AA6B7] hover:text-[#F1F4F8]'
               }`}
             >
-              <Crosshair className="h-3 w-3" />
-              <span>Bug Hunting</span>
+              <Crosshair className="h-3.5 w-3.5" />
+              <span>Bug Hunter</span>
             </button>
           </div>
 
           <span className={`hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded border ${
             isGeminiLive
-              ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30'
-              : 'bg-[#9CA3AF]/10 text-[#9CA3AF] border-[#9CA3AF]/30'
+              ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800'
+              : 'bg-[#121822] text-[#9AA6B7] border-[#283242]'
           }`}>
             {isGeminiLive ? 'LIVE GEMINI 3.8' : 'SANDBOX RUNTIME'}
           </span>
@@ -591,7 +592,7 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
               <select
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value)}
-                className="text-xs font-mono bg-[#161822] text-[#F3F4F6] border border-[#2E3342] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-white cursor-pointer"
+                className="text-xs font-mono bg-[#121822] text-[#F1F4F8] border border-[#283242] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#42D9F5] cursor-pointer"
               >
                 <option value="auto">Auto-Routing (Central Brain)</option>
                 <optgroup label="Local On-Device Engine (Edge0 SSD-MoE)">
@@ -610,7 +611,7 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
 
             <button
               onClick={handleCreateNewChat}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F4F4F6] text-[#090A0D] hover:bg-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#42D9F5] text-[#080B10] hover:bg-[#38c4de] transition-colors cursor-pointer shadow-xs touch-target-44"
               title="Create new conversation session"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -618,8 +619,8 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
             </button>
           </div>
         ) : (
-          <div className="text-xs font-mono text-[#9CA3AF]">
-            Scope Policy: <span className="text-[#10B981]">Strict Pre-Flight Enforcement</span>
+          <div className="text-xs font-mono text-[#9AA6B7]">
+            Scope Policy: <span className="text-emerald-400">Strict Pre-Flight Enforcement</span>
           </div>
         )}
       </div>
@@ -787,24 +788,24 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
 
           {/* Message List */}
           {/* Message List - Spacious Centered Column */}
-          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 space-y-6">
-            <div className="max-w-3xl mx-auto w-full space-y-6">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4">
+            <div className="max-w-3xl mx-auto w-full space-y-4">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 text-[#9CA1B2] py-8 animate-in fade-in duration-300">
-                  <div className="h-14 w-14 rounded-2xl bg-[#1C1E26] border border-[#2E303E] flex items-center justify-center text-white shadow-md">
-                    <Brain className="h-7 w-7 text-neutral-200" />
+                <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-5 text-[#9AA6B7] py-6 animate-in fade-in duration-300">
+                  <div className="h-14 w-14 rounded-2xl bg-[#121822] border border-[#283242] flex items-center justify-center text-[#42D9F5] shadow-lg">
+                    <Brain className="h-7 w-7 text-[#42D9F5]" />
                   </div>
-                  <div className="space-y-1.5 max-w-md">
-                    <h2 className="text-xl font-semibold tracking-tight text-white font-sans">
-                      Central Brain
+                  <div className="space-y-1.5 max-w-md px-2">
+                    <h2 className="text-xl font-bold tracking-tight text-[#F1F4F8] font-sans">
+                      Central Brain Direct Console
                     </h2>
-                    <p className="text-xs text-[#9CA1B2] leading-relaxed">
+                    <p className="text-xs text-[#9AA6B7] leading-relaxed">
                       Conversational engineering, model consensus routing, and autonomous vulnerability auditing with cryptographic execution receipts.
                     </p>
                   </div>
 
-                  {/* 4 Claude-Style Spacious Prompt Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl pt-2">
+                  {/* 4 Premium Dark Glass Prompt Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-2xl pt-1">
                     {[
                       {
                         title: 'Audit Workspace Security',
@@ -830,13 +831,13 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(undefined, card.prompt)}
-                        className="text-left p-3.5 rounded-2xl border border-[#262835] bg-[#14151C] hover:bg-[#1A1C25] hover:border-[#383B4C] transition-all cursor-pointer group shadow-xs space-y-1"
+                        className="text-left p-3.5 rounded-xl border border-[#283242] bg-[#121822]/80 hover:bg-[#171F2B] hover:border-[#42D9F5]/40 transition-all cursor-pointer group shadow-xs space-y-1 touch-target-44"
                       >
-                        <div className="flex items-center justify-between text-xs font-medium text-white group-hover:text-white">
+                        <div className="flex items-center justify-between text-xs font-semibold text-[#F1F4F8] group-hover:text-[#42D9F5]">
                           <span>{card.title}</span>
-                          <Zap className="h-3.5 w-3.5 text-[#9CA1B2] group-hover:text-white transition-colors" />
+                          <Zap className="h-3.5 w-3.5 text-[#9AA6B7] group-hover:text-[#42D9F5] transition-colors" />
                         </div>
-                        <p className="text-[11px] text-[#9CA1B2] leading-relaxed">
+                        <p className="text-[11px] text-[#9AA6B7] leading-relaxed">
                           {card.desc}
                         </p>
                       </button>
@@ -852,15 +853,15 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                       className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5 w-full`}
                     >
                       {/* Message Meta Info */}
-                      <div className="flex items-center gap-2 text-[11px] text-[#9CA1B2] px-1 font-mono">
-                        <span className="font-medium text-neutral-300">
+                      <div className="flex items-center gap-2 text-[11px] text-[#9AA6B7] px-1 font-mono">
+                        <span className="font-semibold text-[#F1F4F8]">
                           {isUser ? 'You' : (msg.agentName || 'AI Heaven Brain')}
                         </span>
                         {msg.modelUsed && (
                           <span className={`px-2 py-0.5 rounded text-[10px] border font-mono ${
                             msg.metadata?.inferenceLocation === 'local' || msg.metadata?.isLocalInference
                               ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300 font-semibold shadow-xs'
-                              : 'bg-[#1C1E26] border-[#2B2D3A] text-neutral-300'
+                              : 'bg-[#121822] border-[#283242] text-[#9AA6B7]'
                           }`}>
                             {msg.metadata?.inferenceLocation === 'local' || msg.metadata?.isLocalInference ? '⚡ Local · ' : '☁️ Cloud · '}
                             {msg.modelUsed}
@@ -870,25 +871,25 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                       </div>
 
                       {/* Message Bubble */}
-                      <div className={`rounded-2xl p-4 text-xs leading-relaxed border transition-colors ${
+                      <div className={`rounded-2xl p-3.5 sm:p-4 text-xs leading-relaxed border transition-colors ${
                         isUser
-                          ? 'max-w-[85%] bg-[#222430] border-[#313445] text-white shadow-xs'
-                          : 'w-full bg-[#14151D] border-[#242633] text-[#EDEDF2] shadow-xs'
+                          ? 'max-w-[88%] sm:max-w-[80%] bg-[#171F2B] border-[#283242] text-[#F1F4F8] shadow-xs'
+                          : 'w-full bg-[#121822] border-[#283242] text-[#F1F4F8] shadow-xs'
                       }`}>
                         <FormattedMessageContent content={msg.content} isUser={isUser} />
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="flex items-center gap-3 text-[10px] text-[#9CA1B2] px-1">
+                      <div className="flex items-center gap-3 text-[10px] text-[#9AA6B7] px-1">
                         <button
                           onClick={() => copyText(msg.content, msg.id)}
-                          className="hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                          className="hover:text-[#F1F4F8] flex items-center gap-1 transition-colors cursor-pointer"
                           title="Copy text"
                         >
                           {copiedId === msg.id ? (
                             <>
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              <span className="text-emerald-400 font-mono">Copied</span>
+                              <CheckCircle2 className="w-3 h-3 text-[#34D399]" />
+                              <span className="text-[#34D399] font-mono">Copied</span>
                             </>
                           ) : (
                             <>
@@ -898,12 +899,12 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                           )}
                         </button>
                         {msg.metadata?.domain && (
-                          <span className="text-neutral-400 font-mono">
+                          <span className="text-[#9AA6B7] font-mono">
                             Domain: {msg.metadata.domain}
                           </span>
                         )}
                         {msg.metadata?.latencyMs !== undefined && (
-                          <span className="font-mono text-[#9CA1B2]/60">
+                          <span className="font-mono text-[#9AA6B7]/60">
                             {msg.metadata.latencyMs}ms
                           </span>
                         )}
@@ -914,8 +915,8 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
               )}
 
               {isSending && (
-                <div className="flex items-center gap-3 text-xs text-[#9CA1B2] p-4 rounded-2xl bg-[#14151D] border border-[#242633] max-w-md animate-pulse font-mono">
-                  <div className="h-2 w-2 rounded-full bg-white animate-ping" />
+                <div className="flex items-center gap-3 text-xs text-[#9AA6B7] p-3.5 rounded-xl bg-[#121822] border border-[#283242] max-w-md animate-pulse font-mono">
+                  <div className="h-2 w-2 rounded-full bg-[#42D9F5] animate-ping" />
                   <span>Central Brain evaluating request and routing execution...</span>
                 </div>
               )}
@@ -923,27 +924,27 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
             </div>
           </div>
 
-          {/* Bottom Message Composer (Spacious, Softly Rounded, Claude-Style) */}
-          <div className="p-4 sm:p-5 border-t border-[#222632] bg-[#0E1015]/80 backdrop-blur-md">
+          {/* Bottom Message Composer (Dark Glass, Safe Area Pinned) */}
+          <div className="p-3 sm:p-4 border-t border-[#283242] bg-[#0D1118]/95 backdrop-blur-md pb-safe">
             <div className="max-w-3xl mx-auto w-full">
               <form onSubmit={(e) => handleSendMessage(e)} className="space-y-2">
-                <div className="relative rounded-2xl border border-[#2E303E] bg-[#161720] focus-within:border-neutral-400 focus-within:ring-1 focus-within:ring-neutral-400/20 transition-all shadow-lg p-2.5">
+                <div className="relative rounded-2xl border border-[#283242] bg-[#121822] focus-within:border-[#42D9F5] focus-within:ring-1 focus-within:ring-[#42D9F5]/30 transition-all shadow-lg p-2.5">
                   <textarea
                     ref={textareaRef}
                     value={inputText}
                     onChange={e => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask Central Brain or submit engineering / bug hunt commands... (Shift+Enter for newline, Enter to send)"
+                    placeholder="Ask Central Brain or submit commands... (Shift+Enter newline, Enter send)"
                     rows={2}
                     disabled={isSending}
-                    className="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-[#9CA1B2]/60 focus:outline-none resize-none font-sans"
+                    className="w-full bg-transparent px-2 py-1 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:outline-none resize-none font-sans"
                   />
-                  <div className="flex items-center justify-between pt-2 border-t border-[#282A36]">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between pt-2 border-t border-[#283242]/70">
+                    <div className="flex items-center gap-1.5 overflow-x-auto">
                       <button
                         type="button"
                         onClick={() => setInputText('/hunt scope=')}
-                        className="px-2 py-1 rounded-lg border border-[#2B2D3A] bg-[#1E202B] hover:bg-[#252836] text-[10px] font-mono text-neutral-300 transition-colors"
+                        className="px-2 py-1 rounded-md border border-[#283242] bg-[#171F2B] hover:bg-[#283242] text-[10px] font-mono text-[#42D9F5] transition-colors cursor-pointer shrink-0"
                         title="Add bug hunt command"
                       >
                         + /hunt
@@ -951,7 +952,7 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setInputText('/audit tools')}
-                        className="px-2 py-1 rounded-lg border border-[#2B2D3A] bg-[#1E202B] hover:bg-[#252836] text-[10px] font-mono text-neutral-300 transition-colors"
+                        className="px-2 py-1 rounded-md border border-[#283242] bg-[#171F2B] hover:bg-[#283242] text-[10px] font-mono text-[#8A83FF] transition-colors cursor-pointer shrink-0"
                         title="Add audit command"
                       >
                         + /audit
@@ -959,13 +960,13 @@ export const CentralBrainChatView: React.FC<CentralBrainChatViewProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="hidden sm:inline text-[10px] font-mono text-[#9CA1B2]">
+                      <span className="hidden sm:inline text-[10px] font-mono text-[#9AA6B7]">
                         {selectedModel}
                       </span>
                       <button
                         type="submit"
                         disabled={!inputText.trim() || isSending}
-                        className="flex items-center justify-center h-8 px-3.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 text-xs font-semibold disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm cursor-pointer"
+                        className="flex items-center justify-center h-8 px-3.5 rounded-xl bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] text-xs font-mono font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer touch-target-44"
                       >
                         <span>{isSending ? 'Routing...' : 'Send'}</span>
                         <Send className="w-3 h-3 ml-1.5 stroke-[2.5]" />
