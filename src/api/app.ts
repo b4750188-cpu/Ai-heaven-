@@ -37,6 +37,7 @@ import { realityRegistryService } from '../services/reality/realityRegistryServi
 import { beastEngineRegistry } from '../engines/registry';
 import { autonomousRealityRepairEngine } from '../services/reality/autonomousRealityRepairEngine';
 import { scannerRegistry } from '../services/security/scannerRegistry';
+import { securityCenterService } from '../services/security/securityCenterService';
 import { temporalWorkflowAdapter } from '../services/workflow/temporalAdapter';
 import { agentReachService } from '../services/research/agentReachService';
 import { AGENT_REACH_UPSTREAM } from '../contracts/agentReach';
@@ -2982,6 +2983,98 @@ export function createExpressApp(): express.Express {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
       }
       res.send(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // UNIFIED SECURITY CENTER (DRAUGR + DEFECTDOJO + OPENSSF SCORECARD)
+  // =========================================================================
+
+  apiRouter.get('/security-center/posture', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const posture = securityCenterService.getUnifiedPosture(user?.tenantId || 'tenant_default');
+      res.json(posture);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/security-center/scorecard', (_req: Request, res: Response) => {
+    try {
+      const report = securityCenterService.evaluateScorecard();
+      res.json(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/security-center/scan', async (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      if (process.env.NODE_ENV === 'production' && !user) {
+        return res.status(401).json({ error: 'Authentication required to initiate security scans.' });
+      }
+
+      const { scannerId, targetScope, parameters } = req.body || {};
+      if (!scannerId) return res.status(400).json({ error: 'scannerId is required' });
+      if (!targetScope) return res.status(400).json({ error: 'targetScope is required' });
+
+      const result = await securityCenterService.executeAuthorizedScan(
+        {
+          scannerId,
+          targetScope,
+          parameters,
+          tenantId: user?.tenantId || 'tenant_default'
+        },
+        user?.role || 'security_researcher'
+      );
+
+      res.json(result);
+    } catch (err: any) {
+      const isScopeViolation = err.message.includes('Target scope violation');
+      res.status(isScopeViolation ? 403 : 500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/security-center/findings/:id/remediate', (req: Request, res: Response) => {
+    try {
+      const user = getRequestUser(req);
+      const { id } = req.params;
+      const { status, justification, rationale, expiresAt } = req.body || {};
+
+      if (!status) return res.status(400).json({ error: 'status is required' });
+
+      const operator = user?.fullName || user?.email || 'security_operator';
+      const updated = securityCenterService.updateFindingStatus(id, status, operator, {
+        justification,
+        rationale,
+        expiresAt
+      });
+
+      res.json({ success: true, finding: updated });
+    } catch (err: any) {
+      res.status(err.message.includes('not found') ? 404 : 500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/security-center/draugr/sarif', (_req: Request, res: Response) => {
+    try {
+      const sarif = securityCenterService.exportSarif();
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.json(sarif);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/security-center/defectdojo/export', (_req: Request, res: Response) => {
+    try {
+      const payload = securityCenterService.exportDefectDojoPayload();
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.json(payload);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

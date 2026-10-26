@@ -734,6 +734,31 @@ export const ReviewCenter: React.FC<ReviewCenterProps> = ({ onNavigateView }) =>
           {/* TAB 5: SECURITY */}
           {activeTab === 'security' && (
             <div className="space-y-6">
+              {/* Unified Security Center Bridge Banner */}
+              <div className="p-4 bg-[#121822]/80 border border-[#42D9F5]/40 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[#42D9F5]/10 border border-[#42D9F5]/30 text-[#42D9F5]">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#F1F4F8]">Unified Security Center Active</h3>
+                    <p className="text-xs text-[#9AA6B7]">
+                      Powered by Draugr vulnerability ranking, OWASP DefectDojo deduplication, and OpenSSF Scorecard supply-chain release controls.
+                    </p>
+                  </div>
+                </div>
+
+                {onNavigateView && (
+                  <button
+                    onClick={() => onNavigateView('security')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] text-xs font-mono font-bold transition-colors cursor-pointer shrink-0"
+                  >
+                    <span>Open Security Center</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
               {/* Sensitive Path Exposure Test */}
               <div className="bg-[#0B0F19] border border-[#283242] rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">

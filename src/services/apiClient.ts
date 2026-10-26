@@ -2127,6 +2127,68 @@ class AIHeavenApiClient {
   }
 
   // ==========================================
+  // UNIFIED SECURITY CENTER METHODS (DRAUGR, DEFECTDOJO, SCORECARD)
+  // ==========================================
+
+  public async getSecurityPosture(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/posture`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Failed to load security posture: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getScorecardReport(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/scorecard`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Failed to load scorecard: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async runSecurityCenterScan(scannerId: string, targetScope: any, parameters?: any): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/scan`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ scannerId, targetScope, parameters })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Scan failed: HTTP ${res.status}`);
+    return data;
+  }
+
+  public async updateFindingRemediation(
+    findingId: string,
+    status: string,
+    metadata?: { justification?: string; rationale?: string; expiresAt?: string }
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/findings/${findingId}/remediate`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ status, ...metadata })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Update failed: HTTP ${res.status}`);
+    return data;
+  }
+
+  public async exportSecuritySarif(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/draugr/sarif`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Export SARIF failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async exportDefectDojoPayload(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/security-center/defectdojo/export`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`Export DefectDojo failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
   // AUTONOMOUS BUG-BOUNTY PLATFORM METHODS
   // ==========================================
 

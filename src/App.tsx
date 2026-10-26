@@ -43,6 +43,7 @@ import { SettingsView } from './components/settings/SettingsView';
 import { FourBeastsView } from './components/engines/FourBeastsView';
 import { GitHubActionsWorkspace } from './components/actions/GitHubActionsWorkspace';
 import { ComfyUIWorkspace } from './components/engines/ComfyUIWorkspace';
+import { SecurityCenter } from './components/security/SecurityCenter';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -500,6 +501,13 @@ export default function App() {
 
         {currentView === 'comfyui' && (
           <ComfyUIWorkspace onNavigateToTools={() => setCurrentView('tools')} />
+        )}
+
+        {currentView === 'security' && (
+          <SecurityCenter
+            currentUser={authCurrentUser}
+            onNavigateView={handleNavigateView}
+          />
         )}
 
       {/* Global Search Modal */}

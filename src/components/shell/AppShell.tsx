@@ -39,7 +39,8 @@ import {
   Globe,
   Radio,
   Clock,
-  Sparkles
+  Sparkles,
+  ShieldAlert
 } from 'lucide-react';
 import { SkullLogo } from '../common/SkullLogo';
 import { apiClient } from '../../services/apiClient';
@@ -74,7 +75,8 @@ export type ShellView =
   | 'docs'
   | 'detail'
   | 'google-ai-studio'
-  | 'comfyui';
+  | 'comfyui'
+  | 'security';
 
 interface AppShellProps {
   currentView: ShellView;
@@ -238,6 +240,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       items: [
         { id: 'activity', label: 'Audit Trail', icon: Activity, description: 'Cryptographic Event Logs' },
         { id: 'operations', label: 'Operator Dashboard', icon: ShieldCheck, description: 'Real-Time Telemetry' },
+        { id: 'security', label: 'Security Center', icon: ShieldAlert, description: 'Draugr · DefectDojo · Scorecard' },
         { id: 'review', label: 'Review Center', icon: Clock, description: 'QA Regression Engine' },
         { id: 'evolution', label: 'Evolution Engine', icon: Sparkles, description: 'Autonomous Self-Improvement' },
         { id: 'engines', label: 'Four Beasts', icon: Cpu, description: 'Multi-Agent Subsystems' }
