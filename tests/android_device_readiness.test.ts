@@ -94,10 +94,15 @@ describe('AI HEAVEN - Phase 5 Android Device Readiness', () => {
 
     const workflow = fs.readFileSync(workflowPath, 'utf-8');
     assert.match(workflow, /workflow_dispatch:/, 'Workflow must support manual trigger');
+    assert.match(workflow, /actions\/setup-node@v4/, 'Workflow must use setup-node@v4');
+    assert.match(workflow, /node-version:\s*(?:22|['"]22['"])/, 'Workflow must use Node.js 22 to satisfy Capacitor CLI requirement');
     assert.match(workflow, /actions\/setup-java@v4/, 'Workflow must use setup-java');
     assert.match(workflow, /distribution:\s*['"]temurin['"]/, 'Workflow must use Temurin JDK');
     assert.match(workflow, /java-version:\s*(?:17|21)/, 'Workflow must use compatible Java version (17 or 21)');
     assert.match(workflow, /android-actions\/setup-android@v(?:3|4)/, 'Workflow must set up Android SDK using supported action version');
+    assert.match(workflow, /node --version/, 'Workflow must verify node --version before Capacitor sync');
+    assert.match(workflow, /npm --version/, 'Workflow must verify npm --version before Capacitor sync');
+    assert.match(workflow, /npx cap sync android/, 'Workflow must run npx cap sync android');
     assert.match(workflow, /\.\/gradlew assembleDebug/, 'Workflow must compile assembleDebug');
     assert.match(workflow, /name:\s*ai-heaven-android-debug-apk/, 'Workflow must upload ai-heaven-android-debug-apk artifact');
     assert.match(workflow, /path:\s*android\/app\/build\/outputs\/apk\/debug\/app-debug\.apk/, 'Workflow must upload debug APK');

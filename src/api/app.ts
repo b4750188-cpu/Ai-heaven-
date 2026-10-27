@@ -1025,11 +1025,32 @@ export function createExpressApp(): express.Express {
     });
   });
 
+  const setSessionCookie = (res: Response, token: string) => {
+    res.cookie('ai_heaven_session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+  };
+
+  const clearSessionCookie = (res: Response) => {
+    res.clearCookie('ai_heaven_session', { path: '/' });
+  };
+
   // Helper to extract authenticated user with strict tenant binding
   const getRequestUser = (req: Request) => {
+    let token: string | null = null;
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+      token = authHeader.substring(7).trim();
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/ai_heaven_session=([^;]+)/);
+      if (match) token = match[1].trim();
+    }
+
+    if (token) {
       const verified = authService.verifyToken(token);
       if (verified) return verified;
 
@@ -1047,6 +1068,7 @@ export function createExpressApp(): express.Express {
           role: decoded.role || 'security_researcher',
           isActive: true,
           isEmailVerified: true,
+          mfaEnabled: false,
           tenantId: decoded.tenantId || `tenant_${decoded.sub}`,
           linkedIdentities: [],
           activeSessionsCount: 1,
@@ -1054,6 +1076,8 @@ export function createExpressApp(): express.Express {
           updatedAt: new Date().toISOString()
         };
       }
+      // Explicit token was provided but failed verification
+      return null;
     }
 
     // In production, unauthenticated requests strictly return null
@@ -1078,6 +1102,7 @@ export function createExpressApp(): express.Express {
       role: 'security_researcher',
       isActive: true,
       isEmailVerified: false,
+      mfaEnabled: false,
       tenantId: 'tenant_anonymous',
       linkedIdentities: [],
       activeSessionsCount: 1,
@@ -1106,7 +1131,11 @@ export function createExpressApp(): express.Express {
           return res.status(400).json({ error: 'Email is required when providing password credentials.' });
         }
         try {
-          const session = authService.loginWithPassword(email, password);
+          const result = authService.loginWithPassword(email, password);
+          if ('requiresMfa' in result && result.requiresMfa) {
+            return res.json(result);
+          }
+          const session = result as any;
           const now = Math.floor(Date.now() / 1000);
           const token = signJwt({
             sub: session.user.id,
@@ -1175,8 +1204,11 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/auth/register', (req: Request, res: Response) => {
     try {
-      const { email, password, fullName } = req.body || {};
-      const session = authService.register(email, password, fullName);
+      const { email, password, fullName, phone } = req.body || {};
+      const session = authService.register(email, password, fullName, phone);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
       res.status(201).json(session);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -1186,10 +1218,161 @@ export function createExpressApp(): express.Express {
   apiRouter.post('/auth/login', (req: Request, res: Response) => {
     try {
       const { email, password } = req.body || {};
-      const session = authService.loginWithPassword(email, password);
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
+      const userAgent = req.headers['user-agent'] || 'AI Heaven Client';
+      const result = authService.loginWithPassword(email, password, clientIp, userAgent);
+      if ('requiresMfa' in result && result.requiresMfa) {
+        return res.json(result);
+      }
+      const session = result as any;
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
       res.json(session);
     } catch (err: any) {
       res.status(401).json({ error: err.message });
+    }
+  });
+
+  // TOTP MFA login verification
+  apiRouter.post('/auth/mfa/verify-login', (req: Request, res: Response) => {
+    try {
+      const { mfaTicket, code } = req.body || {};
+      if (!mfaTicket || !code) {
+        return res.status(400).json({ error: 'mfaTicket and 6-digit code are required.' });
+      }
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
+      const userAgent = req.headers['user-agent'] || 'AI Heaven Client';
+      const session = authService.verifyMfaLogin(mfaTicket, code, clientIp, userAgent);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
+      res.json(session);
+    } catch (err: any) {
+      res.status(401).json({ error: err.message });
+    }
+  });
+
+  // TOTP MFA setup
+  apiRouter.post('/auth/mfa/setup', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const setup = authService.setupMfa(user.id);
+      res.json(setup);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // TOTP MFA enable
+  apiRouter.post('/auth/mfa/enable', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const { code } = req.body || {};
+      if (!code) return res.status(400).json({ error: '6-digit verification code is required.' });
+      const updatedUser = authService.enableMfa(user.id, code);
+      res.json({ success: true, user: updatedUser });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // TOTP MFA disable
+  apiRouter.post('/auth/mfa/disable', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const { password, code } = req.body || {};
+      if (!password || !code) {
+        return res.status(400).json({ error: 'Password and current authentication code are required.' });
+      }
+      const updatedUser = authService.disableMfa(user.id, password, code);
+      res.json({ success: true, user: updatedUser });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // User Profile Management
+  apiRouter.post('/auth/profile', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const { fullName, phone, avatarUrl } = req.body || {};
+      const updated = authService.updateProfile(user.id, { fullName, phone, avatarUrl });
+      res.json({ user: updated });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // User Password Change
+  apiRouter.post('/auth/password/change', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const { currentPassword, newPassword } = req.body || {};
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'currentPassword and newPassword are required.' });
+      }
+      authService.changePassword(user.id, currentPassword, newPassword);
+      res.json({ success: true, message: 'Password changed successfully.' });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Active Sessions & Devices
+  apiRouter.get('/auth/sessions', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const authHeader = req.headers.authorization;
+      const currentToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
+      const sessions = authService.getActiveSessions(user.id, currentToken);
+      res.json({ sessions });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/sessions/:sessionId/revoke', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      authService.revokeSession(user.id, req.params.sessionId);
+      res.json({ success: true, revoked: req.params.sessionId });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/auth/sessions/revoke-others', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const authHeader = req.headers.authorization;
+      const currentToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : '';
+      authService.revokeAllOtherSessions(user.id, currentToken);
+      res.json({ success: true, revokedOthers: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // Account Deletion
+  apiRouter.delete('/auth/account', (req: Request, res: Response) => {
+    try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const { password } = req.body || {};
+      authService.deleteAccount(user.id, password);
+      clearSessionCookie(res);
+      res.json({ success: true, deleted: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   });
 
@@ -1206,6 +1389,9 @@ export function createExpressApp(): express.Express {
         fullName,
         avatarUrl
       );
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
       res.json(session);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -1278,6 +1464,9 @@ export function createExpressApp(): express.Express {
       }
 
       const session = authService.switchAccount(targetUserId);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
       res.json(session);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -1310,9 +1499,17 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/auth/logout', (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
+    let token: string | null = null;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      authService.logout(authHeader.substring(7));
+      token = authHeader.substring(7);
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/ai_heaven_session=([^;]+)/);
+      if (match) token = match[1].trim();
     }
+    if (token) {
+      authService.logout(token);
+    }
+    clearSessionCookie(res);
     res.json({ logged_out: true });
   });
 
@@ -1375,8 +1572,8 @@ export function createExpressApp(): express.Express {
   apiRouter.get('/auth/me', (req: Request, res: Response) => {
     const user = getRequestUser(req);
     res.json({
-      authenticated: true,
-      user
+      authenticated: Boolean(user),
+      user: user || null
     });
   });
 
@@ -1842,15 +2039,23 @@ export function createExpressApp(): express.Express {
 
   // 19. Projects and Workspaces endpoints
   apiRouter.get('/projects', (req: Request, res: Response) => {
-    res.json(projects);
+    const user = getSafeUser(req);
+    if (user.role === 'admin') {
+      return res.json(projects);
+    }
+    const filtered = projects.filter(
+      (p) => p.owner_id === user.id || p.id === 'proj_ai_heaven_core'
+    );
+    res.json(filtered);
   });
 
   apiRouter.post('/projects', (req: Request, res: Response) => {
+    const user = getSafeUser(req);
     const { name, description } = req.body;
     if (!name) return res.status(400).json({ error: 'name is required' });
     const newProj: Project = {
       id: `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      owner_id: currentUser.id,
+      owner_id: user.id,
       name,
       description: description || '',
       status: 'active',
@@ -1862,8 +2067,12 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.get('/workspaces', (req: Request, res: Response) => {
+    const user = getSafeUser(req);
     const { project_id } = req.query;
     let list = workspaces;
+    if (user.role !== 'admin') {
+      list = list.filter((w) => w.owner_id === user.id || w.id === 'ws_default_core');
+    }
     if (typeof project_id === 'string') {
       list = list.filter((w) => w.project_id === project_id);
     }
@@ -1871,12 +2080,13 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.post('/workspaces', (req: Request, res: Response) => {
+    const user = getSafeUser(req);
     const { project_id, name } = req.body;
     if (!project_id || !name) return res.status(400).json({ error: 'project_id and name are required' });
     const newWs: Workspace = {
       id: `ws_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       project_id,
-      owner_id: currentUser.id,
+      owner_id: user.id,
       name,
       filesystem_ref: `/var/aiheaven/workspaces/${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
       status: 'ready',
@@ -2248,8 +2458,9 @@ export function createExpressApp(): express.Express {
   // PERSISTENT CONVERSATIONS & MEMORY ROUTES
   // =========================================================================
   apiRouter.get('/conversations/search', (req: Request, res: Response) => {
+    const user = getRequestUser(req);
     const q = (req.query.q as string) || '';
-    res.json({ conversations: centralBrainService.searchConversations(q) });
+    res.json({ conversations: centralBrainService.searchConversations(q, user?.id) });
   });
 
   apiRouter.get('/conversations', (req: Request, res: Response) => {

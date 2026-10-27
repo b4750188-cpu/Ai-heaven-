@@ -2011,11 +2011,11 @@ class AIHeavenApiClient {
     }
   }
 
-  public async registerAccount(email: string, password: string, fullName: string): Promise<any> {
+  public async registerAccount(email: string, password: string, fullName: string, phone?: string): Promise<any> {
     const res = await fetch(`${this.baseUrl}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email, password, fullName })
+      body: JSON.stringify({ email, password, fullName, phone })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
@@ -2031,6 +2031,18 @@ class AIHeavenApiClient {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (data.accessToken) this.setAuthToken(data.accessToken);
+    return data;
+  }
+
+  public async verifyMfaLogin(mfaTicket: string, code: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/verify-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ mfaTicket, code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'MFA verification failed');
     if (data.accessToken) this.setAuthToken(data.accessToken);
     return data;
   }
@@ -2111,6 +2123,105 @@ class AIHeavenApiClient {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Account unlinking failed');
+    return data;
+  }
+
+  public async updateProfile(updates: { fullName?: string; phone?: string; avatarUrl?: string }): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/profile`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify(updates)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+    return data;
+  }
+
+  public async changePassword(currentPassword: string, newPassword: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/password/change`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to change password');
+    return data;
+  }
+
+  public async setupMfa(): Promise<{ secret: string; qrUri: string; backupCodes: string[] }> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/setup`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to initialize MFA setup');
+    return data;
+  }
+
+  public async enableMfa(code: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/enable`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to enable MFA');
+    return data;
+  }
+
+  public async disableMfa(password: string, code: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/mfa/disable`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ password, code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to disable MFA');
+    return data;
+  }
+
+  public async getActiveSessions(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/auth/sessions`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.sessions || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async revokeSession(sessionId: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/sessions/${encodeURIComponent(sessionId)}/revoke`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to revoke session');
+    return data;
+  }
+
+  public async revokeOtherSessions(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/sessions/revoke-others`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to revoke other sessions');
+    return data;
+  }
+
+  public async deleteAccount(password?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/account`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete account');
+    this.setAuthToken(null);
     return data;
   }
 

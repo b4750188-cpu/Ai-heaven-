@@ -54,11 +54,22 @@ jobs:
       - name: Checkout Codebase
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22 (Capacitor 8 Requirement)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
+
+      - name: Verify Node.js Environment
+        run: |
+          echo "Node.js version: $(node --version)"
+          echo "npm version: $(npm --version)"
+          NODE_MAJOR=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+          if [ "$NODE_MAJOR" -lt 22 ]; then
+            echo "FATAL: Node.js version $(node -v) is below the Capacitor CLI requirement (>=22.0.0)." >&2
+            exit 1
+          fi
+          echo "Node.js requirement verified: $(node -v) >= 22.0.0"
 
       - name: Setup Java 21 (JDK)
         uses: actions/setup-java@v4
@@ -91,6 +102,17 @@ jobs:
       - name: Build Web Application
         run: |
           npm run build
+
+      - name: Verify Node & npm Versions Before Capacitor Sync
+        run: |
+          node --version
+          npm --version
+          NODE_MAJOR=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+          if [ "$NODE_MAJOR" -lt 22 ]; then
+            echo "FATAL: Node.js version is below requirement (>=22.0.0) before Capacitor sync." >&2
+            exit 1
+          fi
+          echo "Pre-Capacitor sync Node.js check passed: $(node -v) (>=22.0.0)"
 
       - name: Synchronize Capacitor Android Assets
         run: |

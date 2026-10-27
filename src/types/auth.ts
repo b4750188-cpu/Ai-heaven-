@@ -34,17 +34,39 @@ export interface UserSession {
   lastActiveAt: string;
 }
 
+export interface LoginHistoryEntry {
+  id: string;
+  timestamp: string;
+  ipAddress: string;
+  userAgent: string;
+  status: 'success' | 'failed' | 'mfa_required';
+  reason?: string;
+}
+
+export interface ActiveDeviceRecord {
+  sessionId: string;
+  ipAddress?: string;
+  userAgent?: string;
+  deviceName?: string;
+  createdAt: string;
+  lastActiveAt: string;
+  isCurrent?: boolean;
+}
+
 export interface AuthenticatedUser {
   id: string;
   email: string;
+  phone?: string;
   fullName: string;
   role: 'user' | 'admin' | 'security_researcher' | 'auditor';
   isActive: boolean;
   isEmailVerified: boolean;
+  mfaEnabled: boolean;
   avatarUrl?: string;
   tenantId: string;
   linkedIdentities: LinkedIdentity[];
   activeSessionsCount: number;
+  loginHistory?: LoginHistoryEntry[];
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +109,8 @@ export interface AuthTokens {
   tokenType: 'Bearer';
   expiresIn: number;
   user: AuthenticatedUser;
+  requiresMfa?: boolean;
+  mfaTicket?: string;
 }
 
 export interface LoginRequest {

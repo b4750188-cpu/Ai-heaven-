@@ -21,7 +21,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Users,
-  ChevronRight
+  ChevronRight,
+  Phone
 } from 'lucide-react';
 import { SkullLogo } from '../common/SkullLogo';
 import { apiClient } from '../../services/apiClient';
@@ -36,12 +37,15 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
   onAuthenticated,
   isBackendConnected
 }) => {
-  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset' | 'mfa'>('signin');
   const [email, setEmail] = useState('researcher@aiheaven.local');
   const [password, setPassword] = useState('DevResearcher2026!Local');
   const [fullName, setFullName] = useState('Security Researcher');
+  const [phone, setPhone] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [mfaTicket, setMfaTicket] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +79,12 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
     setError(null);
     try {
       const res = await apiClient.loginWithPassword(email.trim(), password);
+      if (res.requiresMfa) {
+        setMfaTicket(res.mfaTicket);
+        setMode('mfa');
+        setSuccess('Password accepted. Enter your 6-digit TOTP code to continue.');
+        return;
+      }
       setSuccess('Identity verified. Opening workspace...');
       setTimeout(() => {
         onAuthenticated(res.user);
@@ -86,16 +96,37 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password || !fullName.trim()) {
-      setError('Please fill in all fields.');
+    if (!mfaCode.trim() || mfaCode.trim().length !== 6) {
+      setError('Please enter a valid 6-digit authentication code.');
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.registerAccount(email.trim(), password, fullName.trim());
+      const res = await apiClient.verifyMfaLogin(mfaTicket, mfaCode.trim());
+      setSuccess('Multi-factor authentication verified. Opening workspace...');
+      setTimeout(() => {
+        onAuthenticated(res.user);
+      }, 400);
+    } catch (err: any) {
+      setError(err?.message || 'MFA verification failed. Please check code or request new challenge.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password || !fullName.trim()) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.registerAccount(email.trim(), password, fullName.trim(), phone.trim() || undefined);
       setSuccess('Account created! Initializing workspace session...');
       setTimeout(() => {
         onAuthenticated(res.user);
@@ -111,14 +142,24 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const providerUserId = `${provider}_usr_${Date.now()}`;
-      const defaultEmail = provider === 'google' ? 'developer@gmail.com' : 'engineer@users.noreply.github.com';
-      const defaultName = provider === 'google' ? 'Google Workspace Researcher' : 'GitHub Platform Engineer';
-      const res = await apiClient.loginWithOAuth(provider, providerUserId, defaultEmail, defaultName);
-      setSuccess(`Authenticated via ${provider.toUpperCase()}. Redirecting...`);
-      setTimeout(() => {
-        onAuthenticated(res.user);
-      }, 400);
+      const providers = await apiClient.getAuthProviders();
+      const targetProvider = providers.find((p: any) => p.provider === provider);
+      if (!targetProvider || !targetProvider.isConfigured) {
+        const missingVars = targetProvider?.missingEnvVars?.join(', ') || `${provider.toUpperCase()}_CLIENT_ID`;
+        setError(
+          `${targetProvider?.name || provider} OAuth is not configured on this server. To initiate official ${targetProvider?.name || provider} OAuth, configure ${missingVars} in your environment.`
+        );
+        return;
+      }
+
+      // If configured, initiate official OAuth authorization redirect
+      const state = await apiClient.generateOAuthState(provider);
+      const redirectUri = `${window.location.origin}/api/auth/callback/${provider}`;
+      const authUrl = provider === 'google'
+        ? `https://accounts.google.com/o/oauth2/v2/auth?client_id=${targetProvider.clientIdPreview}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&state=${state}`
+        : `https://github.com/login/oauth/authorize?client_id=${targetProvider.clientIdPreview}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20user:email&state=${state}`;
+      
+      window.location.href = authUrl;
     } catch (err: any) {
       setError(err?.message || `${provider} OAuth sign-in failed.`);
     } finally {
@@ -329,6 +370,22 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
 
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-mono text-[#9AA6B7] uppercase tracking-wider">
+                  Phone Number <span className="text-[#9AA6B7]/60">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9AA6B7]" />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="+1 555 0100"
+                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono text-[#9AA6B7] uppercase tracking-wider">
                   Password
                 </label>
                 <div className="relative">
@@ -357,6 +414,58 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
+              </button>
+            </form>
+          )}
+
+          {mode === 'mfa' && (
+            <form onSubmit={handleMfaSubmit} className="space-y-4">
+              <div className="p-3 rounded-xl border border-[#42D9F5]/30 bg-[#42D9F5]/10 text-xs text-[#42D9F5] font-mono flex items-center gap-2.5">
+                <Shield className="h-4 w-4 shrink-0" />
+                <span>Two-Factor Authentication is active for this account.</span>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-mono text-[#9AA6B7] uppercase tracking-wider">
+                  6-Digit Authenticator Code
+                </label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9AA6B7]" />
+                  <input
+                    type="text"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    value={mfaCode}
+                    onChange={e => setMfaCode(e.target.value.replace(/[^0-9]/g, ''))}
+                    required
+                    autoFocus
+                    placeholder="123456"
+                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-base tracking-widest font-mono text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || mfaCode.length !== 6}
+                className="w-full h-11 rounded-xl bg-[#42D9F5] hover:bg-[#38c4de] text-[#080B10] font-mono font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md disabled:opacity-50 touch-target-44"
+              >
+                {isLoading ? (
+                  <span>Verifying Code...</span>
+                ) : (
+                  <>
+                    <span>Verify &amp; Enter Workspace</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMode('signin'); setMfaCode(''); setMfaTicket(''); setError(null); }}
+                className="w-full text-center text-xs font-mono text-[#9AA6B7] hover:text-[#F1F4F8] cursor-pointer pt-2"
+              >
+                &larr; Cancel &amp; Return to Sign In
               </button>
             </form>
           )}

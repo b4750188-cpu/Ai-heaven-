@@ -8191,6 +8191,872 @@
         "createdAt": "2026-10-27T16:01:11.894Z",
         "updatedAt": "2026-10-27T16:01:11.894Z"
       }
+    ],
+    [
+      "mem_2a830607",
+      {
+        "id": "mem_2a830607",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Model-Claimed High Concurrency Algorithm",
+        "domain": "coding",
+        "category": "solution",
+        "content": "This algorithm claims 10x throughput without lock contention.",
+        "tags": [],
+        "evidenceStatus": "UNVERIFIED",
+        "confidenceScore": 0.5,
+        "sourceType": "model_inferred",
+        "sourceReference": "gemini-2.5-pro-chat-turn",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.742Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from model_inferred",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.742Z",
+        "updatedAt": "2026-10-27T16:36:50.742Z"
+      }
+    ],
+    [
+      "mem_f58581e6",
+      {
+        "id": "mem_f58581e6",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Exit 126 Host Escalation Isolation Barrier",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Commands containing sudo or chroot are blocked with exit code 126.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/universal_terminal_knowledge.test.ts",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 1,
+          "testsTotal": 1,
+          "exitCode": 126,
+          "receiptId": "rcpt_sec_exit126"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.744Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.744Z",
+        "updatedAt": "2026-10-27T16:36:50.744Z"
+      }
+    ],
+    [
+      "mem_23ff9777",
+      {
+        "id": "mem_23ff9777",
+        "tenantId": "tenant_alpha",
+        "projectId": "proj_secret_internal",
+        "title": "Confidential Internal API Schema",
+        "domain": "architecture",
+        "category": "architecture",
+        "content": "Private microservice communication spec on internal port 9090.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "audit_receipt",
+        "sourceReference": "audit_internal_9090",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "receiptId": "rcpt_private"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.748Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from audit_receipt",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.748Z",
+        "updatedAt": "2026-10-27T16:36:50.748Z"
+      }
+    ],
+    [
+      "mem_09e2733e",
+      {
+        "id": "mem_09e2733e",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Known Failure Pattern: Refactor database migration without transaction rollback",
+        "domain": "debugging",
+        "category": "failure_pattern",
+        "content": "Task encountered execution barrier or failed 2 assertions. Plan step failed during validation. Requires defensive boundary before re-execution.",
+        "tags": [
+          "failure",
+          "regression",
+          "post-mortem"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_fail_01",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 3,
+          "testsTotal": 5,
+          "exitCode": 1,
+          "verifiedAt": "2026-10-27T16:36:50.758Z"
+        },
+        "influencingTasks": [
+          "task_failed_run_1"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.758Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.758Z",
+        "updatedAt": "2026-10-27T16:36:50.758Z"
+      }
+    ],
+    [
+      "mem_e6dc535d",
+      {
+        "id": "mem_e6dc535d",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Verified Solution Pattern: Verify PostgreSQL connection pooling with sslmode require",
+        "domain": "coding",
+        "category": "solution",
+        "content": "Successfully completed execution plan with 10/10 verified passing tests. Pattern verified repeatable without regressions.",
+        "tags": [
+          "solution",
+          "verified_technique",
+          "best_practice"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.98,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_pass_02",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 10,
+          "testsTotal": 10,
+          "receiptId": "rcpt_pass_02",
+          "exitCode": 0,
+          "verifiedAt": "2026-10-27T16:36:50.760Z"
+        },
+        "influencingTasks": [
+          "task_passed_run_2"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.760Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.760Z",
+        "updatedAt": "2026-10-27T16:36:50.760Z"
+      }
+    ],
+    [
+      "mem_a5e45555",
+      {
+        "id": "mem_a5e45555",
+        "tenantId": "tenant_default",
+        "projectId": "proj_ai_heaven_core",
+        "title": "Permissive Sandbox Access Mode",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Allow root host escalation without verification for legacy scripts.",
+        "tags": [],
+        "evidenceStatus": "OUTDATED",
+        "confidenceScore": 0.2,
+        "sourceType": "human_correction",
+        "sourceReference": "manual_override",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:50.767Z",
+            "action": "revalidated",
+            "previousStatus": "UNVERIFIED",
+            "newStatus": "OUTDATED",
+            "reason": "Revoked by Chief Security Officer; exit 126 is non-negotiable",
+            "actor": "operator"
+          },
+          {
+            "timestamp": "2026-10-27T16:36:50.765Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from human_correction",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:50.765Z",
+        "updatedAt": "2026-10-27T16:36:50.767Z"
+      }
+    ],
+    [
+      "mem_9a5664a0",
+      {
+        "id": "mem_9a5664a0",
+        "tenantId": "tenant_default",
+        "projectId": null,
+        "title": "E2E Final Audit Memory",
+        "domain": "architecture",
+        "category": "solution",
+        "content": "All 10 core integration tracks verified under continuous automated testing.",
+        "tags": [
+          "audit",
+          "verification",
+          "production"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.99,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/final_system_audit.test.ts",
+        "isGlobalApproved": true,
+        "evidencePayload": {
+          "testsPassed": 153,
+          "testsFailed": 0,
+          "testsTotal": 153,
+          "receiptId": "rcpt_final_e2e_01"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:36:55.324Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:36:55.324Z",
+        "updatedAt": "2026-10-27T16:36:55.324Z"
+      }
+    ],
+    [
+      "mem_08cedb9b",
+      {
+        "id": "mem_08cedb9b",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Model-Claimed High Concurrency Algorithm",
+        "domain": "coding",
+        "category": "solution",
+        "content": "This algorithm claims 10x throughput without lock contention.",
+        "tags": [],
+        "evidenceStatus": "UNVERIFIED",
+        "confidenceScore": 0.5,
+        "sourceType": "model_inferred",
+        "sourceReference": "gemini-2.5-pro-chat-turn",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.241Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from model_inferred",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.241Z",
+        "updatedAt": "2026-10-27T16:37:27.241Z"
+      }
+    ],
+    [
+      "mem_538c1328",
+      {
+        "id": "mem_538c1328",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Exit 126 Host Escalation Isolation Barrier",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Commands containing sudo or chroot are blocked with exit code 126.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/universal_terminal_knowledge.test.ts",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 1,
+          "testsTotal": 1,
+          "exitCode": 126,
+          "receiptId": "rcpt_sec_exit126"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.244Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.244Z",
+        "updatedAt": "2026-10-27T16:37:27.244Z"
+      }
+    ],
+    [
+      "mem_3a669b13",
+      {
+        "id": "mem_3a669b13",
+        "tenantId": "tenant_alpha",
+        "projectId": "proj_secret_internal",
+        "title": "Confidential Internal API Schema",
+        "domain": "architecture",
+        "category": "architecture",
+        "content": "Private microservice communication spec on internal port 9090.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "audit_receipt",
+        "sourceReference": "audit_internal_9090",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "receiptId": "rcpt_private"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.247Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from audit_receipt",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.247Z",
+        "updatedAt": "2026-10-27T16:37:27.247Z"
+      }
+    ],
+    [
+      "mem_0edaebb9",
+      {
+        "id": "mem_0edaebb9",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Known Failure Pattern: Refactor database migration without transaction rollback",
+        "domain": "debugging",
+        "category": "failure_pattern",
+        "content": "Task encountered execution barrier or failed 2 assertions. Plan step failed during validation. Requires defensive boundary before re-execution.",
+        "tags": [
+          "failure",
+          "regression",
+          "post-mortem"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_fail_01",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 3,
+          "testsTotal": 5,
+          "exitCode": 1,
+          "verifiedAt": "2026-10-27T16:37:27.273Z"
+        },
+        "influencingTasks": [
+          "task_failed_run_1"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.273Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.273Z",
+        "updatedAt": "2026-10-27T16:37:27.273Z"
+      }
+    ],
+    [
+      "mem_db0340af",
+      {
+        "id": "mem_db0340af",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Verified Solution Pattern: Verify PostgreSQL connection pooling with sslmode require",
+        "domain": "coding",
+        "category": "solution",
+        "content": "Successfully completed execution plan with 10/10 verified passing tests. Pattern verified repeatable without regressions.",
+        "tags": [
+          "solution",
+          "verified_technique",
+          "best_practice"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.98,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_pass_02",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 10,
+          "testsTotal": 10,
+          "receiptId": "rcpt_pass_02",
+          "exitCode": 0,
+          "verifiedAt": "2026-10-27T16:37:27.276Z"
+        },
+        "influencingTasks": [
+          "task_passed_run_2"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.276Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.276Z",
+        "updatedAt": "2026-10-27T16:37:27.276Z"
+      }
+    ],
+    [
+      "mem_e4c35af2",
+      {
+        "id": "mem_e4c35af2",
+        "tenantId": "tenant_default",
+        "projectId": "proj_ai_heaven_core",
+        "title": "Permissive Sandbox Access Mode",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Allow root host escalation without verification for legacy scripts.",
+        "tags": [],
+        "evidenceStatus": "OUTDATED",
+        "confidenceScore": 0.2,
+        "sourceType": "human_correction",
+        "sourceReference": "manual_override",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:27.283Z",
+            "action": "revalidated",
+            "previousStatus": "UNVERIFIED",
+            "newStatus": "OUTDATED",
+            "reason": "Revoked by Chief Security Officer; exit 126 is non-negotiable",
+            "actor": "operator"
+          },
+          {
+            "timestamp": "2026-10-27T16:37:27.281Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from human_correction",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:27.281Z",
+        "updatedAt": "2026-10-27T16:37:27.283Z"
+      }
+    ],
+    [
+      "mem_87057251",
+      {
+        "id": "mem_87057251",
+        "tenantId": "tenant_default",
+        "projectId": null,
+        "title": "E2E Final Audit Memory",
+        "domain": "architecture",
+        "category": "solution",
+        "content": "All 10 core integration tracks verified under continuous automated testing.",
+        "tags": [
+          "audit",
+          "verification",
+          "production"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.99,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/final_system_audit.test.ts",
+        "isGlobalApproved": true,
+        "evidencePayload": {
+          "testsPassed": 153,
+          "testsFailed": 0,
+          "testsTotal": 153,
+          "receiptId": "rcpt_final_e2e_01"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:37:31.826Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:37:31.826Z",
+        "updatedAt": "2026-10-27T16:37:31.826Z"
+      }
+    ],
+    [
+      "mem_a8b26cb3",
+      {
+        "id": "mem_a8b26cb3",
+        "tenantId": "tenant_default",
+        "projectId": null,
+        "title": "E2E Final Audit Memory",
+        "domain": "architecture",
+        "category": "solution",
+        "content": "All 10 core integration tracks verified under continuous automated testing.",
+        "tags": [
+          "audit",
+          "verification",
+          "production"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.99,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/final_system_audit.test.ts",
+        "isGlobalApproved": true,
+        "evidencePayload": {
+          "testsPassed": 153,
+          "testsFailed": 0,
+          "testsTotal": 153,
+          "receiptId": "rcpt_final_e2e_01"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:40:57.927Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:40:57.927Z",
+        "updatedAt": "2026-10-27T16:40:57.927Z"
+      }
+    ],
+    [
+      "mem_513ad2ce",
+      {
+        "id": "mem_513ad2ce",
+        "tenantId": "tenant_default",
+        "projectId": null,
+        "title": "E2E Final Audit Memory",
+        "domain": "architecture",
+        "category": "solution",
+        "content": "All 10 core integration tracks verified under continuous automated testing.",
+        "tags": [
+          "audit",
+          "verification",
+          "production"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.99,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/final_system_audit.test.ts",
+        "isGlobalApproved": true,
+        "evidencePayload": {
+          "testsPassed": 153,
+          "testsFailed": 0,
+          "testsTotal": 153,
+          "receiptId": "rcpt_final_e2e_01"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:12.631Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:12.631Z",
+        "updatedAt": "2026-10-27T16:42:12.631Z"
+      }
+    ],
+    [
+      "mem_51f12a37",
+      {
+        "id": "mem_51f12a37",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Model-Claimed High Concurrency Algorithm",
+        "domain": "coding",
+        "category": "solution",
+        "content": "This algorithm claims 10x throughput without lock contention.",
+        "tags": [],
+        "evidenceStatus": "UNVERIFIED",
+        "confidenceScore": 0.5,
+        "sourceType": "model_inferred",
+        "sourceReference": "gemini-2.5-pro-chat-turn",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.610Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from model_inferred",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.610Z",
+        "updatedAt": "2026-10-27T16:42:34.610Z"
+      }
+    ],
+    [
+      "mem_0e442e43",
+      {
+        "id": "mem_0e442e43",
+        "tenantId": "tenant_test",
+        "projectId": "proj_alpha",
+        "title": "Exit 126 Host Escalation Isolation Barrier",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Commands containing sudo or chroot are blocked with exit code 126.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/universal_terminal_knowledge.test.ts",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 1,
+          "testsTotal": 1,
+          "exitCode": 126,
+          "receiptId": "rcpt_sec_exit126"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.613Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.613Z",
+        "updatedAt": "2026-10-27T16:42:34.613Z"
+      }
+    ],
+    [
+      "mem_65e29021",
+      {
+        "id": "mem_65e29021",
+        "tenantId": "tenant_alpha",
+        "projectId": "proj_secret_internal",
+        "title": "Confidential Internal API Schema",
+        "domain": "architecture",
+        "category": "architecture",
+        "content": "Private microservice communication spec on internal port 9090.",
+        "tags": [],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "audit_receipt",
+        "sourceReference": "audit_internal_9090",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "receiptId": "rcpt_private"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.616Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from audit_receipt",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.616Z",
+        "updatedAt": "2026-10-27T16:42:34.616Z"
+      }
+    ],
+    [
+      "mem_187d09d2",
+      {
+        "id": "mem_187d09d2",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Known Failure Pattern: Refactor database migration without transaction rollback",
+        "domain": "debugging",
+        "category": "failure_pattern",
+        "content": "Task encountered execution barrier or failed 2 assertions. Plan step failed during validation. Requires defensive boundary before re-execution.",
+        "tags": [
+          "failure",
+          "regression",
+          "post-mortem"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.95,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_fail_01",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 3,
+          "testsTotal": 5,
+          "exitCode": 1,
+          "verifiedAt": "2026-10-27T16:42:34.626Z"
+        },
+        "influencingTasks": [
+          "task_failed_run_1"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.626Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.626Z",
+        "updatedAt": "2026-10-27T16:42:34.626Z"
+      }
+    ],
+    [
+      "mem_cd0c7572",
+      {
+        "id": "mem_cd0c7572",
+        "tenantId": "tenant_default",
+        "projectId": "proj_alpha",
+        "title": "Verified Solution Pattern: Verify PostgreSQL connection pooling with sslmode require",
+        "domain": "coding",
+        "category": "solution",
+        "content": "Successfully completed execution plan with 10/10 verified passing tests. Pattern verified repeatable without regressions.",
+        "tags": [
+          "solution",
+          "verified_technique",
+          "best_practice"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.98,
+        "sourceType": "test_execution",
+        "sourceReference": "rcpt_pass_02",
+        "isGlobalApproved": false,
+        "evidencePayload": {
+          "testsPassed": 10,
+          "testsTotal": 10,
+          "receiptId": "rcpt_pass_02",
+          "exitCode": 0,
+          "verifiedAt": "2026-10-27T16:42:34.628Z"
+        },
+        "influencingTasks": [
+          "task_passed_run_2"
+        ],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.628Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "learning_engine"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.628Z",
+        "updatedAt": "2026-10-27T16:42:34.628Z"
+      }
+    ],
+    [
+      "mem_3037a549",
+      {
+        "id": "mem_3037a549",
+        "tenantId": "tenant_default",
+        "projectId": "proj_ai_heaven_core",
+        "title": "Permissive Sandbox Access Mode",
+        "domain": "security",
+        "category": "constraint",
+        "content": "Allow root host escalation without verification for legacy scripts.",
+        "tags": [],
+        "evidenceStatus": "OUTDATED",
+        "confidenceScore": 0.2,
+        "sourceType": "human_correction",
+        "sourceReference": "manual_override",
+        "isGlobalApproved": false,
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:34.635Z",
+            "action": "revalidated",
+            "previousStatus": "UNVERIFIED",
+            "newStatus": "OUTDATED",
+            "reason": "Revoked by Chief Security Officer; exit 126 is non-negotiable",
+            "actor": "operator"
+          },
+          {
+            "timestamp": "2026-10-27T16:42:34.633Z",
+            "action": "created",
+            "newStatus": "UNVERIFIED",
+            "reason": "Initial ingestion from human_correction",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:34.633Z",
+        "updatedAt": "2026-10-27T16:42:34.635Z"
+      }
+    ],
+    [
+      "mem_0e219253",
+      {
+        "id": "mem_0e219253",
+        "tenantId": "tenant_default",
+        "projectId": null,
+        "title": "E2E Final Audit Memory",
+        "domain": "architecture",
+        "category": "solution",
+        "content": "All 10 core integration tracks verified under continuous automated testing.",
+        "tags": [
+          "audit",
+          "verification",
+          "production"
+        ],
+        "evidenceStatus": "VERIFIED",
+        "confidenceScore": 0.99,
+        "sourceType": "test_execution",
+        "sourceReference": "tests/final_system_audit.test.ts",
+        "isGlobalApproved": true,
+        "evidencePayload": {
+          "testsPassed": 153,
+          "testsFailed": 0,
+          "testsTotal": 153,
+          "receiptId": "rcpt_final_e2e_01"
+        },
+        "influencingTasks": [],
+        "updateHistory": [
+          {
+            "timestamp": "2026-10-27T16:42:39.367Z",
+            "action": "created",
+            "newStatus": "VERIFIED",
+            "reason": "Initial ingestion from test_execution",
+            "actor": "operator"
+          }
+        ],
+        "createdAt": "2026-10-27T16:42:39.367Z",
+        "updatedAt": "2026-10-27T16:42:39.367Z"
+      }
     ]
   ],
   "outcomes": [
@@ -8773,6 +9639,57 @@
       "timestamp": "2026-10-27T16:01:06.719Z"
     },
     {
+      "id": "out_f2facef0",
+      "taskId": "task_interrupted_pipeline_audit",
+      "projectId": "proj_ai_heaven_core",
+      "modelUsed": "gemini-2.5-pro",
+      "durationMs": 0,
+      "testsTotal": 1,
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "reliabilityScore": 1,
+      "tokensUsed": 240,
+      "costEstimate": 0.0012,
+      "costSource": "catalog_estimated",
+      "regressionsDetected": 0,
+      "resumedFromCheckpoint": "ckpt_a5d37c86",
+      "timestamp": "2026-10-27T16:36:50.775Z"
+    },
+    {
+      "id": "out_9df898ed",
+      "taskId": "task_interrupted_pipeline_audit",
+      "projectId": "proj_ai_heaven_core",
+      "modelUsed": "gemini-2.5-pro",
+      "durationMs": 0,
+      "testsTotal": 1,
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "reliabilityScore": 1,
+      "tokensUsed": 240,
+      "costEstimate": 0.0012,
+      "costSource": "catalog_estimated",
+      "regressionsDetected": 0,
+      "resumedFromCheckpoint": "ckpt_e1897cb5",
+      "timestamp": "2026-10-27T16:37:27.291Z"
+    },
+    {
+      "id": "out_631f7117",
+      "taskId": "task_interrupted_pipeline_audit",
+      "projectId": "proj_ai_heaven_core",
+      "modelUsed": "gemini-2.5-pro",
+      "durationMs": 1,
+      "testsTotal": 1,
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "reliabilityScore": 1,
+      "tokensUsed": 240,
+      "costEstimate": 0.0012,
+      "costSource": "catalog_estimated",
+      "regressionsDetected": 0,
+      "resumedFromCheckpoint": "ckpt_9b7f1a88",
+      "timestamp": "2026-10-27T16:42:34.644Z"
+    },
+    {
       "id": "out_1",
       "taskId": "task_t1",
       "projectId": "proj_ai_heaven_core",
@@ -8786,7 +9703,7 @@
       "costEstimate": 0.0005,
       "costSource": "catalog_estimated",
       "regressionsDetected": 0,
-      "timestamp": "2026-10-27T16:01:06.723Z"
+      "timestamp": "2026-10-27T16:42:34.648Z"
     },
     {
       "id": "out_2",
@@ -8802,7 +9719,7 @@
       "costEstimate": 0.0005,
       "costSource": "catalog_estimated",
       "regressionsDetected": 0,
-      "timestamp": "2026-10-27T16:01:06.725Z"
+      "timestamp": "2026-10-27T16:42:34.650Z"
     },
     {
       "id": "out_3",
@@ -8818,8 +9735,8 @@
       "costEstimate": 0.0005,
       "costSource": "catalog_estimated",
       "regressionsDetected": 0,
-      "timestamp": "2026-10-27T16:01:06.726Z"
+      "timestamp": "2026-10-27T16:42:34.652Z"
     }
   ],
-  "savedAt": "2026-10-27T16:01:11.895Z"
+  "savedAt": "2026-10-27T16:42:39.368Z"
 }
