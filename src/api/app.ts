@@ -3060,9 +3060,10 @@ export function createExpressApp(): express.Express {
     }
   });
 
-  apiRouter.get('/security-center/draugr/sarif', (_req: Request, res: Response) => {
+  apiRouter.get('/security-center/draugr/sarif', (req: Request, res: Response) => {
     try {
-      const sarif = securityCenterService.exportSarif();
+      const user = getRequestUser(req);
+      const sarif = securityCenterService.exportSarif(user?.tenantId || 'tenant_default');
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.json(sarif);
     } catch (err: any) {
@@ -3070,11 +3071,23 @@ export function createExpressApp(): express.Express {
     }
   });
 
-  apiRouter.get('/security-center/defectdojo/export', (_req: Request, res: Response) => {
+  apiRouter.get('/security-center/defectdojo/export', (req: Request, res: Response) => {
     try {
-      const payload = securityCenterService.exportDefectDojoPayload();
+      const user = getRequestUser(req);
+      const payload = securityCenterService.exportDefectDojoPayload(user?.tenantId || 'tenant_default');
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.json(payload);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/security-center/verify-seal', (req: Request, res: Response) => {
+    try {
+      const gateResult = req.body;
+      if (!gateResult) return res.status(400).json({ error: 'Release gate result payload required.' });
+      const verification = securityCenterService.verifyReleaseSeal(gateResult);
+      res.json(verification);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

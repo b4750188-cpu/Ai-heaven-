@@ -214,8 +214,9 @@ export class SecurityCenterService {
       decision = 'WARN';
     }
 
-    const proofRaw = `${decision}:${reasons.join(';')}:${scorecard.aggregateScore}:${Date.now()}`;
-    const cryptographicProof = crypto.createHash('sha256').update(proofRaw).digest('hex');
+    const evaluatedAt = new Date().toISOString();
+    const proofRaw = `${decision}:${[...reasons].sort().join(';')}:${scorecard.aggregateScore.toFixed(1)}:${evaluatedAt}`;
+    const cryptographicProof = crypto.createHmac('sha256', process.env.RELEASE_SIGNING_SECRET || 'aiheaven_release_key_v1').update(proofRaw).digest('hex');
 
     return {
       decision,
@@ -223,9 +224,30 @@ export class SecurityCenterService {
       blockerFindings,
       scorecardScore: scorecard.aggregateScore,
       overallRiskScore: 100 - (decision === 'BLOCK' ? 50 : decision === 'WARN' ? 20 : 0),
-      evaluatedAt: new Date().toISOString(),
+      evaluatedAt,
       cryptographicProof
     };
+  }
+
+  /**
+   * Cryptographically verifies a release gate seal against tampering.
+   */
+  public verifyReleaseSeal(gate: ReleaseGateResult): { valid: boolean; reason?: string } {
+    if (!gate || !gate.cryptographicProof) {
+      return { valid: false, reason: 'Missing cryptographic proof.' };
+    }
+    try {
+      const proofRaw = `${gate.decision}:${[...(gate.reasons || [])].sort().join(';')}:${Number(gate.scorecardScore || 0).toFixed(1)}:${gate.evaluatedAt}`;
+      const expectedProof = crypto.createHmac('sha256', process.env.RELEASE_SIGNING_SECRET || 'aiheaven_release_key_v1').update(proofRaw).digest('hex');
+      const expectedBuf = Buffer.from(expectedProof, 'hex');
+      const actualBuf = Buffer.from(gate.cryptographicProof, 'hex');
+      if (expectedBuf.length !== actualBuf.length || !crypto.timingSafeEqual(expectedBuf, actualBuf)) {
+        return { valid: false, reason: 'Cryptographic signature mismatch: release gate payload was altered.' };
+      }
+      return { valid: true };
+    } catch (err: any) {
+      return { valid: false, reason: `Verification failure: ${err.message}` };
+    }
   }
 
   /**
@@ -241,18 +263,18 @@ export class SecurityCenterService {
   }
 
   /**
-   * Exports SARIF report via Draugr.
+   * Exports SARIF report via Draugr for specific tenant.
    */
-  public exportSarif(): object {
-    const posture = this.getUnifiedPosture();
+  public exportSarif(tenantId = 'tenant_default'): object {
+    const posture = this.getUnifiedPosture(tenantId);
     return this.draugr.generateSarif(posture.activeFindings);
   }
 
   /**
-   * Exports DefectDojo v2 API payload.
+   * Exports DefectDojo v2 API payload for specific tenant.
    */
-  public exportDefectDojoPayload(): object {
-    return this.dojo.exportDefectDojoV2Payload();
+  public exportDefectDojoPayload(tenantId = 'tenant_default'): object {
+    return this.dojo.exportDefectDojoV2Payload(tenantId);
   }
 
   /**

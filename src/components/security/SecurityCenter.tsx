@@ -74,6 +74,10 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ currentUser, onN
   const [remediationJustification, setRemediationJustification] = useState('');
   const [isSubmittingRemediation, setIsSubmittingRemediation] = useState(false);
 
+  // Cryptographic Seal Verification
+  const [sealVerification, setSealVerification] = useState<{ checked: boolean; valid: boolean; reason?: string } | null>(null);
+  const [isVerifyingSeal, setIsVerifyingSeal] = useState(false);
+
   useEffect(() => {
     loadSecurityData();
   }, []);
@@ -167,6 +171,25 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ currentUser, onN
       setStatusMessage('OWASP DefectDojo v2 API payload exported.');
     } catch (err: any) {
       setErrorMessage(`Export failed: ${err.message}`);
+    }
+  };
+
+  const handleVerifySeal = async () => {
+    if (!posture?.releaseGate) return;
+    setIsVerifyingSeal(true);
+    try {
+      const res = await apiClient.verifyReleaseSeal(posture.releaseGate);
+      setSealVerification({ checked: true, valid: res.valid, reason: res.reason });
+      if (res.valid) {
+        setStatusMessage('Cryptographic release seal verified: HMAC signature matches canonical release manifest.');
+      } else {
+        setErrorMessage(`Seal verification failed: ${res.reason}`);
+      }
+    } catch (err: any) {
+      setSealVerification({ checked: true, valid: false, reason: err.message });
+      setErrorMessage(`Verification failed: ${err.message}`);
+    } finally {
+      setIsVerifyingSeal(false);
     }
   };
 
@@ -805,9 +828,30 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ currentUser, onN
             </div>
 
             <div className="space-y-2 text-xs font-mono">
-              <div className="p-3 bg-[#121822] rounded-xl border border-[#283242] space-y-1">
-                <div className="text-[#9AA6B7]">Cryptographic Release Seal (SHA-256):</div>
+              <div className="p-3 bg-[#121822] rounded-xl border border-[#283242] space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="text-[#9AA6B7]">Cryptographic Release Seal (HMAC-SHA256):</div>
+                  <button
+                    onClick={handleVerifySeal}
+                    disabled={isVerifyingSeal}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#171F2B] hover:bg-[#283242] text-[11px] font-mono text-[#42D9F5] border border-[#283242] cursor-pointer touch-target-44 transition-colors disabled:opacity-50"
+                  >
+                    <CheckCircle2 className={`h-3 w-3 ${isVerifyingSeal ? 'animate-spin' : ''}`} />
+                    <span>{isVerifyingSeal ? 'Verifying...' : 'Verify Cryptographic Seal'}</span>
+                  </button>
+                </div>
                 <div className="text-[#42D9F5] break-all">{posture?.releaseGate?.cryptographicProof || 'c8f7...a19d'}</div>
+                {sealVerification && (
+                  <div className={`p-2 rounded text-[11px] font-mono border ${
+                    sealVerification.valid
+                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800'
+                      : 'bg-rose-950/60 text-rose-300 border-rose-800'
+                  }`}>
+                    {sealVerification.valid
+                      ? '✓ SEAL INTEGRITY VALID: Cryptographic HMAC signature verified against canonical gate manifest.'
+                      : `✗ SEAL INVALID: ${sealVerification.reason || 'Signature mismatch'}`}
+                  </div>
+                )}
               </div>
 
               {posture?.releaseGate?.reasons?.length > 0 && (

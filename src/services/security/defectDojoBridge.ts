@@ -319,9 +319,9 @@ export class DefectDojoBridge {
   /**
    * Generates OWASP DefectDojo v2 API payload (/api/v2/import-scan/ compliant format).
    */
-  public exportDefectDojoV2Payload(): object {
-    const report = this.generateProductReport();
-    const findings = this.getAllFindings();
+  public exportDefectDojoV2Payload(tenantId?: string): object {
+    const report = this.generateProductReport('AI Heaven Ecosystem', tenantId);
+    const findings = this.getAllFindings({ tenantId });
 
     return {
       product_name: report.productName,

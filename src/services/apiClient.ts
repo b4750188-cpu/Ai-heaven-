@@ -2188,6 +2188,16 @@ class AIHeavenApiClient {
     return await res.json();
   }
 
+  public async verifyReleaseSeal(gateResult: any): Promise<{ valid: boolean; reason?: string }> {
+    const res = await fetch(`${this.baseUrl}/security-center/verify-seal`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' }),
+      body: JSON.stringify(gateResult)
+    });
+    if (!res.ok) throw new Error(`Seal verification failed: HTTP ${res.status}`);
+    return await res.json();
+  }
+
   // ==========================================
   // AUTONOMOUS BUG-BOUNTY PLATFORM METHODS
   // ==========================================

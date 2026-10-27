@@ -96,8 +96,8 @@ describe('AI HEAVEN - Phase 5 Android Device Readiness', () => {
     assert.match(workflow, /workflow_dispatch:/, 'Workflow must support manual trigger');
     assert.match(workflow, /actions\/setup-java@v4/, 'Workflow must use setup-java');
     assert.match(workflow, /distribution:\s*['"]temurin['"]/, 'Workflow must use Temurin JDK');
-    assert.match(workflow, /java-version:\s*17/, 'Workflow must use Java 17');
-    assert.match(workflow, /android-actions\/setup-android@v3/, 'Workflow must set up Android SDK');
+    assert.match(workflow, /java-version:\s*(?:17|21)/, 'Workflow must use compatible Java version (17 or 21)');
+    assert.match(workflow, /android-actions\/setup-android@v(?:3|4)/, 'Workflow must set up Android SDK using supported action version');
     assert.match(workflow, /\.\/gradlew assembleDebug/, 'Workflow must compile assembleDebug');
     assert.match(workflow, /name:\s*ai-heaven-android-debug-apk/, 'Workflow must upload ai-heaven-android-debug-apk artifact');
     assert.match(workflow, /path:\s*android\/app\/build\/outputs\/apk\/debug\/app-debug\.apk/, 'Workflow must upload debug APK');
