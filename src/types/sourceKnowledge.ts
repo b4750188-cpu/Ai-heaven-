@@ -164,6 +164,7 @@ export interface KnowledgeSearchFilter {
 
 export interface KnowledgeSanitizationResult {
   isClean: boolean;
+  redactedTitle: string;
   redactedContent: string;
   secretsDetected: string[];
   personalDataDetected: string[];

@@ -276,5 +276,561 @@
     "acknowledgedAt": "2026-10-28T18:15:59.015Z",
     "acknowledgedBy": "vulcan_04",
     "signature": "b9c694b2eb1a36fc47bb706ce9b0aed24633962ea852aa652b0327688bf0d329"
+  },
+  {
+    "id": "fmsg_5ce457f6-7e1",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "argus_01",
+    "toDroidId": "hydra_02",
+    "messageType": "status_query",
+    "subject": "Querying Hydra current objective and status",
+    "payload": {
+      "query": "status"
+    },
+    "correlationId": "52163fc4-6242-43ca-9f3d-ec21908bcce8",
+    "timestamp": "2026-10-28T19:22:58.374Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.374Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "f2f35d6be0296f78984ff24fda23941081a3cb44d8d91b5d060686df6b921f07"
+  },
+  {
+    "id": "fmsg_85a90461-1f6",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "hydra_02",
+    "toDroidId": "argus_01",
+    "messageType": "peer_response",
+    "subject": "Status Report from Hydra-02",
+    "payload": {
+      "status": "idle",
+      "currentObjective": "API authorization fuzzing ready",
+      "allowedTools": [
+        "tool_http_fuzz",
+        "tool_graphql_inspect",
+        "tool_token_rotate"
+      ]
+    },
+    "correlationId": "52163fc4-6242-43ca-9f3d-ec21908bcce8",
+    "timestamp": "2026-10-28T19:22:58.374Z",
+    "acknowledged": true
+  },
+  {
+    "id": "fmsg_41695cdb-36d",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 1",
+    "payload": {
+      "depth": 1
+    },
+    "correlationId": "cycle_1793215378375",
+    "timestamp": "2026-10-28T19:22:58.375Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.375Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "02e3bc92417de3f15fc7f5a71a6c6a12aceef7a4145f8c2a6e80edd05a5eaa94"
+  },
+  {
+    "id": "fmsg_65176500-06b",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 2",
+    "payload": {
+      "depth": 2
+    },
+    "correlationId": "cycle_1793215378375",
+    "timestamp": "2026-10-28T19:22:58.375Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.375Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "ad3dd6ba02215e87905d7ee7b757b6a309db61cf434f2e7fe1a885acb1b2252e"
+  },
+  {
+    "id": "fmsg_881b40f5-5ca",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 3",
+    "payload": {
+      "depth": 3
+    },
+    "correlationId": "cycle_1793215378375",
+    "timestamp": "2026-10-28T19:22:58.376Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.376Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "55920dfa4fcec2a834af5ae1b410887ddd0ce3d55f01e5bed470a7feb611930d"
+  },
+  {
+    "id": "fmsg_f33d55d9-863",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 4",
+    "payload": {
+      "depth": 4
+    },
+    "correlationId": "cycle_1793215378375",
+    "timestamp": "2026-10-28T19:22:58.376Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.376Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "69c92da31a331d856577c76177ba6658720b73093e2a7845b84758b5522f9842"
+  },
+  {
+    "id": "fmsg_3287bef5-dbc",
+    "familyId": "fam_user_comm_1793215378357",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 5",
+    "payload": {
+      "depth": 5
+    },
+    "correlationId": "cycle_1793215378375",
+    "timestamp": "2026-10-28T19:22:58.376Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.376Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "67f29bd088d8082a389695c11767e3063f67b2527faf247c1a437037090a3c20"
+  },
+  {
+    "id": "fmsg_e04fc2c1-9c7",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "vulcan_04",
+    "messageType": "tool_inquiry",
+    "subject": "Can you probe endpoint /api/login for injection vulnerabilities?",
+    "payload": {
+      "target": "/api/login"
+    },
+    "correlationId": "4c86987f-c2de-4aa6-bc4d-3cd44ea01761",
+    "timestamp": "2026-10-28T19:22:58.495Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:22:58.495Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "161bf853b518779646b9c737ee36818f90d693866e141a3e3da7045f1f2ec9e6"
+  },
+  {
+    "id": "fmsg_690d3449-3b0",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "argus_01",
+    "toDroidId": "hydra_02",
+    "messageType": "status_query",
+    "subject": "Querying Hydra current objective and status",
+    "payload": {
+      "query": "status"
+    },
+    "correlationId": "402b0dfb-913b-4fd3-b5ed-2600263f4004",
+    "timestamp": "2026-10-28T19:27:02.276Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.276Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "607278dcdb363db9943364e520db40bc9887bd87e43721919d974dabadebbbe9"
+  },
+  {
+    "id": "fmsg_aa062869-c79",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "hydra_02",
+    "toDroidId": "argus_01",
+    "messageType": "peer_response",
+    "subject": "Status Report from Hydra-02",
+    "payload": {
+      "status": "idle",
+      "currentObjective": "API authorization fuzzing ready",
+      "allowedTools": [
+        "tool_http_fuzz",
+        "tool_graphql_inspect",
+        "tool_token_rotate"
+      ]
+    },
+    "correlationId": "402b0dfb-913b-4fd3-b5ed-2600263f4004",
+    "timestamp": "2026-10-28T19:27:02.276Z",
+    "acknowledged": true
+  },
+  {
+    "id": "fmsg_de698de8-28f",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 1",
+    "payload": {
+      "depth": 1
+    },
+    "correlationId": "cycle_1793215622277",
+    "timestamp": "2026-10-28T19:27:02.277Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.277Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "548b55d6578f1756d56ce346501023dd1081ed3efbf4ee8db292416a2c930350"
+  },
+  {
+    "id": "fmsg_0a752502-052",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 2",
+    "payload": {
+      "depth": 2
+    },
+    "correlationId": "cycle_1793215622277",
+    "timestamp": "2026-10-28T19:27:02.278Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.278Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "cc80e8cf503ae68ee7c9df16dd4cc07554d80ac6237a7c94c20f8f4061bc96ca"
+  },
+  {
+    "id": "fmsg_57d1afc4-421",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 3",
+    "payload": {
+      "depth": 3
+    },
+    "correlationId": "cycle_1793215622277",
+    "timestamp": "2026-10-28T19:27:02.278Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.278Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "c80486d1a4228d4a217603513d5fb7231d1863ba4fa1194cbd6d85ed8d735b02"
+  },
+  {
+    "id": "fmsg_0ce3bc2c-d05",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 4",
+    "payload": {
+      "depth": 4
+    },
+    "correlationId": "cycle_1793215622277",
+    "timestamp": "2026-10-28T19:27:02.279Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.279Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "183640ece231574914b83bbd80383a872a4ee456afbcf5582a2dd5bd546bec77"
+  },
+  {
+    "id": "fmsg_39036a5a-e90",
+    "familyId": "fam_user_comm_1793215622256",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 5",
+    "payload": {
+      "depth": 5
+    },
+    "correlationId": "cycle_1793215622277",
+    "timestamp": "2026-10-28T19:27:02.279Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.279Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "67b1781c68dbbb6ae468b2f09b2283bba87e18327787e8c4f2cf72bbca454662"
+  },
+  {
+    "id": "fmsg_df8afed1-2a5",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "vulcan_04",
+    "messageType": "tool_inquiry",
+    "subject": "Can you probe endpoint /api/login for injection vulnerabilities?",
+    "payload": {
+      "target": "/api/login"
+    },
+    "correlationId": "a44073d5-3719-4fcf-aa45-81d21e82285f",
+    "timestamp": "2026-10-28T19:27:02.423Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:02.423Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "9684afcf014af86eed806c9c2e899d80b6023d5be59e754d912b28d389524dbf"
+  },
+  {
+    "id": "fmsg_c93c466f-fbc",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "argus_01",
+    "toDroidId": "hydra_02",
+    "messageType": "status_query",
+    "subject": "Querying Hydra current objective and status",
+    "payload": {
+      "query": "status"
+    },
+    "correlationId": "bf07ae22-cbd1-494c-8fbd-2f19bcc4bb15",
+    "timestamp": "2026-10-28T19:27:29.291Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.291Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "357fce1f021a8d798c99a3fac3f8835b15bc5b08f7612028d2454b1ca4e1ccc7"
+  },
+  {
+    "id": "fmsg_96ae8d92-fad",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "hydra_02",
+    "toDroidId": "argus_01",
+    "messageType": "peer_response",
+    "subject": "Status Report from Hydra-02",
+    "payload": {
+      "status": "idle",
+      "currentObjective": "API authorization fuzzing ready",
+      "allowedTools": [
+        "tool_http_fuzz",
+        "tool_graphql_inspect",
+        "tool_token_rotate"
+      ]
+    },
+    "correlationId": "bf07ae22-cbd1-494c-8fbd-2f19bcc4bb15",
+    "timestamp": "2026-10-28T19:27:29.291Z",
+    "acknowledged": true
+  },
+  {
+    "id": "fmsg_df8f9407-c6f",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 1",
+    "payload": {
+      "depth": 1
+    },
+    "correlationId": "cycle_1793215649292",
+    "timestamp": "2026-10-28T19:27:29.292Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.292Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "cc1aebc423cd009e58e8b8f49906365ebb448105ec6cb1f19ac1925e829c9584"
+  },
+  {
+    "id": "fmsg_51d72e84-65f",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 2",
+    "payload": {
+      "depth": 2
+    },
+    "correlationId": "cycle_1793215649292",
+    "timestamp": "2026-10-28T19:27:29.292Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.292Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "607fe79f3da33b08efab497e5bbc63b3bef2410d19b3bcab4722d73cb60477d5"
+  },
+  {
+    "id": "fmsg_295111fe-ba5",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 3",
+    "payload": {
+      "depth": 3
+    },
+    "correlationId": "cycle_1793215649292",
+    "timestamp": "2026-10-28T19:27:29.293Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.293Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "a1bc8b9667dcfa292ec85c3865d4ef3be385dbc000afb69aa00738f7a064ddad"
+  },
+  {
+    "id": "fmsg_18b9dd56-6e1",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 4",
+    "payload": {
+      "depth": 4
+    },
+    "correlationId": "cycle_1793215649292",
+    "timestamp": "2026-10-28T19:27:29.293Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.293Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "eb1f1e4eac8e83b3ac89ca3651c9f5cb73bdccdd4572da2f0f8e4df5bb37598f"
+  },
+  {
+    "id": "fmsg_94fb2082-4d6",
+    "familyId": "fam_user_comm_1793215649273",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 5",
+    "payload": {
+      "depth": 5
+    },
+    "correlationId": "cycle_1793215649292",
+    "timestamp": "2026-10-28T19:27:29.294Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.294Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "1d3ebee8a39f9486d0ffd38140bd0622a229ba966dc84f376a9edfc2d02cff3c"
+  },
+  {
+    "id": "fmsg_6467c060-238",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "vulcan_04",
+    "messageType": "tool_inquiry",
+    "subject": "Can you probe endpoint /api/login for injection vulnerabilities?",
+    "payload": {
+      "target": "/api/login"
+    },
+    "correlationId": "e2358d79-2790-4340-abc1-63a12db785fa",
+    "timestamp": "2026-10-28T19:27:29.422Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:27:29.422Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "84328c1265431ac5bf2313f6ff855b2debea54d06c527dc0cab878008cfb062e"
+  },
+  {
+    "id": "fmsg_15589701-4a8",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "argus_01",
+    "toDroidId": "hydra_02",
+    "messageType": "status_query",
+    "subject": "Querying Hydra current objective and status",
+    "payload": {
+      "query": "status"
+    },
+    "correlationId": "1e973a6b-5d31-47d6-a4df-99bf3305a2b1",
+    "timestamp": "2026-10-28T19:28:13.644Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.644Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "12807980875e0c159f129018b578e5c39a862ba3d0e71aa782178ca07f192120"
+  },
+  {
+    "id": "fmsg_da73a0c5-7be",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "hydra_02",
+    "toDroidId": "argus_01",
+    "messageType": "peer_response",
+    "subject": "Status Report from Hydra-02",
+    "payload": {
+      "status": "idle",
+      "currentObjective": "API authorization fuzzing ready",
+      "allowedTools": [
+        "tool_http_fuzz",
+        "tool_graphql_inspect",
+        "tool_token_rotate"
+      ]
+    },
+    "correlationId": "1e973a6b-5d31-47d6-a4df-99bf3305a2b1",
+    "timestamp": "2026-10-28T19:28:13.644Z",
+    "acknowledged": true
+  },
+  {
+    "id": "fmsg_dc1c4c7d-4cd",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 1",
+    "payload": {
+      "depth": 1
+    },
+    "correlationId": "cycle_1793215693645",
+    "timestamp": "2026-10-28T19:28:13.645Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.645Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "80af4ad30e7460c27e8ca538d92392f1a36451d185d46f2d58e034d1eb6596f5"
+  },
+  {
+    "id": "fmsg_259abbb8-d05",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 2",
+    "payload": {
+      "depth": 2
+    },
+    "correlationId": "cycle_1793215693645",
+    "timestamp": "2026-10-28T19:28:13.646Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.646Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "033f868b8572d9493970cd888d5e9c7853a4e850018abd1a0c70d428815cf4ea"
+  },
+  {
+    "id": "fmsg_f208ab4f-f5a",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 3",
+    "payload": {
+      "depth": 3
+    },
+    "correlationId": "cycle_1793215693645",
+    "timestamp": "2026-10-28T19:28:13.646Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.646Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "55858df594fbc90ae808a07cc3dbc8c14401d3ed728cc05f0d2e66c49947473d"
+  },
+  {
+    "id": "fmsg_b1faebc4-b73",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 4",
+    "payload": {
+      "depth": 4
+    },
+    "correlationId": "cycle_1793215693645",
+    "timestamp": "2026-10-28T19:28:13.647Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.647Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "751cf797a09565493edd1cb97f56030b7f89f0b5117224a17c5c58fdf99e67d0"
+  },
+  {
+    "id": "fmsg_bcd135ae-8df",
+    "familyId": "fam_user_comm_1793215693623",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 5",
+    "payload": {
+      "depth": 5
+    },
+    "correlationId": "cycle_1793215693645",
+    "timestamp": "2026-10-28T19:28:13.647Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.647Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "ec87a0b944e0889a3edf97b61eef8bcbd9ffae6ecd1a5d186ef9aee1ffbdc683"
+  },
+  {
+    "id": "fmsg_0965f089-012",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "vulcan_04",
+    "messageType": "tool_inquiry",
+    "subject": "Can you probe endpoint /api/login for injection vulnerabilities?",
+    "payload": {
+      "target": "/api/login"
+    },
+    "correlationId": "f5172639-e7c9-4e4d-b7b0-d5cd789edf1f",
+    "timestamp": "2026-10-28T19:28:13.770Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-28T19:28:13.770Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "2e7a5827d8e2687f9885c6e33432d544c183b0cefdc113275132d0b4ae69bc5d"
   }
 ]

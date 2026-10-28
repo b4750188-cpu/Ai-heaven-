@@ -475,5 +475,1173 @@
     ],
     "createdAt": "2026-10-28T18:15:58.876Z",
     "updatedAt": "2026-10-28T18:15:58.876Z"
+  },
+  {
+    "id": "src_20996feb-a1a9-",
+    "familyId": "fam_test_contribute_1793215378356",
+    "tenantId": "tenant_test_1793215378356",
+    "title": "Safe Database Connection Pool Teardown",
+    "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [
+      "postgres",
+      "connection_pool",
+      "teardown"
+    ],
+    "evidence": [
+      {
+        "id": "ev_1",
+        "evidenceType": "test_result",
+        "snippet": "Zero open sockets detected post test completion across 240 test suites.",
+        "sha256Seal": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verifiedAt": "2026-10-28T19:22:58.367Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Safe Database Connection Pool Teardown",
+        "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.367Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.367Z",
+    "updatedAt": "2026-10-28T19:22:58.367Z"
+  },
+  {
+    "id": "src_5ee3634d-ea12-",
+    "familyId": "fam_rel_test_1793215378357",
+    "tenantId": "tenant_rel_1793215378357",
+    "title": "Initial API Rate Limit is 100 req/s",
+    "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+    "category": "research_discovery",
+    "verificationStatus": "OUTDATED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial API Rate Limit is 100 req/s",
+        "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.369Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.369Z",
+    "updatedAt": "2026-10-28T19:22:58.370Z",
+    "supersededByEntryId": "src_d56edbce-5d83-"
+  },
+  {
+    "id": "src_d56edbce-5d83-",
+    "familyId": "fam_rel_test_1793215378357",
+    "tenantId": "tenant_rel_1793215378357",
+    "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+    "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "hydra_02",
+      "name": "Hydra-02"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_5ee3634d-ea12-",
+        "relationType": "SUPERSEDES",
+        "rationale": "Empirical load test invalidated legacy header claim",
+        "createdAt": "2026-10-28T19:22:58.370Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+        "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+        "changedBy": "Hydra-02",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.370Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.370Z",
+    "updatedAt": "2026-10-28T19:22:58.370Z"
+  },
+  {
+    "id": "src_62171d38-a4d2-",
+    "familyId": "fam_rel_test_1793215378357",
+    "tenantId": "tenant_rel_1793215378357",
+    "title": "Claim: All endpoints support Bearer auth",
+    "content": "All endpoints accept Bearer tokens without exception.",
+    "category": "research_discovery",
+    "verificationStatus": "DISPUTED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Claim: All endpoints support Bearer auth",
+        "content": "All endpoints accept Bearer tokens without exception.",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.371Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.371Z",
+    "updatedAt": "2026-10-28T19:22:58.371Z"
+  },
+  {
+    "id": "src_552eb577-1dc6-",
+    "familyId": "fam_rel_test_1793215378357",
+    "tenantId": "tenant_rel_1793215378357",
+    "title": "Dispute: /health rejects Authorization header",
+    "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+    "category": "correction_verification",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_62171d38-a4d2-",
+        "relationType": "REFUTES",
+        "rationale": "Empirical test proves health endpoint rejects auth headers",
+        "createdAt": "2026-10-28T19:22:58.371Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Dispute: /health rejects Authorization header",
+        "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.371Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.371Z",
+    "updatedAt": "2026-10-28T19:22:58.371Z"
+  },
+  {
+    "id": "src_e134d5aa-e777-",
+    "familyId": "fam_user_alpha_1793215378357",
+    "tenantId": "tenant_user_alpha_1793215378357",
+    "title": "Alice Highly Confidential Finding",
+    "content": "Secret algorithmic heuristic for quantum optimization.",
+    "category": "research_discovery",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_alpha_1793215378357",
+      "name": "Alice Google"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Alice Highly Confidential Finding",
+        "content": "Secret algorithmic heuristic for quantum optimization.",
+        "changedBy": "Alice Google",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:22:58.373Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:22:58.373Z",
+    "updatedAt": "2026-10-28T19:22:58.373Z"
+  },
+  {
+    "id": "src_3d1cc2b3-b61e-",
+    "familyId": "family_test_1793215576863",
+    "tenantId": "tenant_audit_test",
+    "title": "Setup guide with key: [REDACTED_SECRET]90",
+    "content": "Run system test with credential [REDACTED_SECRET]90",
+    "category": "PROCEDURE",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "droid_security_auditor",
+      "name": "Security Auditor"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Setup guide with key: [REDACTED_SECRET]90",
+        "content": "Run system test with credential [REDACTED_SECRET]90",
+        "changedBy": "Security Auditor",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:26:16.863Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:26:16.863Z",
+    "updatedAt": "2026-10-28T19:26:16.863Z"
+  },
+  {
+    "id": "src_091efe3a-5968-",
+    "familyId": "family_test_update_1793215576864",
+    "tenantId": "tenant_update_test",
+    "title": "Updated title with [REDACTED_SECRET]34",
+    "content": "Updated instructions with [REDACTED_SECRET]34",
+    "category": "SOLUTION",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "human",
+      "id": "user_1",
+      "name": "Admin"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial safe procedure",
+        "content": "Original safe step 1",
+        "changedBy": "Admin",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:26:16.864Z"
+      },
+      {
+        "versionNumber": 2,
+        "title": "Updated title with [REDACTED_SECRET]34",
+        "content": "Updated instructions with [REDACTED_SECRET]34",
+        "changedBy": "Admin",
+        "changeReason": "Added config snippet",
+        "timestamp": "2026-10-28T19:26:16.865Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:26:16.864Z",
+    "updatedAt": "2026-10-28T19:26:16.865Z"
+  },
+  {
+    "id": "src_7e7f5eba-5a92-",
+    "familyId": "family_test_1793215615844",
+    "tenantId": "tenant_audit_test",
+    "title": "Setup guide with key: [REDACTED_SECRET]90",
+    "content": "Run system test with credential [REDACTED_SECRET]90",
+    "category": "PROCEDURE",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "droid_security_auditor",
+      "name": "Security Auditor"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Setup guide with key: [REDACTED_SECRET]90",
+        "content": "Run system test with credential [REDACTED_SECRET]90",
+        "changedBy": "Security Auditor",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:26:55.844Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:26:55.844Z",
+    "updatedAt": "2026-10-28T19:26:55.844Z"
+  },
+  {
+    "id": "src_1f12f31b-4b68-",
+    "familyId": "family_test_update_1793215615845",
+    "tenantId": "tenant_update_test",
+    "title": "Updated title with [REDACTED_SECRET]34",
+    "content": "Updated instructions with [REDACTED_SECRET]34",
+    "category": "SOLUTION",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "human",
+      "id": "user_1",
+      "name": "Admin"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial safe procedure",
+        "content": "Original safe step 1",
+        "changedBy": "Admin",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:26:55.845Z"
+      },
+      {
+        "versionNumber": 2,
+        "title": "Updated title with [REDACTED_SECRET]34",
+        "content": "Updated instructions with [REDACTED_SECRET]34",
+        "changedBy": "Admin",
+        "changeReason": "Added config snippet",
+        "timestamp": "2026-10-28T19:26:55.846Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:26:55.845Z",
+    "updatedAt": "2026-10-28T19:26:55.846Z"
+  },
+  {
+    "id": "src_83e5fd74-f9ca-",
+    "familyId": "fam_test_contribute_1793215622255",
+    "tenantId": "tenant_test_1793215622255",
+    "title": "Safe Database Connection Pool Teardown",
+    "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [
+      "postgres",
+      "connection_pool",
+      "teardown"
+    ],
+    "evidence": [
+      {
+        "id": "ev_1",
+        "evidenceType": "test_result",
+        "snippet": "Zero open sockets detected post test completion across 240 test suites.",
+        "sha256Seal": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verifiedAt": "2026-10-28T19:27:02.269Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Safe Database Connection Pool Teardown",
+        "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.269Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.269Z",
+    "updatedAt": "2026-10-28T19:27:02.269Z"
+  },
+  {
+    "id": "src_7a59b58c-04e1-",
+    "familyId": "fam_rel_test_1793215622256",
+    "tenantId": "tenant_rel_1793215622256",
+    "title": "Initial API Rate Limit is 100 req/s",
+    "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+    "category": "research_discovery",
+    "verificationStatus": "OUTDATED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial API Rate Limit is 100 req/s",
+        "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.271Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.271Z",
+    "updatedAt": "2026-10-28T19:27:02.272Z",
+    "supersededByEntryId": "src_3084a9fd-8a2d-"
+  },
+  {
+    "id": "src_3084a9fd-8a2d-",
+    "familyId": "fam_rel_test_1793215622256",
+    "tenantId": "tenant_rel_1793215622256",
+    "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+    "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "hydra_02",
+      "name": "Hydra-02"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_7a59b58c-04e1-",
+        "relationType": "SUPERSEDES",
+        "rationale": "Empirical load test invalidated legacy header claim",
+        "createdAt": "2026-10-28T19:27:02.272Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+        "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+        "changedBy": "Hydra-02",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.272Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.272Z",
+    "updatedAt": "2026-10-28T19:27:02.272Z"
+  },
+  {
+    "id": "src_aeaf7276-a0ff-",
+    "familyId": "fam_rel_test_1793215622256",
+    "tenantId": "tenant_rel_1793215622256",
+    "title": "Claim: All endpoints support Bearer auth",
+    "content": "All endpoints accept Bearer tokens without exception.",
+    "category": "research_discovery",
+    "verificationStatus": "DISPUTED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Claim: All endpoints support Bearer auth",
+        "content": "All endpoints accept Bearer tokens without exception.",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.273Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.273Z",
+    "updatedAt": "2026-10-28T19:27:02.273Z"
+  },
+  {
+    "id": "src_00e015f3-39aa-",
+    "familyId": "fam_rel_test_1793215622256",
+    "tenantId": "tenant_rel_1793215622256",
+    "title": "Dispute: /health rejects Authorization header",
+    "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+    "category": "correction_verification",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_aeaf7276-a0ff-",
+        "relationType": "REFUTES",
+        "rationale": "Empirical test proves health endpoint rejects auth headers",
+        "createdAt": "2026-10-28T19:27:02.273Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Dispute: /health rejects Authorization header",
+        "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.273Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.273Z",
+    "updatedAt": "2026-10-28T19:27:02.273Z"
+  },
+  {
+    "id": "src_25b31b29-b326-",
+    "familyId": "fam_user_alpha_1793215622256",
+    "tenantId": "tenant_user_alpha_1793215622256",
+    "title": "Alice Highly Confidential Finding",
+    "content": "Secret algorithmic heuristic for quantum optimization.",
+    "category": "research_discovery",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_alpha_1793215622256",
+      "name": "Alice Google"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Alice Highly Confidential Finding",
+        "content": "Secret algorithmic heuristic for quantum optimization.",
+        "changedBy": "Alice Google",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:02.275Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:02.275Z",
+    "updatedAt": "2026-10-28T19:27:02.275Z"
+  },
+  {
+    "id": "src_0821c738-8483-",
+    "familyId": "fam_test_contribute_1793215649272",
+    "tenantId": "tenant_test_1793215649272",
+    "title": "Safe Database Connection Pool Teardown",
+    "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [
+      "postgres",
+      "connection_pool",
+      "teardown"
+    ],
+    "evidence": [
+      {
+        "id": "ev_1",
+        "evidenceType": "test_result",
+        "snippet": "Zero open sockets detected post test completion across 240 test suites.",
+        "sha256Seal": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verifiedAt": "2026-10-28T19:27:29.283Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Safe Database Connection Pool Teardown",
+        "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.283Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.283Z",
+    "updatedAt": "2026-10-28T19:27:29.283Z"
+  },
+  {
+    "id": "src_23180e9e-821e-",
+    "familyId": "fam_rel_test_1793215649272",
+    "tenantId": "tenant_rel_1793215649272",
+    "title": "Initial API Rate Limit is 100 req/s",
+    "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+    "category": "research_discovery",
+    "verificationStatus": "OUTDATED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial API Rate Limit is 100 req/s",
+        "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.286Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.286Z",
+    "updatedAt": "2026-10-28T19:27:29.286Z",
+    "supersededByEntryId": "src_980f40fd-2c88-"
+  },
+  {
+    "id": "src_980f40fd-2c88-",
+    "familyId": "fam_rel_test_1793215649272",
+    "tenantId": "tenant_rel_1793215649272",
+    "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+    "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "hydra_02",
+      "name": "Hydra-02"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_23180e9e-821e-",
+        "relationType": "SUPERSEDES",
+        "rationale": "Empirical load test invalidated legacy header claim",
+        "createdAt": "2026-10-28T19:27:29.286Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+        "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+        "changedBy": "Hydra-02",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.286Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.286Z",
+    "updatedAt": "2026-10-28T19:27:29.286Z"
+  },
+  {
+    "id": "src_c500b785-838e-",
+    "familyId": "fam_rel_test_1793215649272",
+    "tenantId": "tenant_rel_1793215649272",
+    "title": "Claim: All endpoints support Bearer auth",
+    "content": "All endpoints accept Bearer tokens without exception.",
+    "category": "research_discovery",
+    "verificationStatus": "DISPUTED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Claim: All endpoints support Bearer auth",
+        "content": "All endpoints accept Bearer tokens without exception.",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.287Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.287Z",
+    "updatedAt": "2026-10-28T19:27:29.288Z"
+  },
+  {
+    "id": "src_4cf56c20-a72d-",
+    "familyId": "fam_rel_test_1793215649272",
+    "tenantId": "tenant_rel_1793215649272",
+    "title": "Dispute: /health rejects Authorization header",
+    "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+    "category": "correction_verification",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_c500b785-838e-",
+        "relationType": "REFUTES",
+        "rationale": "Empirical test proves health endpoint rejects auth headers",
+        "createdAt": "2026-10-28T19:27:29.288Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Dispute: /health rejects Authorization header",
+        "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.287Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.287Z",
+    "updatedAt": "2026-10-28T19:27:29.288Z"
+  },
+  {
+    "id": "src_c70f7701-a895-",
+    "familyId": "fam_user_alpha_1793215649273",
+    "tenantId": "tenant_user_alpha_1793215649273",
+    "title": "Alice Highly Confidential Finding",
+    "content": "Secret algorithmic heuristic for quantum optimization.",
+    "category": "research_discovery",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_alpha_1793215649273",
+      "name": "Alice Google"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Alice Highly Confidential Finding",
+        "content": "Secret algorithmic heuristic for quantum optimization.",
+        "changedBy": "Alice Google",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:27:29.290Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:27:29.290Z",
+    "updatedAt": "2026-10-28T19:27:29.290Z"
+  },
+  {
+    "id": "src_a60ab01c-913d-",
+    "familyId": "family_test_1793215692814",
+    "tenantId": "tenant_audit_test",
+    "title": "Setup guide with key: [REDACTED_SECRET]90",
+    "content": "Run system test with credential [REDACTED_SECRET]90",
+    "category": "PROCEDURE",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "droid_security_auditor",
+      "name": "Security Auditor"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Setup guide with key: [REDACTED_SECRET]90",
+        "content": "Run system test with credential [REDACTED_SECRET]90",
+        "changedBy": "Security Auditor",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:12.814Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:12.814Z",
+    "updatedAt": "2026-10-28T19:28:12.814Z"
+  },
+  {
+    "id": "src_3bd719d7-c452-",
+    "familyId": "family_test_update_1793215692816",
+    "tenantId": "tenant_update_test",
+    "title": "Updated title with [REDACTED_SECRET]34",
+    "content": "Updated instructions with [REDACTED_SECRET]34",
+    "category": "SOLUTION",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "human",
+      "id": "user_1",
+      "name": "Admin"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial safe procedure",
+        "content": "Original safe step 1",
+        "changedBy": "Admin",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:12.816Z"
+      },
+      {
+        "versionNumber": 2,
+        "title": "Updated title with [REDACTED_SECRET]34",
+        "content": "Updated instructions with [REDACTED_SECRET]34",
+        "changedBy": "Admin",
+        "changeReason": "Added config snippet",
+        "timestamp": "2026-10-28T19:28:12.818Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:12.816Z",
+    "updatedAt": "2026-10-28T19:28:12.818Z"
+  },
+  {
+    "id": "src_92555cb6-9828-",
+    "familyId": "fam_test_contribute_1793215693622",
+    "tenantId": "tenant_test_1793215693622",
+    "title": "Safe Database Connection Pool Teardown",
+    "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [
+      "postgres",
+      "connection_pool",
+      "teardown"
+    ],
+    "evidence": [
+      {
+        "id": "ev_1",
+        "evidenceType": "test_result",
+        "snippet": "Zero open sockets detected post test completion across 240 test suites.",
+        "sha256Seal": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verifiedAt": "2026-10-28T19:28:13.635Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Safe Database Connection Pool Teardown",
+        "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.635Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.635Z",
+    "updatedAt": "2026-10-28T19:28:13.635Z"
+  },
+  {
+    "id": "src_568bb8f7-3c26-",
+    "familyId": "fam_rel_test_1793215693623",
+    "tenantId": "tenant_rel_1793215693623",
+    "title": "Initial API Rate Limit is 100 req/s",
+    "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+    "category": "research_discovery",
+    "verificationStatus": "OUTDATED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial API Rate Limit is 100 req/s",
+        "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.638Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.638Z",
+    "updatedAt": "2026-10-28T19:28:13.639Z",
+    "supersededByEntryId": "src_74552221-6954-"
+  },
+  {
+    "id": "src_74552221-6954-",
+    "familyId": "fam_rel_test_1793215693623",
+    "tenantId": "tenant_rel_1793215693623",
+    "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+    "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "hydra_02",
+      "name": "Hydra-02"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_568bb8f7-3c26-",
+        "relationType": "SUPERSEDES",
+        "rationale": "Empirical load test invalidated legacy header claim",
+        "createdAt": "2026-10-28T19:28:13.639Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+        "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+        "changedBy": "Hydra-02",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.639Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.639Z",
+    "updatedAt": "2026-10-28T19:28:13.639Z"
+  },
+  {
+    "id": "src_49ff28ec-06ed-",
+    "familyId": "fam_rel_test_1793215693623",
+    "tenantId": "tenant_rel_1793215693623",
+    "title": "Claim: All endpoints support Bearer auth",
+    "content": "All endpoints accept Bearer tokens without exception.",
+    "category": "research_discovery",
+    "verificationStatus": "DISPUTED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Claim: All endpoints support Bearer auth",
+        "content": "All endpoints accept Bearer tokens without exception.",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.640Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.640Z",
+    "updatedAt": "2026-10-28T19:28:13.640Z"
+  },
+  {
+    "id": "src_bc604668-d413-",
+    "familyId": "fam_rel_test_1793215693623",
+    "tenantId": "tenant_rel_1793215693623",
+    "title": "Dispute: /health rejects Authorization header",
+    "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+    "category": "correction_verification",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_49ff28ec-06ed-",
+        "relationType": "REFUTES",
+        "rationale": "Empirical test proves health endpoint rejects auth headers",
+        "createdAt": "2026-10-28T19:28:13.640Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Dispute: /health rejects Authorization header",
+        "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.640Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.640Z",
+    "updatedAt": "2026-10-28T19:28:13.640Z"
+  },
+  {
+    "id": "src_563cba43-f816-",
+    "familyId": "fam_user_alpha_1793215693623",
+    "tenantId": "tenant_user_alpha_1793215693623",
+    "title": "Alice Highly Confidential Finding",
+    "content": "Secret algorithmic heuristic for quantum optimization.",
+    "category": "research_discovery",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_alpha_1793215693623",
+      "name": "Alice Google"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Alice Highly Confidential Finding",
+        "content": "Secret algorithmic heuristic for quantum optimization.",
+        "changedBy": "Alice Google",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:28:13.643Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:28:13.643Z",
+    "updatedAt": "2026-10-28T19:28:13.643Z"
+  },
+  {
+    "id": "src_28cd8d42-614b-",
+    "familyId": "family_test_1793215778138",
+    "tenantId": "tenant_audit_test",
+    "title": "Setup guide with key: [REDACTED_SECRET]90",
+    "content": "Run system test with credential [REDACTED_SECRET]90",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "droid_security_auditor",
+      "name": "Security Auditor"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Setup guide with key: [REDACTED_SECRET]90",
+        "content": "Run system test with credential [REDACTED_SECRET]90",
+        "changedBy": "Security Auditor",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:29:38.138Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:29:38.138Z",
+    "updatedAt": "2026-10-28T19:29:38.138Z"
+  },
+  {
+    "id": "src_9ae7f1cb-52fe-",
+    "familyId": "family_test_update_1793215778140",
+    "tenantId": "tenant_update_test",
+    "title": "Updated title with [REDACTED_SECRET]34",
+    "content": "Updated instructions with [REDACTED_SECRET]34",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_1",
+      "name": "Admin"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial safe procedure",
+        "content": "Original safe step 1",
+        "changedBy": "Admin",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-28T19:29:38.140Z"
+      },
+      {
+        "versionNumber": 2,
+        "title": "Updated title with [REDACTED_SECRET]34",
+        "content": "Updated instructions with [REDACTED_SECRET]34",
+        "changedBy": "Admin",
+        "changeReason": "Added config snippet",
+        "timestamp": "2026-10-28T19:29:38.140Z"
+      }
+    ],
+    "createdAt": "2026-10-28T19:29:38.140Z",
+    "updatedAt": "2026-10-28T19:29:38.140Z"
   }
 ]

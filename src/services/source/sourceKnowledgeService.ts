@@ -216,7 +216,7 @@ export class SourceKnowledgeService {
       id: entryId,
       familyId: params.familyId,
       tenantId: params.tenantId,
-      title: params.title.trim(),
+      title: sanitization.redactedTitle || params.title.trim(),
       content: sanitization.redactedContent,
       category: params.category,
       verificationStatus: sanitization.adjustedStatus,
@@ -230,7 +230,7 @@ export class SourceKnowledgeService {
       versions: [
         {
           versionNumber: 1,
-          title: params.title.trim(),
+          title: sanitization.redactedTitle || params.title.trim(),
           content: sanitization.redactedContent,
           changedBy: params.contributor.name,
           changeReason: 'Initial contribution to family SOURCE pool',
@@ -402,14 +402,14 @@ export class SourceKnowledgeService {
 
     existing.versions.push({
       versionNumber: nextVersionNum,
-      title: title,
+      title: sanitization.redactedTitle || title,
       content: sanitization.redactedContent,
       changedBy: params.changedBy,
       changeReason: params.changeReason || 'Correction / Knowledge Update',
       timestamp: now
     });
 
-    existing.title = title;
+    existing.title = sanitization.redactedTitle || title;
     existing.content = sanitization.redactedContent;
     if (params.category) existing.category = params.category;
     existing.verificationStatus = sanitization.adjustedStatus;

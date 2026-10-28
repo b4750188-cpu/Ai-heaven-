@@ -10,12 +10,15 @@ import { KnowledgeSanitizationResult, SourceEvidence, VerificationStatus } from 
 // Regex patterns for secret detection
 const SECRET_PATTERNS: Array<{ name: string; regex: RegExp }> = [
   { name: 'Google API Key', regex: /AIza[0-9A-Za-z-_]{35}/g },
-  { name: 'OpenAI API Key', regex: /sk-[a-zA-Z0-9T3BlbkFJ]{20,}/g },
-  { name: 'GitHub Personal Access Token', regex: /gh[pousr]-[0-9a-zA-Z]{36}/g },
-  { name: 'AWS Access Key ID', regex: /AKIA[0-9A-Z]{16}/g },
-  { name: 'JWT Bearer Token', regex: /eyJ[a-zA-Z0-9_-]{10,}\.eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}/g },
-  { name: 'Private Key Block', regex: /-----BEGIN (?:RSA|EC|DSA|OPENSSH|PRIVATE) KEY-----[^-]+-----END (?:RSA|EC|DSA|OPENSSH|PRIVATE) KEY-----/gs },
-  { name: 'Hardcoded Password Assignment', regex: /(?:password|secret|passwd|api_key)\s*[:=]\s*['"][^'"]{6,}['"]/gi }
+  { name: 'Anthropic API Key', regex: /sk-ant-[a-zA-Z0-9_-]{20,}/g },
+  { name: 'OpenAI API Key', regex: /sk-(?!ant-)(?:proj-|svcacct-)?[a-zA-Z0-9_-]{20,}/g },
+  { name: 'GitHub Personal Access Token', regex: /(?:gh[pousr]_[0-9a-zA-Z]{36}|gh[pousr]-[0-9a-zA-Z]{36}|github_pat_[a-zA-Z0-9_]{82})/g },
+  { name: 'AWS Access Key ID', regex: /\bAKIA[0-9A-Z]{16}\b/g },
+  { name: 'AWS Secret Key', regex: /(?:aws_secret_access_key|aws_secret_key)\s*[:=]\s*['"][A-Za-z0-9/+=]{40}['"]/gi },
+  { name: 'JWT Bearer Token', regex: /(?:Bearer\s+)?eyJ[a-zA-Z0-9_-]{10,}\.eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}/gi },
+  { name: 'Private Key Block', regex: /-----BEGIN (?:[A-Z0-9_-]+\s+)?PRIVATE KEY-----[\s\S]+?-----END (?:[A-Z0-9_-]+\s+)?PRIVATE KEY-----/gi },
+  { name: 'Hardcoded Password Assignment', regex: /(?:password|passwd|api_key|client_secret|auth_token|secret_key)\s*[:=]\s*['"][^'"]{6,}['"]/gi },
+  { name: 'Slack Token', regex: /xox[baprs]-[0-9a-zA-Z]{10,48}/g }
 ];
 
 // Sensitive personal data patterns (SSN, credit cards)
@@ -50,26 +53,57 @@ export class KnowledgeSanitizer {
     requestedStatus: VerificationStatus,
     evidence: SourceEvidence[] = []
   ): KnowledgeSanitizationResult {
-    const secretsDetected: string[] = [];
-    const personalDataDetected: string[] = [];
+    const detectedSecretsSet = new Set<string>();
+    const detectedPiiSet = new Set<string>();
     const warnings: string[] = [];
 
-    let cleanedContent = rawContent;
+    let cleanedTitle = rawTitle || '';
+    let cleanedContent = rawContent || '';
 
-    // 1. Secret Detection & Redaction
+    // 1. Secret Detection & Redaction (both Title and Content)
     for (const pattern of SECRET_PATTERNS) {
-      if (pattern.regex.test(cleanedContent) || pattern.regex.test(rawTitle)) {
-        secretsDetected.push(pattern.name);
+      pattern.regex.lastIndex = 0;
+      let matched = false;
+
+      if (pattern.regex.test(cleanedContent)) {
+        matched = true;
+        pattern.regex.lastIndex = 0;
         cleanedContent = cleanedContent.replace(pattern.regex, '[REDACTED_SECRET]');
       }
-      pattern.regex.lastIndex = 0; // reset state
+
+      pattern.regex.lastIndex = 0;
+      if (pattern.regex.test(cleanedTitle)) {
+        matched = true;
+        pattern.regex.lastIndex = 0;
+        cleanedTitle = cleanedTitle.replace(pattern.regex, '[REDACTED_SECRET]');
+      }
+
+      if (matched) {
+        detectedSecretsSet.add(pattern.name);
+      }
+      pattern.regex.lastIndex = 0;
     }
 
-    // 2. Personal Data Detection & Redaction
+    // 2. Personal Data Detection & Redaction (both Title and Content)
     for (const pattern of PERSONAL_DATA_PATTERNS) {
+      pattern.regex.lastIndex = 0;
+      let matched = false;
+
       if (pattern.regex.test(cleanedContent)) {
-        personalDataDetected.push(pattern.name);
+        matched = true;
+        pattern.regex.lastIndex = 0;
         cleanedContent = cleanedContent.replace(pattern.regex, '[REDACTED_PII]');
+      }
+
+      pattern.regex.lastIndex = 0;
+      if (pattern.regex.test(cleanedTitle)) {
+        matched = true;
+        pattern.regex.lastIndex = 0;
+        cleanedTitle = cleanedTitle.replace(pattern.regex, '[REDACTED_PII]');
+      }
+
+      if (matched) {
+        detectedPiiSet.add(pattern.name);
       }
       pattern.regex.lastIndex = 0;
     }
@@ -78,8 +112,8 @@ export class KnowledgeSanitizer {
     // If a droid or user requests 'VERIFIED', but provides zero verified evidence seals
     // or uses speculative language, demote to 'INFERRED' or 'UNVERIFIED'.
     let adjustedStatus = requestedStatus;
-    const lowerContent = cleanedContent.toLowerCase();
-    const hasSpeculativeLanguage = SPECULATION_KEYWORDS.some(kw => lowerContent.includes(kw));
+    const lowerCombined = `${cleanedTitle} ${cleanedContent}`.toLowerCase();
+    const hasSpeculativeLanguage = SPECULATION_KEYWORDS.some(kw => lowerCombined.includes(kw));
     const hasVerifiedEvidenceSeal = evidence.some(e => Boolean(e.sha256Seal && e.sha256Seal.length === 64));
 
     if (requestedStatus === 'VERIFIED') {
@@ -96,10 +130,13 @@ export class KnowledgeSanitizer {
       }
     }
 
+    const secretsDetected = Array.from(detectedSecretsSet);
+    const personalDataDetected = Array.from(detectedPiiSet);
     const isClean = secretsDetected.length === 0 && personalDataDetected.length === 0;
 
     return {
       isClean,
+      redactedTitle: cleanedTitle,
       redactedContent: cleanedContent,
       secretsDetected,
       personalDataDetected,
