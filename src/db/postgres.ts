@@ -388,6 +388,61 @@ class PostgresManager {
           );
         `);
 
+        // 13. SOURCE Collective Knowledge Pool table
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_source_entries (
+            id VARCHAR(128) PRIMARY KEY,
+            family_id VARCHAR(128) NOT NULL,
+            tenant_id VARCHAR(128) NOT NULL,
+            title VARCHAR(512) NOT NULL,
+            content TEXT NOT NULL,
+            category VARCHAR(64) NOT NULL,
+            verification_status VARCHAR(32) NOT NULL,
+            confidence REAL DEFAULT 0.85,
+            contributor JSONB NOT NULL,
+            tags JSONB DEFAULT '[]'::jsonb,
+            evidence JSONB DEFAULT '[]'::jsonb,
+            relationships JSONB DEFAULT '[]'::jsonb,
+            access_scope VARCHAR(32) DEFAULT 'private_family',
+            is_archived BOOLEAN DEFAULT FALSE,
+            versions JSONB DEFAULT '[]'::jsonb,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
+        // 14. Droid Families table (Private per authenticated Google user)
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_droid_families (
+            family_id VARCHAR(128) PRIMARY KEY,
+            tenant_id VARCHAR(128) NOT NULL,
+            owner_user_id VARCHAR(128) NOT NULL,
+            owner_email VARCHAR(256) NOT NULL,
+            family_name VARCHAR(256) NOT NULL,
+            central_brain_context JSONB NOT NULL,
+            members JSONB NOT NULL,
+            stats JSONB NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
+        // 15. Inter-Droid Family Messages table
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS aiheaven_family_messages (
+            id VARCHAR(128) PRIMARY KEY,
+            family_id VARCHAR(128) NOT NULL,
+            from_droid_id VARCHAR(128) NOT NULL,
+            to_droid_id VARCHAR(128) NOT NULL,
+            message_type VARCHAR(64) NOT NULL,
+            subject VARCHAR(512) NOT NULL,
+            payload JSONB NOT NULL,
+            correlation_id VARCHAR(128) NOT NULL,
+            acknowledged BOOLEAN DEFAULT FALSE,
+            timestamp TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+
         // Create indexes for query speed
         await client.query(`
           CREATE INDEX IF NOT EXISTS idx_tasks_agent_proj ON aiheaven_tasks(agent_id, project_id);
@@ -401,6 +456,10 @@ class PostgresManager {
           CREATE INDEX IF NOT EXISTS idx_bughunt_tenant_user ON aiheaven_bughunt_jobs(tenant_id, user_id);
           CREATE INDEX IF NOT EXISTS idx_findings_tenant_user ON aiheaven_vulnerability_findings(tenant_id, user_id);
           CREATE INDEX IF NOT EXISTS idx_findings_status ON aiheaven_vulnerability_findings(verification_status);
+          CREATE INDEX IF NOT EXISTS idx_source_family_cat ON aiheaven_source_entries(family_id, category);
+          CREATE INDEX IF NOT EXISTS idx_source_status ON aiheaven_source_entries(verification_status);
+          CREATE INDEX IF NOT EXISTS idx_family_owner ON aiheaven_droid_families(owner_user_id);
+          CREATE INDEX IF NOT EXISTS idx_family_messages_fam ON aiheaven_family_messages(family_id, timestamp DESC);
         `);
 
         await client.query('COMMIT');

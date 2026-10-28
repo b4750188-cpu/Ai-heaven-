@@ -53,6 +53,20 @@ import {
   TurnitoutAnalysisResult,
   TurnitoutProcessOptions
 } from '../types/turnitout';
+import {
+  DroidEcosystemSnapshot,
+  DroidIdentity,
+  DroidMessage,
+  DroidMemoryEntry,
+  SharedFinding
+} from '../types/droidEcosystem';
+import { EnvironmentDiscoveryReport } from '../types/environmentDiscovery';
+import {
+  SourceKnowledgeEntry,
+  DroidFamily,
+  InterDroidFamilyMessage,
+  KnowledgeSearchFilter
+} from '../types/sourceKnowledge';
 import { Capacitor } from '@capacitor/core';
 
 export interface BackendStatus {
@@ -3520,6 +3534,282 @@ class AIHeavenApiClient {
       headers: this.getAuthHeaders({ 'Accept': 'application/json' })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Environment Discovery & Health Client Methods ---
+  public async getEnvironmentDiscovery(forceFresh = false): Promise<EnvironmentDiscoveryReport> {
+    const query = forceFresh ? '?fresh=true' : '';
+    const res = await fetch(`${this.baseUrl}/environment/discovery${query}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch environment discovery`);
+    return await res.json();
+  }
+
+  // --- Droid Ecosystem & Memory Client Methods ---
+  public async getDroidEcosystem(): Promise<DroidEcosystemSnapshot> {
+    const res = await fetch(`${this.baseUrl}/droids/ecosystem`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch droid ecosystem`);
+    return await res.json();
+  }
+
+  public async getSharedFindings(): Promise<SharedFinding[]> {
+    const res = await fetch(`${this.baseUrl}/droids/findings`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch shared findings`);
+    return await res.json();
+  }
+
+  public async getDroid(droidId: string): Promise<DroidIdentity> {
+    const res = await fetch(`${this.baseUrl}/droids/${encodeURIComponent(droidId)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch droid ${droidId}`);
+    return await res.json();
+  }
+
+  public async sendDroidMessage(params: {
+    fromDroidId: string;
+    toDroidId: string | 'broadcast';
+    channel: string;
+    messageType: DroidMessage['messageType'];
+    subject: string;
+    payload: Record<string, unknown>;
+    priority?: DroidMessage['priority'];
+    requiresAck?: boolean;
+    correlationId?: string;
+  }): Promise<{ success: boolean; message?: DroidMessage; error?: string }> {
+    const res = await fetch(`${this.baseUrl}/droids/message`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async assignDroidTask(
+    droidId: string,
+    task: { title: string; dependsOnDroidId?: string }
+  ): Promise<{ success: boolean; task?: any; error?: string }> {
+    const res = await fetch(`${this.baseUrl}/droids/${encodeURIComponent(droidId)}/task`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(task)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getDroidMemory(droidId: string): Promise<DroidMemoryEntry[]> {
+    const res = await fetch(`${this.baseUrl}/droids/${encodeURIComponent(droidId)}/memory`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async setDroidMemory(
+    droidId: string,
+    key: string,
+    value: unknown,
+    sensitivity?: string,
+    tags?: string[]
+  ): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/droids/${encodeURIComponent(droidId)}/memory`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ key, value, sensitivity, tags })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  // ==========================================
+  // SOURCE Knowledge Pool Client Methods
+  // ==========================================
+
+  public async getSourcePool(filters: Partial<KnowledgeSearchFilter> = {}): Promise<{
+    familyId: string;
+    familyName: string;
+    entries: SourceKnowledgeEntry[];
+    total: number;
+    facets: { byCategory: Record<string, number>; byStatus: Record<string, number> };
+  }> {
+    const params = new URLSearchParams();
+    if (filters.query) params.set('query', filters.query);
+    if (filters.category) params.set('category', filters.category);
+    if (filters.verificationStatus) params.set('verificationStatus', filters.verificationStatus);
+    if (filters.contributorId) params.set('contributorId', filters.contributorId);
+    if (filters.tags && filters.tags.length > 0) params.set('tags', filters.tags.join(','));
+    if (filters.includeArchived) params.set('includeArchived', 'true');
+    if (filters.limit) params.set('limit', String(filters.limit));
+    if (filters.offset) params.set('offset', String(filters.offset));
+
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(`${this.baseUrl}/source/pool${qs}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load SOURCE knowledge pool`);
+    return await res.json();
+  }
+
+  public async contributeSourceKnowledge(data: {
+    title: string;
+    content: string;
+    category: string;
+    requestedStatus?: string;
+    confidence?: number;
+    tags?: string[];
+    evidence?: any[];
+    accessScope?: string;
+    contributor?: any;
+  }): Promise<{ success: boolean; entry: SourceKnowledgeEntry; warnings: string[]; isDuplicate?: boolean }> {
+    const res = await fetch(`${this.baseUrl}/source/entries`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getSourceEntry(id: string): Promise<SourceKnowledgeEntry> {
+    const res = await fetch(`${this.baseUrl}/source/entries/${encodeURIComponent(id)}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch knowledge entry`);
+    return await res.json();
+  }
+
+  public async updateSourceEntry(
+    id: string,
+    updates: {
+      title?: string;
+      content?: string;
+      category?: string;
+      verificationStatus?: string;
+      tags?: string[];
+      changeReason?: string;
+    }
+  ): Promise<{ success: boolean; entry: SourceKnowledgeEntry }> {
+    const res = await fetch(`${this.baseUrl}/source/entries/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(updates)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async archiveSourceEntry(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${this.baseUrl}/source/entries/${encodeURIComponent(id)}/archive`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async verifySourceEntry(
+    id: string,
+    evidenceSnippet: string,
+    verifiedByDroidId?: string
+  ): Promise<{ success: boolean; entry: SourceKnowledgeEntry }> {
+    const res = await fetch(`${this.baseUrl}/source/entries/${encodeURIComponent(id)}/verify`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ evidenceSnippet, verifiedByDroidId })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async addSourceRelationship(
+    sourceEntryId: string,
+    targetEntryId: string,
+    relationType: string,
+    rationale?: string
+  ): Promise<{ success: boolean }> {
+    const res = await fetch(`${this.baseUrl}/source/relationships`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ sourceEntryId, targetEntryId, relationType, rationale })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getSourceStats(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/source/stats`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // ==========================================
+  // Droid Family Client Methods
+  // ==========================================
+
+  public async getFamilyCurrent(): Promise<DroidFamily> {
+    const res = await fetch(`${this.baseUrl}/family/current`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to get family info`);
+    return await res.json();
+  }
+
+  public async getFamilyMessages(limit = 50): Promise<InterDroidFamilyMessage[]> {
+    const res = await fetch(`${this.baseUrl}/family/messages?limit=${limit}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async sendFamilyMessage(params: {
+    fromDroidId: string;
+    toDroidId: string | 'broadcast';
+    messageType: string;
+    subject: string;
+    payload: Record<string, unknown>;
+    correlationId?: string;
+  }): Promise<{ success: boolean; message?: InterDroidFamilyMessage; error?: string }> {
+    const res = await fetch(`${this.baseUrl}/family/messages`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
     return await res.json();
   }
 }

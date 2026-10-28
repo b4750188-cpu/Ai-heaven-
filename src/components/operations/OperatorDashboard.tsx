@@ -23,12 +23,14 @@ import {
   Terminal,
   Trash2,
   Users,
-  Zap
+  Zap,
+  Bot
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { Badge } from '../ui/Badge';
 import { AgentWorker, KillSwitchStatus } from '../../types/agentRuntime';
 import { AuditEvent } from '../../types/foundation';
+import { UnifiedEcosystemDashboard } from './UnifiedEcosystemDashboard';
 
 interface OperatorDashboardProps {
   onNavigateToAgent?: (agentId: string) => void;
@@ -45,6 +47,7 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isActionPending, setIsActionPending] = useState(false);
+  const [consoleView, setConsoleView] = useState<'ecosystem' | 'telemetry'>('ecosystem');
 
   useEffect(() => {
     loadOverview();
@@ -248,8 +251,38 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({
         </div>
       )}
 
-      {/* Top Metric Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Console Section Switcher */}
+      <div className="flex border-b border-neutral-800 space-x-4">
+        <button
+          onClick={() => setConsoleView('ecosystem')}
+          className={`flex items-center gap-2 pb-3 px-1 text-sm font-medium border-b-2 transition-all ${
+            consoleView === 'ecosystem'
+              ? 'border-emerald-500 text-emerald-400 font-semibold'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
+          }`}
+        >
+          <Bot className="w-4 h-4" />
+          Interconnected Droid Ecosystem & Mesh
+        </button>
+        <button
+          onClick={() => setConsoleView('telemetry')}
+          className={`flex items-center gap-2 pb-3 px-1 text-sm font-medium border-b-2 transition-all ${
+            consoleView === 'telemetry'
+              ? 'border-emerald-500 text-emerald-400 font-semibold'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+          Runtime Workers & Task Telemetry
+        </button>
+      </div>
+
+      {consoleView === 'ecosystem' ? (
+        <UnifiedEcosystemDashboard />
+      ) : (
+        <>
+          {/* Top Metric Cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* PostgreSQL Status */}
         <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between">
@@ -493,6 +526,8 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({
           </table>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

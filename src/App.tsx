@@ -44,6 +44,7 @@ import { FourBeastsView } from './components/engines/FourBeastsView';
 import { GitHubActionsWorkspace } from './components/actions/GitHubActionsWorkspace';
 import { ComfyUIWorkspace } from './components/engines/ComfyUIWorkspace';
 import { SecurityCenter } from './components/security/SecurityCenter';
+import { SourceKnowledgeView } from './components/source/SourceKnowledgeView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -366,6 +367,13 @@ export default function App() {
 
         {currentView === 'brain' && (
           <CentralBrainView onNavigateToChat={() => setCurrentView('chat')} />
+        )}
+
+        {currentView === 'source' && (
+          <SourceKnowledgeView
+            currentUser={authCurrentUser}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
         )}
 
         {currentView === 'continuity' && (

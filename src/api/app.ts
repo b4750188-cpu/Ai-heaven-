@@ -63,6 +63,10 @@ import { agentSwarmEngine } from '../services/swarm/agentSwarmEngine';
 import { openwopAdapter } from '../services/workflow/openwopAdapter';
 import { amaBenchHarness } from '../services/memory/amaBenchHarness';
 import { polosRuntimeAdapter } from '../services/sandbox/polosRuntimeAdapter';
+import { droidEcosystemService } from '../services/droid/droidEcosystemService';
+import { environmentDiscoveryService } from '../services/environment/environmentDiscoveryService';
+import { sourceKnowledgeService } from '../services/source/sourceKnowledgeService';
+import { droidFamilyService } from '../services/family/droidFamilyService';
 
 dotenv.config();
 
@@ -4565,6 +4569,377 @@ export function createExpressApp(): express.Express {
         createdAt: session.createdAt,
         lastActiveAt: session.lastActiveAt
       });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // --- Environment Discovery & Health Endpoint ---
+  apiRouter.get('/environment/discovery', async (req: Request, res: Response) => {
+    try {
+      const forceFresh = req.query.fresh === 'true';
+      const report = await environmentDiscoveryService.getDiscoveryReport(forceFresh);
+      res.json(report);
+    } catch (err: any) {
+      res.status(500).json({ error: `Environment discovery failed: ${err.message}` });
+    }
+  });
+
+  // --- Droid Ecosystem & Memory Endpoints ---
+  apiRouter.get('/droids/ecosystem', (req: Request, res: Response) => {
+    try {
+      const snapshot = droidEcosystemService.getEcosystemSnapshot();
+      res.json(snapshot);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/droids/findings', (req: Request, res: Response) => {
+    try {
+      const findings = droidEcosystemService.listSharedFindings();
+      res.json(findings);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/droids/:droidId', (req: Request, res: Response) => {
+    try {
+      const { droidId } = req.params;
+      const droid = droidEcosystemService.getDroid(droidId);
+      if (!droid) return res.status(404).json({ error: `Droid '${droidId}' not found.` });
+      res.json(droid);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/droids/message', (req: Request, res: Response) => {
+    try {
+      const { fromDroidId, toDroidId, channel, messageType, subject, payload, priority, requiresAck, correlationId } = req.body;
+      if (!fromDroidId || !toDroidId || !channel || !messageType || !subject || !payload) {
+        return res.status(400).json({ error: 'fromDroidId, toDroidId, channel, messageType, subject, and payload are required.' });
+      }
+      const result = droidEcosystemService.sendMessage({
+        fromDroidId,
+        toDroidId,
+        channel,
+        messageType,
+        subject,
+        payload,
+        priority,
+        requiresAck,
+        correlationId
+      });
+      if (!result.success) {
+        return res.status(403).json({ error: result.error });
+      }
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/droids/:droidId/task', (req: Request, res: Response) => {
+    try {
+      const { droidId } = req.params;
+      const { title, dependsOnDroidId } = req.body;
+      if (!title) return res.status(400).json({ error: 'Task title is required.' });
+      const result = droidEcosystemService.assignTask(droidId, { title, dependsOnDroidId });
+      if (!result.success) return res.status(400).json({ error: result.error });
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/droids/:droidId/memory', (req: Request, res: Response) => {
+    try {
+      const { droidId } = req.params;
+      const user = getSafeUser(req);
+      const memories = droidEcosystemService.listMemories(user.tenantId, droidId);
+      res.json(memories);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/droids/:droidId/memory', (req: Request, res: Response) => {
+    try {
+      const { droidId } = req.params;
+      const user = getSafeUser(req);
+      const { key, value, sensitivity, tags } = req.body;
+      if (!key || value === undefined) {
+        return res.status(400).json({ error: 'key and value are required.' });
+      }
+      const result = droidEcosystemService.setMemory({
+        tenantId: user.tenantId,
+        droidId,
+        key,
+        value,
+        sensitivity,
+        tags
+      });
+      if (!result.success) return res.status(400).json({ error: result.error });
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==========================================
+  // SOURCE: Collective Knowledge Pool Endpoints
+  // ==========================================
+
+  apiRouter.get('/source/pool', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { query, category, verificationStatus, contributorId, tags, limit, offset, includeArchived } = req.query;
+
+      const parsedTags = tags ? (Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim())) : undefined;
+
+      const result = sourceKnowledgeService.searchKnowledge({
+        familyId: family.familyId,
+        tenantId: user.tenantId,
+        query: query ? String(query) : undefined,
+        category: category as any,
+        verificationStatus: verificationStatus as any,
+        contributorId: contributorId ? String(contributorId) : undefined,
+        tags: parsedTags as string[],
+        includeArchived: includeArchived === 'true',
+        limit: limit ? parseInt(String(limit), 10) : 30,
+        offset: offset ? parseInt(String(offset), 10) : 0
+      });
+
+      res.json({
+        familyId: family.familyId,
+        familyName: family.familyName,
+        ...result
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: `SOURCE pool search error: ${err.message}` });
+    }
+  });
+
+  apiRouter.post('/source/entries', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { title, content, category, requestedStatus, confidence, contributor, tags, evidence, accessScope, metadata } = req.body;
+
+      if (!title || !content || !category) {
+        return res.status(400).json({ error: 'title, content, and category are required.' });
+      }
+
+      const activeContributor = contributor || {
+        type: 'user',
+        id: user.id,
+        name: user.fullName || user.email,
+        role: user.role
+      };
+
+      const result = sourceKnowledgeService.contributeKnowledge({
+        familyId: family.familyId,
+        tenantId: user.tenantId,
+        title,
+        content,
+        category,
+        requestedStatus,
+        confidence,
+        contributor: activeContributor,
+        tags,
+        evidence,
+        accessScope,
+        metadata
+      });
+
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: `Failed to contribute to SOURCE: ${err.message}` });
+    }
+  });
+
+  apiRouter.get('/source/entries/:id', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const entry = sourceKnowledgeService.getEntry(family.familyId, req.params.id);
+
+      if (!entry) {
+        return res.status(404).json({ error: `Knowledge entry '${req.params.id}' not found in family pool.` });
+      }
+      res.json(entry);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.put('/source/entries/:id', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { title, content, category, verificationStatus, tags, changeReason } = req.body;
+
+      const result = sourceKnowledgeService.updateEntry({
+        familyId: family.familyId,
+        entryId: req.params.id,
+        title,
+        content,
+        category,
+        verificationStatus,
+        tags,
+        changedBy: user.fullName || user.email,
+        changeReason: changeReason || 'User correction via SOURCE Console'
+      });
+
+      if (!result.success) {
+        return res.status(403).json({ error: result.error });
+      }
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/source/entries/:id/archive', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const success = sourceKnowledgeService.archiveEntry(family.familyId, req.params.id);
+
+      if (!success) {
+        return res.status(404).json({ error: `Entry '${req.params.id}' not found or unauthorized.` });
+      }
+      res.json({ success: true, message: 'Knowledge entry archived.' });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/source/entries/:id/verify', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { verifiedByDroidId, evidenceSnippet, evidenceType } = req.body;
+
+      if (!evidenceSnippet) {
+        return res.status(400).json({ error: 'evidenceSnippet is required to formally verify knowledge.' });
+      }
+
+      const result = sourceKnowledgeService.verifyEntry({
+        familyId: family.familyId,
+        entryId: req.params.id,
+        verifiedByDroidId: verifiedByDroidId || 'cerberus_06',
+        evidenceSnippet,
+        evidenceType
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/source/relationships', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { sourceEntryId, targetEntryId, relationType, rationale } = req.body;
+
+      if (!sourceEntryId || !targetEntryId || !relationType) {
+        return res.status(400).json({ error: 'sourceEntryId, targetEntryId, and relationType are required.' });
+      }
+
+      const result = sourceKnowledgeService.addRelationship({
+        familyId: family.familyId,
+        sourceEntryId,
+        targetEntryId,
+        relationType,
+        rationale: rationale || 'Related by agent discovery'
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/source/stats', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const stats = sourceKnowledgeService.getStats(family.familyId);
+      res.json({
+        familyId: family.familyId,
+        familyName: family.familyName,
+        ...stats
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==========================================
+  // DROID FAMILY: Peer Communication & Management Endpoints
+  // ==========================================
+
+  apiRouter.get('/family/current', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const stats = sourceKnowledgeService.getStats(family.familyId);
+      family.stats.totalKnowledgeEntries = stats.totalEntries;
+      family.stats.verifiedEntriesCount = stats.verifiedEntries;
+      res.json(family);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/family/messages', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 50;
+      const messages = droidFamilyService.getFamilyMessages(family.familyId, limit);
+      res.json(messages);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/family/messages', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { fromDroidId, toDroidId, messageType, subject, payload, correlationId } = req.body;
+
+      if (!fromDroidId || !toDroidId || !messageType || !subject || !payload) {
+        return res.status(400).json({ error: 'fromDroidId, toDroidId, messageType, subject, and payload are required.' });
+      }
+
+      const result = droidFamilyService.sendFamilyMessage({
+        familyId: family.familyId,
+        fromDroidId,
+        toDroidId,
+        messageType,
+        subject,
+        payload,
+        correlationId
+      });
+
+      if (!result.success) {
+        return res.status(403).json({ error: result.error });
+      }
+      res.json(result);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

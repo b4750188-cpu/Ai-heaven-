@@ -1007,7 +1007,231 @@
         "createdAt": "2026-10-27T16:42:44.154Z",
         "updatedAt": "2026-10-27T16:42:44.156Z"
       }
+    ],
+    [
+      "wf_d5df8c78-a2e",
+      {
+        "jobId": "wf_d5df8c78-a2e",
+        "workflowType": "test_deployment",
+        "tenantId": "tenant_default",
+        "status": "running",
+        "currentStepIndex": 1,
+        "totalSteps": 3,
+        "maxRetries": 3,
+        "retryCount": 0,
+        "idempotencyKey": "test_idem_1793210417192",
+        "requiresApproval": false,
+        "checkpoints": [
+          {
+            "checkpointId": "chk_1793210417192_0",
+            "stepIndex": 0,
+            "stepName": "workflow_initialized",
+            "stateSnapshot": {
+              "input": {
+                "repo": "ai-heaven"
+              }
+            },
+            "timestamp": "2026-10-28T18:00:17.192Z",
+            "checksum": "985b2c3e02cf05421d9b9a493a3d63354aaad55311c1374a00f2b12cdb893e02"
+          },
+          {
+            "checkpointId": "chk_1793210417192_1",
+            "stepIndex": 1,
+            "stepName": "compile_code",
+            "stateSnapshot": {
+              "compiled": true
+            },
+            "timestamp": "2026-10-28T18:00:17.192Z",
+            "checksum": "ec25a2f09f2e68e0d4776def8aa71997b6d98b0d9e509fa78ab40f4ae5813e95"
+          }
+        ],
+        "spans": [
+          {
+            "traceId": "tr_01",
+            "name": "model_call_gemini",
+            "type": "model_call",
+            "latencyMs": 140,
+            "status": "ok",
+            "startedAt": "2026-10-28T18:00:17.193Z",
+            "endedAt": "2026-10-28T18:00:17.193Z",
+            "spanId": "span_8a28a687"
+          }
+        ],
+        "inputPayload": {
+          "repo": "ai-heaven"
+        },
+        "createdAt": "2026-10-28T18:00:17.192Z",
+        "updatedAt": "2026-10-28T18:00:17.193Z"
+      }
+    ],
+    [
+      "wf_319fe04c-e5f",
+      {
+        "jobId": "wf_319fe04c-e5f",
+        "workflowType": "test_deployment",
+        "tenantId": "tenant_default",
+        "status": "running",
+        "currentStepIndex": 1,
+        "totalSteps": 3,
+        "maxRetries": 3,
+        "retryCount": 0,
+        "idempotencyKey": "test_idem_1793210457275",
+        "requiresApproval": false,
+        "checkpoints": [
+          {
+            "checkpointId": "chk_1793210457275_0",
+            "stepIndex": 0,
+            "stepName": "workflow_initialized",
+            "stateSnapshot": {
+              "input": {
+                "repo": "ai-heaven"
+              }
+            },
+            "timestamp": "2026-10-28T18:00:57.275Z",
+            "checksum": "985b2c3e02cf05421d9b9a493a3d63354aaad55311c1374a00f2b12cdb893e02"
+          },
+          {
+            "checkpointId": "chk_1793210457276_1",
+            "stepIndex": 1,
+            "stepName": "compile_code",
+            "stateSnapshot": {
+              "compiled": true
+            },
+            "timestamp": "2026-10-28T18:00:57.276Z",
+            "checksum": "ec25a2f09f2e68e0d4776def8aa71997b6d98b0d9e509fa78ab40f4ae5813e95"
+          }
+        ],
+        "spans": [
+          {
+            "traceId": "tr_01",
+            "name": "model_call_gemini",
+            "type": "model_call",
+            "latencyMs": 140,
+            "status": "ok",
+            "startedAt": "2026-10-28T18:00:57.277Z",
+            "endedAt": "2026-10-28T18:00:57.277Z",
+            "spanId": "span_8c1485c1"
+          }
+        ],
+        "inputPayload": {
+          "repo": "ai-heaven"
+        },
+        "createdAt": "2026-10-28T18:00:57.275Z",
+        "updatedAt": "2026-10-28T18:00:57.277Z"
+      }
+    ],
+    [
+      "wf_74761605-823",
+      {
+        "jobId": "wf_74761605-823",
+        "workflowType": "test_deployment",
+        "tenantId": "tenant_default",
+        "status": "running",
+        "currentStepIndex": 1,
+        "totalSteps": 3,
+        "maxRetries": 3,
+        "retryCount": 0,
+        "idempotencyKey": "test_idem_1793210523990",
+        "requiresApproval": false,
+        "checkpoints": [
+          {
+            "checkpointId": "chk_1793210523990_0",
+            "stepIndex": 0,
+            "stepName": "workflow_initialized",
+            "stateSnapshot": {
+              "input": {
+                "repo": "ai-heaven"
+              }
+            },
+            "timestamp": "2026-10-28T18:02:03.990Z",
+            "checksum": "985b2c3e02cf05421d9b9a493a3d63354aaad55311c1374a00f2b12cdb893e02"
+          },
+          {
+            "checkpointId": "chk_1793210523991_1",
+            "stepIndex": 1,
+            "stepName": "compile_code",
+            "stateSnapshot": {
+              "compiled": true
+            },
+            "timestamp": "2026-10-28T18:02:03.991Z",
+            "checksum": "ec25a2f09f2e68e0d4776def8aa71997b6d98b0d9e509fa78ab40f4ae5813e95"
+          }
+        ],
+        "spans": [
+          {
+            "traceId": "tr_01",
+            "name": "model_call_gemini",
+            "type": "model_call",
+            "latencyMs": 140,
+            "status": "ok",
+            "startedAt": "2026-10-28T18:02:03.992Z",
+            "endedAt": "2026-10-28T18:02:03.992Z",
+            "spanId": "span_91d9ef29"
+          }
+        ],
+        "inputPayload": {
+          "repo": "ai-heaven"
+        },
+        "createdAt": "2026-10-28T18:02:03.990Z",
+        "updatedAt": "2026-10-28T18:02:03.992Z"
+      }
+    ],
+    [
+      "wf_0335455c-050",
+      {
+        "jobId": "wf_0335455c-050",
+        "workflowType": "test_deployment",
+        "tenantId": "tenant_default",
+        "status": "running",
+        "currentStepIndex": 1,
+        "totalSteps": 3,
+        "maxRetries": 3,
+        "retryCount": 0,
+        "idempotencyKey": "test_idem_1793211356650",
+        "requiresApproval": false,
+        "checkpoints": [
+          {
+            "checkpointId": "chk_1793211356650_0",
+            "stepIndex": 0,
+            "stepName": "workflow_initialized",
+            "stateSnapshot": {
+              "input": {
+                "repo": "ai-heaven"
+              }
+            },
+            "timestamp": "2026-10-28T18:15:56.650Z",
+            "checksum": "985b2c3e02cf05421d9b9a493a3d63354aaad55311c1374a00f2b12cdb893e02"
+          },
+          {
+            "checkpointId": "chk_1793211356652_1",
+            "stepIndex": 1,
+            "stepName": "compile_code",
+            "stateSnapshot": {
+              "compiled": true
+            },
+            "timestamp": "2026-10-28T18:15:56.651Z",
+            "checksum": "ec25a2f09f2e68e0d4776def8aa71997b6d98b0d9e509fa78ab40f4ae5813e95"
+          }
+        ],
+        "spans": [
+          {
+            "traceId": "tr_01",
+            "name": "model_call_gemini",
+            "type": "model_call",
+            "latencyMs": 140,
+            "status": "ok",
+            "startedAt": "2026-10-28T18:15:56.652Z",
+            "endedAt": "2026-10-28T18:15:56.652Z",
+            "spanId": "span_cb698dc7"
+          }
+        ],
+        "inputPayload": {
+          "repo": "ai-heaven"
+        },
+        "createdAt": "2026-10-28T18:15:56.650Z",
+        "updatedAt": "2026-10-28T18:15:56.652Z"
+      }
     ]
   ],
-  "persistedAt": "2026-10-27T16:42:44.156Z"
+  "persistedAt": "2026-10-28T18:15:56.652Z"
 }

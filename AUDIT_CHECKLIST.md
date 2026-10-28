@@ -41,10 +41,33 @@ This document provides a persistent, granular tracking registry for all discover
 
 ## 3. Code & Test Verification Coverage
 
-* Total Unit & Integration Tests: **222 tests across 21 test suites**
-* Total Passing Tests: **222 / 222 (100%)**
+* Total Unit & Integration Tests: **256 tests across 35 test suites**
+* Total Passing Tests: **256 / 256 (100%)**
 * Platform Reality Audit: **37 / 37 adversarial checks passed**
 * TypeScript Linting (`tsc --noEmit`): **0 errors**
 * Production Vite Build: **Succeeded**
 * Capacitor Android Sync: **Succeeded (4 native plugins synchronized: @capacitor/app@8.1.2, @capacitor/keyboard@8.0.6, @capacitor/network@8.0.1, @capacitor/status-bar@8.0.4)**
 * Node.js Version Invariant: **Node.js 22 (LTS) configured in CI workflow with fail-early verification before Capacitor sync**
+
+---
+
+## 4. Phase 1E: Interconnected Droid Ecosystem & Environment Discovery
+
+* **Droid Registry & Scoped Permissions**: 9 distinct droids registered (Central Brain-00, Argus-01, Hydra-02, Aegis-03, Vulcan-04, Specter-05, Cerberus-06, Daedalus-07, Athena-08) with codified roles, allowed tool whitelists, network scopes, and execution limits.
+* **Authenticated Inter-Droid Bus**: Full HMAC-SHA256 message signing, channel authorization gates, auto-acknowledgments, and automated Cerberus-06 independent finding replay with cryptographic SHA-256 evidence seals.
+* **Tenant-Isolated Droid Memory**: Durable persistence in `.data/droid_ecosystem.json` with strict cross-tenant partitioning (adversarially verified: zero leakage across tenant boundaries).
+* **Factual Environment Discovery**: Probes live Node.js 22 V8 runtime, Cloud Run / Vercel deployment detection, PostgreSQL / atomic disk persistence mode, and Android Capacitor 8 readiness with honest constraint reporting.
+* **Unified Operations Console**: Added `UnifiedEcosystemDashboard` to `OperatorDashboard` with real-time environment discovery ribbon, interactive droid status cards, live inter-droid transmission feed, and verified capability matrix.
+
+---
+
+## 5. Phase 1F: SOURCE Collective Knowledge & Droid Family System
+
+* **SOURCE Knowledge Foundation**: Dedicated knowledge pool per authenticated Google user family storing research discoveries, solution procedures, droid experiences, tool capabilities, task contexts, and corrections.
+* **Epistemic Speculation Guard & Secret Scanner**: Automatically detects and redacts Google API keys, OpenAI keys, GitHub tokens, AWS keys, JWTs, and private keys. Demotes speculative droid claims from `VERIFIED` to `INFERRED` or `UNVERIFIED` without verifiable SHA-256 evidence seals.
+* **Graphiti Knowledge Relationships**: Temporal relationship graph with `SUPPORTS`, `REFUTES` (marks target as `DISPUTED`), and `SUPERSEDES` (marks target as `OUTDATED` and links predecessor).
+* **Durable Dual Persistence**: Tables `aiheaven_source_entries`, `aiheaven_droid_families`, and `aiheaven_family_messages` in PostgreSQL migration with fallback to `.data/source_knowledge_pool.json` and `.data/droid_families.json`.
+* **Private Droid Family per Google Account**: Idempotently provisions 9 specialized family droids and Central Brain context per account. Multi-tenant isolation verified: User B can never read or query User A's private family knowledge.
+* **Inter-Droid Family Inquiries**: Droid-to-droid peer status checks, capability inquiries, auto-contributions to SOURCE, and delegation loop prevention (maximum depth 5).
+* **SOURCE Console UI**: Mounted at view `'source'` with knowledge totals, category filters, verification status tabs, detailed evidence view, version audit history, and peer communication dispatcher.
+
