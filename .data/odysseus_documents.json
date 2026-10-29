@@ -1,0 +1,22 @@
+{
+  "documents": [
+    {
+      "id": "doc_welcome_odysseus",
+      "tenantId": "tenant_default",
+      "title": "Welcome to AI Heaven + Odysseus Unified Workspace",
+      "content": "# Odysseus Capability Workspace\n\nThis unified workspace integrates advanced autonomous agent execution, multi-step deep research, and hardware-aware model intelligence into AI Heaven.\n\n## Key Capabilities Integrated:\n- **Autonomous Agent Loop**: Multi-turn Think → Plan → Tool Call → Approval Gate → Execute → Observe → Synthesize.\n- **Deep Research Engine**: Autonomous multi-source discovery, document extraction with SHA-256 evidence seals, and epistemic classification.\n- **The Cookbook**: Hardware profiling for quantized models (Llama 3.2, DeepSeek-R1, Mistral, Qwen, Gemma) with honest RAM/VRAM capacity evaluation.\n- **Hybrid Knowledge Search**: Vector cosine similarity and BM25 search over the family SOURCE pool.\n\nUse the controls above to start deep research inquiries, test model fits, and draft technical specifications.",
+      "category": "specification",
+      "citations": [],
+      "tags": [
+        "welcome",
+        "odysseus",
+        "ai_heaven",
+        "architecture"
+      ],
+      "createdAt": "2026-10-29T18:03:49.823Z",
+      "updatedAt": "2026-10-29T18:03:49.823Z",
+      "version": 1
+    }
+  ],
+  "updatedAt": "2026-10-29T18:08:07.083Z"
+}

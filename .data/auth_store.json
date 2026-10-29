@@ -24,6 +24,14 @@
       ],
       "loginHistory": [
         {
+          "id": "log_1793297176255_xpfj",
+          "timestamp": "2026-10-29T18:06:16.255Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
           "id": "log_1793215674934_esnw",
           "timestamp": "2026-10-28T19:27:54.934Z",
           "ipAddress": "127.0.0.1",
@@ -90,8 +98,8 @@
       ],
       "createdAt": "2026-10-27T16:35:55.666Z",
       "updatedAt": "2026-10-27T16:35:55.666Z",
-      "failedLoginAttempts": 8,
-      "lockoutUntil": "2026-10-28T19:42:54.934Z"
+      "failedLoginAttempts": 9,
+      "lockoutUntil": "2026-10-29T18:21:16.255Z"
     },
     {
       "id": "user_external_auditor",
@@ -1371,6 +1379,21 @@
       ],
       "loginHistory": [
         {
+          "id": "log_1793297193308_2nbb",
+          "timestamp": "2026-10-29T18:06:33.308Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297193209_tekd",
+          "timestamp": "2026-10-29T18:06:33.209Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
           "id": "log_1793215687377_tg5a",
           "timestamp": "2026-10-28T19:28:07.377Z",
           "ipAddress": "127.0.0.1",
@@ -1477,7 +1500,7 @@
         }
       ],
       "createdAt": "2026-10-27T16:42:12.476Z",
-      "updatedAt": "2026-10-28T19:28:07.315Z",
+      "updatedAt": "2026-10-29T18:06:33.211Z",
       "failedLoginAttempts": 0
     },
     {
@@ -3210,60 +3233,6 @@
       "lockoutUntil": "2026-10-28T19:42:52.502Z"
     },
     {
-      "id": "user_532cec38b0e747d8",
-      "email": "security_auditor_test@aiheaven.org",
-      "fullName": "Security Auditor Test",
-      "passwordHash": "051dcd8f765ed285bb2a3bc77aee645f82f05eb1589d2c2ae4399e32197adba103fb69e6e7e200456f46225fddb3985b8ee8ff865739f4b082b0cb2dcc0de626",
-      "salt": "97fd2d6c4835cec81a5298ba3094a886",
-      "role": "security_researcher",
-      "isActive": true,
-      "isEmailVerified": false,
-      "mfaEnabled": false,
-      "tenantId": "tenant_2989551efe7b",
-      "linkedIdentities": [
-        {
-          "provider": "local",
-          "providerUserId": "security_auditor_test@aiheaven.org",
-          "email": "security_auditor_test@aiheaven.org",
-          "linkedAt": "2026-10-28T19:27:55.000Z",
-          "lastLoginAt": "2026-10-28T19:27:55.000Z"
-        }
-      ],
-      "loginHistory": [
-        {
-          "id": "log_1793215675210_xz2d",
-          "timestamp": "2026-10-28T19:27:55.210Z",
-          "ipAddress": "::ffff:127.0.0.1",
-          "userAgent": "AI Heaven Client",
-          "status": "success"
-        },
-        {
-          "id": "log_1793215675139_pkcn",
-          "timestamp": "2026-10-28T19:27:55.139Z",
-          "ipAddress": "::ffff:127.0.0.1",
-          "userAgent": "AI Heaven Client",
-          "status": "success"
-        },
-        {
-          "id": "log_1793215675070_31fn",
-          "timestamp": "2026-10-28T19:27:55.070Z",
-          "ipAddress": "127.0.0.1",
-          "userAgent": "AI Heaven Client",
-          "status": "success"
-        },
-        {
-          "id": "log_1793215675000",
-          "timestamp": "2026-10-28T19:27:55.000Z",
-          "ipAddress": "127.0.0.1",
-          "userAgent": "AI Heaven Client",
-          "status": "success"
-        }
-      ],
-      "createdAt": "2026-10-28T19:27:55.000Z",
-      "updatedAt": "2026-10-28T19:27:55.147Z",
-      "failedLoginAttempts": 0
-    },
-    {
       "id": "user_645ec74638a847fe",
       "email": "bounty_hunter_1793215676025@security.org",
       "fullName": "Hunter Fox",
@@ -3410,6 +3379,373 @@
       ],
       "createdAt": "2026-10-28T19:27:56.477Z",
       "updatedAt": "2026-10-28T19:27:56.490Z",
+      "failedLoginAttempts": 0
+    },
+    {
+      "id": "user_7b027eacf10c47c3",
+      "email": "alice_1793297170227@adversarial.local",
+      "phone": "+1-555-0101",
+      "fullName": "Alice Security Lead",
+      "passwordHash": "af31173634cea658116b36a3b619424dc749d683c6b891808d6f2756a5727a232c92ea607d17800842bdb2e8cc20c412dca9eb16528f314450b3dab529d8a72b",
+      "salt": "5cfbc9998fd7787a492255035f8831aa",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": true,
+      "tenantId": "tenant_f31a6ffce3b2",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "alice_1793297170227@adversarial.local",
+          "email": "alice_1793297170227@adversarial.local",
+          "linkedAt": "2026-10-29T18:06:10.352Z",
+          "lastLoginAt": "2026-10-29T18:06:10.352Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297171159_kg4i",
+          "timestamp": "2026-10-29T18:06:11.159Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297171157_7xwz",
+          "timestamp": "2026-10-29T18:06:11.157Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid MFA TOTP code"
+        },
+        {
+          "id": "log_1793297171154_kynq",
+          "timestamp": "2026-10-29T18:06:11.154Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "mfa_required"
+        },
+        {
+          "id": "log_1793297170352",
+          "timestamp": "2026-10-29T18:06:10.352Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:10.352Z",
+      "updatedAt": "2026-10-29T18:06:11.054Z",
+      "mfaSecret": "WJ6TNRBG7ROV6X4RN3YWLG5XUEPM6BUJ",
+      "failedLoginAttempts": 0
+    },
+    {
+      "id": "user_0604025ef3954ae7",
+      "email": "bob_1793297170228@adversarial.local",
+      "phone": "+1-555-0202",
+      "fullName": "Bob Research Analyst",
+      "passwordHash": "141ba7618d746daff326c591c19af44e4ec03ad56107812e4da7616d656bc18390d91ec6a3dd25b39f1313f5c5dd033d1349fc87aa10e4a9053375b0e6f1afa9",
+      "salt": "83e7be17a89ede4c30241bef41a49bfa",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_65ca52a5a40f",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "bob_1793297170228@adversarial.local",
+          "email": "bob_1793297170228@adversarial.local",
+          "linkedAt": "2026-10-29T18:06:10.445Z",
+          "lastLoginAt": "2026-10-29T18:06:10.445Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297170445",
+          "timestamp": "2026-10-29T18:06:10.445Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:10.445Z",
+      "updatedAt": "2026-10-29T18:06:10.445Z"
+    },
+    {
+      "id": "user_4ffbaf8773f7465a",
+      "email": "victim_1793297170457@adversarial.local",
+      "fullName": "Victim Account",
+      "passwordHash": "9c182b05cd9b22e981d09352e28b2cc5d3f7a5ecc28fb7a413eb7874aaf7a7640190d728b5cbf013a7e2616545dd05aceffa88dbe095d45f33732e2315b6f672",
+      "salt": "8c9fcb0936f1cf622ec2722957d25107",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_769dee888eb0",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "victim_1793297170457@adversarial.local",
+          "email": "victim_1793297170457@adversarial.local",
+          "linkedAt": "2026-10-29T18:06:10.546Z",
+          "lastLoginAt": "2026-10-29T18:06:10.546Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297171047_n43x",
+          "timestamp": "2026-10-29T18:06:11.047Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297170947_i1ad",
+          "timestamp": "2026-10-29T18:06:10.947Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297170849_98j6",
+          "timestamp": "2026-10-29T18:06:10.849Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297170748_tdc7",
+          "timestamp": "2026-10-29T18:06:10.748Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297170645_std0",
+          "timestamp": "2026-10-29T18:06:10.645Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297170546",
+          "timestamp": "2026-10-29T18:06:10.546Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:10.546Z",
+      "updatedAt": "2026-10-29T18:06:10.546Z",
+      "failedLoginAttempts": 5,
+      "lockoutUntil": "2026-10-29T18:21:11.047Z"
+    },
+    {
+      "id": "user_99c937880d68477f",
+      "email": "security_auditor_test@aiheaven.org",
+      "fullName": "Security Auditor Test",
+      "passwordHash": "fdaac1c23cc1d195d7267e741c63fe969fb3923c3a7e49e571805ecbfc5a9d114ecb59b4eb386da6e02e883e4050a016547da2614361e8ddaee83e6a14bf3c7e",
+      "salt": "9a2a7f6e2656c90ab40f68e7130643fe",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_0a5d99bd0a1e",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "security_auditor_test@aiheaven.org",
+          "email": "security_auditor_test@aiheaven.org",
+          "linkedAt": "2026-10-29T18:06:16.373Z",
+          "lastLoginAt": "2026-10-29T18:06:16.373Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297176697_8m3h",
+          "timestamp": "2026-10-29T18:06:16.697Z",
+          "ipAddress": "::ffff:127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297176588_d17y",
+          "timestamp": "2026-10-29T18:06:16.588Z",
+          "ipAddress": "::ffff:127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297176479_un3v",
+          "timestamp": "2026-10-29T18:06:16.479Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297176373",
+          "timestamp": "2026-10-29T18:06:16.373Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:16.373Z",
+      "updatedAt": "2026-10-29T18:06:16.600Z",
+      "failedLoginAttempts": 0
+    },
+    {
+      "id": "user_3f5ccf44db894b99",
+      "email": "bounty_hunter_1793297178301@security.org",
+      "fullName": "Hunter Fox",
+      "passwordHash": "4f81eeb4d9503a67c2ba21131897d2d6eea335cd3b3e97ad50ce3b56ac150caccc8723e22f87c9a6ee6a0a2dd6a5ece27acbc047cc24cef025e61badd7aa8a96",
+      "salt": "1753c25ab438af0f1348ccbd6452566d",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_1788a012ebce",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "bounty_hunter_1793297178301@security.org",
+          "email": "bounty_hunter_1793297178301@security.org",
+          "linkedAt": "2026-10-29T18:06:18.409Z",
+          "lastLoginAt": "2026-10-29T18:06:18.409Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297178409",
+          "timestamp": "2026-10-29T18:06:18.409Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:18.409Z",
+      "updatedAt": "2026-10-29T18:06:18.409Z"
+    },
+    {
+      "id": "user_c46af906a29146fa",
+      "email": "researcher_1793297178415@aiheaven.security",
+      "fullName": "Lead Security Researcher",
+      "passwordHash": "8796ee017335df3634ca53dc485d12ebcda5c246a9688cd3db94ebc09f52abfff1a38242deeb9b80114846942d47958b59b3492d5ed746e5ce118e753e2276a2",
+      "salt": "ecb91b23f5927ae3eb41e50a831b8535",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_dafc7e3ceb3f",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "researcher_1793297178415@aiheaven.security",
+          "email": "researcher_1793297178415@aiheaven.security",
+          "linkedAt": "2026-10-29T18:06:18.514Z",
+          "lastLoginAt": "2026-10-29T18:06:18.514Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297178723_e5lb",
+          "timestamp": "2026-10-29T18:06:18.723Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "failed",
+          "reason": "Invalid password credential"
+        },
+        {
+          "id": "log_1793297178615_6bxg",
+          "timestamp": "2026-10-29T18:06:18.615Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297178514",
+          "timestamp": "2026-10-29T18:06:18.514Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:18.514Z",
+      "updatedAt": "2026-10-29T18:06:18.519Z",
+      "failedLoginAttempts": 1
+    },
+    {
+      "id": "user_dabc7cd3aa674dd2",
+      "email": "oauth_hunter_1793297178727@corp.io",
+      "fullName": "OAuth Google User",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": true,
+      "mfaEnabled": false,
+      "tenantId": "tenant_f7f2e8c31bf9",
+      "linkedIdentities": [
+        {
+          "provider": "google",
+          "providerUserId": "sub_google_123456",
+          "email": "oauth_hunter_1793297178727@corp.io",
+          "linkedAt": "2026-10-29T18:06:18.727Z",
+          "lastLoginAt": "2026-10-29T18:06:18.727Z"
+        },
+        {
+          "provider": "github",
+          "providerUserId": "gh_user_9988",
+          "email": "oauth_hunter_1793297178727@corp.io",
+          "linkedAt": "2026-10-29T18:06:18.731Z",
+          "lastLoginAt": "2026-10-29T18:06:18.731Z"
+        }
+      ],
+      "loginHistory": [],
+      "createdAt": "2026-10-29T18:06:18.727Z",
+      "updatedAt": "2026-10-29T18:06:18.731Z"
+    },
+    {
+      "id": "user_86d49f4a0cd44585",
+      "email": "api_test_hunter_1793297178910@internal.org",
+      "fullName": "API Hunter",
+      "passwordHash": "381f271fa5ba6ff355040102c6a8ead86e57e6c5ca0525a32ea82b98fa4b7133f0e4d327d6cb9dd6ab0156a837034f2d670bce29283756b114982ff94a963cff",
+      "salt": "de7fde5aee0f8c57c90cb4c121a02fb3",
+      "role": "security_researcher",
+      "isActive": true,
+      "isEmailVerified": false,
+      "mfaEnabled": false,
+      "tenantId": "tenant_7b7718bcb281",
+      "linkedIdentities": [
+        {
+          "provider": "local",
+          "providerUserId": "api_test_hunter_1793297178910@internal.org",
+          "email": "api_test_hunter_1793297178910@internal.org",
+          "linkedAt": "2026-10-29T18:06:19.049Z",
+          "lastLoginAt": "2026-10-29T18:06:19.049Z"
+        }
+      ],
+      "loginHistory": [
+        {
+          "id": "log_1793297179205_63u0",
+          "timestamp": "2026-10-29T18:06:19.205Z",
+          "ipAddress": "::ffff:127.0.0.1",
+          "userAgent": "node",
+          "status": "success"
+        },
+        {
+          "id": "log_1793297179049",
+          "timestamp": "2026-10-29T18:06:19.049Z",
+          "ipAddress": "127.0.0.1",
+          "userAgent": "AI Heaven Client",
+          "status": "success"
+        }
+      ],
+      "createdAt": "2026-10-29T18:06:19.049Z",
+      "updatedAt": "2026-10-29T18:06:19.064Z",
       "failedLoginAttempts": 0
     }
   ],
@@ -4365,46 +4701,6 @@
       "lastActiveAt": "2026-10-28T19:27:52.569Z"
     },
     {
-      "id": "sess_2edda6ed",
-      "userId": "user_532cec38b0e747d8",
-      "token": "aih_sess_193ba9155e724b84adafa38d0b2bd259_1793215675002",
-      "userAgent": "AI Heaven Client",
-      "ipAddress": "127.0.0.1",
-      "expiresAt": "2026-11-04T19:27:55.002Z",
-      "createdAt": "2026-10-28T19:27:55.002Z",
-      "lastActiveAt": "2026-10-28T19:27:55.002Z"
-    },
-    {
-      "id": "sess_88283e2f",
-      "userId": "user_532cec38b0e747d8",
-      "token": "aih_sess_07997479b3fb4d4c9de2ef82978e9bb8_1793215675071",
-      "userAgent": "AI Heaven Client",
-      "ipAddress": "127.0.0.1",
-      "expiresAt": "2026-11-04T19:27:55.071Z",
-      "createdAt": "2026-10-28T19:27:55.071Z",
-      "lastActiveAt": "2026-10-28T19:27:55.071Z"
-    },
-    {
-      "id": "sess_5d294785",
-      "userId": "user_532cec38b0e747d8",
-      "token": "aih_sess_e26d8c6c3ec34569ad8823f7ca762cb5_1793215675140",
-      "userAgent": "AI Heaven Client",
-      "ipAddress": "::ffff:127.0.0.1",
-      "expiresAt": "2026-11-04T19:27:55.140Z",
-      "createdAt": "2026-10-28T19:27:55.140Z",
-      "lastActiveAt": "2026-10-28T19:27:55.144Z"
-    },
-    {
-      "id": "sess_1e02aa10",
-      "userId": "user_532cec38b0e747d8",
-      "token": "aih_sess_7ed19e888a5d4bbfb2fed43ab30f9299_1793215675211",
-      "userAgent": "AI Heaven Client",
-      "ipAddress": "::ffff:127.0.0.1",
-      "expiresAt": "2026-11-04T19:27:55.211Z",
-      "createdAt": "2026-10-28T19:27:55.211Z",
-      "lastActiveAt": "2026-10-28T19:27:55.211Z"
-    },
-    {
       "id": "sess_5ddab400",
       "userId": "user_645ec74638a847fe",
       "token": "aih_sess_756fd47d5e4749d89a86f9395e6708b9_1793215676090",
@@ -4483,6 +4779,156 @@
       "expiresAt": "2026-11-04T19:28:07.378Z",
       "createdAt": "2026-10-28T19:28:07.378Z",
       "lastActiveAt": "2026-10-28T19:28:07.378Z"
+    },
+    {
+      "id": "sess_3e15172f",
+      "userId": "user_7b027eacf10c47c3",
+      "token": "aih_sess_757152db37cc4f878ab1a2cbb1eb4dae_1793297170354",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:10.354Z",
+      "createdAt": "2026-10-29T18:06:10.354Z",
+      "lastActiveAt": "2026-10-29T18:06:10.454Z"
+    },
+    {
+      "id": "sess_12b6f1a7",
+      "userId": "user_4ffbaf8773f7465a",
+      "token": "aih_sess_bc9eb35d66b64e8cb4feff37c3822a7b_1793297170548",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:10.548Z",
+      "createdAt": "2026-10-29T18:06:10.548Z",
+      "lastActiveAt": "2026-10-29T18:06:10.548Z"
+    },
+    {
+      "id": "sess_8a6a1ff5",
+      "userId": "user_7b027eacf10c47c3",
+      "token": "aih_sess_84722f0f635847b4b4279d848345297e_1793297171162",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:11.162Z",
+      "createdAt": "2026-10-29T18:06:11.162Z",
+      "lastActiveAt": "2026-10-29T18:06:11.162Z"
+    },
+    {
+      "id": "sess_a9ab978c",
+      "userId": "user_99c937880d68477f",
+      "token": "aih_sess_61764b5bcd8945d99dc93c910e28b059_1793297176375",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:16.375Z",
+      "createdAt": "2026-10-29T18:06:16.375Z",
+      "lastActiveAt": "2026-10-29T18:06:16.375Z"
+    },
+    {
+      "id": "sess_e39e1e3c",
+      "userId": "user_99c937880d68477f",
+      "token": "aih_sess_eb6a29c0d45d4e7f92dc0493e9493754_1793297176480",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:16.480Z",
+      "createdAt": "2026-10-29T18:06:16.481Z",
+      "lastActiveAt": "2026-10-29T18:06:16.481Z"
+    },
+    {
+      "id": "sess_8cd525a6",
+      "userId": "user_99c937880d68477f",
+      "token": "aih_sess_eb75e9757a8d4893b47bd1c116262b23_1793297176590",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "::ffff:127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:16.590Z",
+      "createdAt": "2026-10-29T18:06:16.591Z",
+      "lastActiveAt": "2026-10-29T18:06:16.595Z"
+    },
+    {
+      "id": "sess_a255bb60",
+      "userId": "user_99c937880d68477f",
+      "token": "aih_sess_4301c3fdf61141399395b3e760756fa8_1793297176699",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "::ffff:127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:16.699Z",
+      "createdAt": "2026-10-29T18:06:16.700Z",
+      "lastActiveAt": "2026-10-29T18:06:16.700Z"
+    },
+    {
+      "id": "sess_afd1ab91",
+      "userId": "user_3f5ccf44db894b99",
+      "token": "aih_sess_0dfd7ba409db4b05a2e0ff5ad5377fa6_1793297178412",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:18.412Z",
+      "createdAt": "2026-10-29T18:06:18.412Z",
+      "lastActiveAt": "2026-10-29T18:06:18.415Z"
+    },
+    {
+      "id": "sess_d9eded73",
+      "userId": "user_c46af906a29146fa",
+      "token": "aih_sess_bdfbb8a0124b4750a1fd7567b0f09391_1793297178517",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:18.517Z",
+      "createdAt": "2026-10-29T18:06:18.517Z",
+      "lastActiveAt": "2026-10-29T18:06:18.517Z"
+    },
+    {
+      "id": "sess_00ad72f1",
+      "userId": "user_c46af906a29146fa",
+      "token": "aih_sess_73f33b0f241a4c1b938bcb43ea8b0d19_1793297178617",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:18.617Z",
+      "createdAt": "2026-10-29T18:06:18.617Z",
+      "lastActiveAt": "2026-10-29T18:06:18.617Z"
+    },
+    {
+      "id": "sess_aa168c7a",
+      "userId": "user_dabc7cd3aa674dd2",
+      "token": "aih_sess_06e2f556d547412ca11a6292226235c6_1793297178729",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:18.729Z",
+      "createdAt": "2026-10-29T18:06:18.729Z",
+      "lastActiveAt": "2026-10-29T18:06:18.729Z"
+    },
+    {
+      "id": "sess_6b862bcd",
+      "userId": "user_external_auditor",
+      "token": "aih_sess_246bc095b9574b12bcba4419e50542c5_1793297178734",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:18.734Z",
+      "createdAt": "2026-10-29T18:06:18.734Z",
+      "lastActiveAt": "2026-10-29T18:06:18.734Z"
+    },
+    {
+      "id": "sess_c45442ed",
+      "userId": "user_86d49f4a0cd44585",
+      "token": "aih_sess_0a49113005e846a1aa88b55791d1c578_1793297179051",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:19.051Z",
+      "createdAt": "2026-10-29T18:06:19.051Z",
+      "lastActiveAt": "2026-10-29T18:06:19.051Z"
+    },
+    {
+      "id": "sess_87590087",
+      "userId": "user_86d49f4a0cd44585",
+      "token": "aih_sess_52c7e08366644038828354b1dcd15f99_1793297179207",
+      "userAgent": "node",
+      "ipAddress": "::ffff:127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:19.207Z",
+      "createdAt": "2026-10-29T18:06:19.207Z",
+      "lastActiveAt": "2026-10-29T18:06:19.207Z"
+    },
+    {
+      "id": "sess_632771d5",
+      "userId": "user_security_lead",
+      "token": "aih_sess_d71db1e430bc4ac8a6e9ff65cd52b5a5_1793297193310",
+      "userAgent": "AI Heaven Client",
+      "ipAddress": "127.0.0.1",
+      "expiresAt": "2026-11-05T18:06:33.310Z",
+      "createdAt": "2026-10-29T18:06:33.310Z",
+      "lastActiveAt": "2026-10-29T18:06:33.310Z"
     }
   ],
   "revokedTokens": [
@@ -4527,6 +4973,11 @@
     "aih_sess_b18c75b69a1b40d48c7ddd6ecb8d2969_1793211340334",
     "aih_sess_de2fbaba24cc4cf58c9a2706841ee596_1793211340400",
     "aih_sess_7b3906e7980046b1b8befb8f3dc380e3_1793211340469",
-    "aih_sess_d3ae868c76d342ca830902db8df4c8e4_1793211340537"
+    "aih_sess_d3ae868c76d342ca830902db8df4c8e4_1793211340537",
+    "aih_sess_fe6adfa2da6e40e68c3ea5772c109b72_1793297170449",
+    "aih_sess_193ba9155e724b84adafa38d0b2bd259_1793215675002",
+    "aih_sess_07997479b3fb4d4c9de2ef82978e9bb8_1793215675071",
+    "aih_sess_e26d8c6c3ec34569ad8823f7ca762cb5_1793215675140",
+    "aih_sess_7ed19e888a5d4bbfb2fed43ab30f9299_1793215675211"
   ]
 }

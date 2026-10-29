@@ -77,7 +77,8 @@ export type ShellView =
   | 'google-ai-studio'
   | 'comfyui'
   | 'security'
-  | 'source';
+  | 'source'
+  | 'odysseus';
 
 interface AppShellProps {
   currentView: ShellView;
@@ -202,6 +203,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       id: 'workspace',
       label: 'Memory & Projects',
       items: [
+        { id: 'odysseus', label: 'Odysseus Suite', icon: Compass, description: 'Deep Research & Model Cookbook' },
         { id: 'source', label: 'SOURCE Pool', icon: BookOpen, description: 'Shared Knowledge & Droid Family' },
         { id: 'memory', label: 'Memory & Threads', icon: History, description: 'Persistent Conversation Graph' },
         { id: 'continuity', label: 'Continuity Center', icon: Zap, description: 'State Resumption & Recovery' },

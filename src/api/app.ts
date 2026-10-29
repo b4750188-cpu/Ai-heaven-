@@ -67,6 +67,11 @@ import { droidEcosystemService } from '../services/droid/droidEcosystemService';
 import { environmentDiscoveryService } from '../services/environment/environmentDiscoveryService';
 import { sourceKnowledgeService } from '../services/source/sourceKnowledgeService';
 import { droidFamilyService } from '../services/family/droidFamilyService';
+import { hardwareCookbookService } from '../services/odysseus/hardwareCookbookService';
+import { deepResearchEngine } from '../services/odysseus/deepResearchEngine';
+import { autonomousAgentLoopService } from '../services/odysseus/autonomousAgentLoopService';
+import { hybridKnowledgeService } from '../services/odysseus/hybridKnowledgeService';
+import { workspaceProductivityService } from '../services/odysseus/workspaceProductivityService';
 
 dotenv.config();
 
@@ -4940,6 +4945,298 @@ export function createExpressApp(): express.Express {
         return res.status(403).json({ error: result.error });
       }
       res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==========================================
+  // ODYSSEUS CAPABILITY REST API ENDPOINTS
+  // ==========================================
+
+  // Overall Integration Status & Capability Matrix
+  apiRouter.get('/odysseus/status', async (req: Request, res: Response) => {
+    try {
+      const hardware = await hardwareCookbookService.getHostProfile();
+      res.json({
+        integration: 'AI Heaven + Odysseus Architecture',
+        version: '1.0.0',
+        licenseCompatibility: 'Clean-room modular TypeScript integration with AGPL-safe architecture',
+        capabilities: {
+          autonomousAgentLoop: {
+            status: 'operational',
+            description: 'Multi-turn Think-Plan-Tool-Observe-Synthesize loop with approval gates and receipts'
+          },
+          deepResearchEngine: {
+            status: 'operational',
+            description: 'Multi-step autonomous inquiry with evidence seals and automatic SOURCE deposition'
+          },
+          hardwareCookbook: {
+            status: 'operational',
+            description: 'Host CPU/RAM/VRAM profiling and honest quantized model fit assessment'
+          },
+          hybridKnowledgePool: {
+            status: 'operational',
+            description: 'Vector cosine similarity + BM25 keyword retrieval with passive data guard'
+          },
+          workspaceProductivity: {
+            status: 'operational',
+            description: 'Document drafting, citation insertion, and structured export'
+          }
+        },
+        environment: hardware.environmentName,
+        isServerlessOrContainer: hardware.isServerlessOrContainer
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 1. Cookbook: Hardware Profile
+  apiRouter.get('/odysseus/cookbook/hardware', async (req: Request, res: Response) => {
+    try {
+      const force = req.query.fresh === 'true';
+      const profile = await hardwareCookbookService.getHostProfile(force);
+      res.json(profile);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 1. Cookbook: Models & Recommendation Matrix
+  apiRouter.get('/odysseus/cookbook/models', async (req: Request, res: Response) => {
+    try {
+      const matrix = await hardwareCookbookService.getRecommendationMatrix();
+      res.json(matrix);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 2. Deep Research: Start Task
+  apiRouter.post('/odysseus/research/start', async (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { topic, targetDepth, droidId } = req.body;
+
+      if (!topic || typeof topic !== 'string' || !topic.trim()) {
+        return res.status(400).json({ error: 'A valid research topic is required.' });
+      }
+
+      const result = await deepResearchEngine.startResearch({
+        tenantId: user.tenantId,
+        familyId: family.familyId,
+        topic: topic.trim(),
+        targetDepth: targetDepth || 'in_depth',
+        droidId: droidId || 'central_brain_00'
+      });
+
+      res.status(202).json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 2. Deep Research: List Tasks
+  apiRouter.get('/odysseus/research/tasks', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const tasks = deepResearchEngine.listTasksForTenant(user.tenantId);
+      res.json(tasks);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 2. Deep Research: Task Progress & Report
+  apiRouter.get('/odysseus/research/tasks/:taskId', (req: Request, res: Response) => {
+    try {
+      const task = deepResearchEngine.getTask(req.params.taskId);
+      if (!task) {
+        return res.status(404).json({ error: 'Research task not found.' });
+      }
+      res.json(task);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Autonomous Agent Loop: Run
+  apiRouter.post('/odysseus/agent-loop/run', async (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const { goal, agentId, maxSteps, skillIds, context } = req.body;
+
+      if (!goal || typeof goal !== 'string' || !goal.trim()) {
+        return res.status(400).json({ error: 'Agent execution goal is required.' });
+      }
+
+      const result = await autonomousAgentLoopService.executeLoop({
+        tenantId: user.tenantId,
+        agentId: agentId || 'central_brain_00',
+        goal: goal.trim(),
+        context,
+        maxSteps: maxSteps ? parseInt(String(maxSteps), 10) : 10,
+        skillIds
+      });
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Autonomous Agent Loop: Skills
+  apiRouter.get('/odysseus/agent-loop/skills', (req: Request, res: Response) => {
+    try {
+      const skills = autonomousAgentLoopService.listSkills();
+      res.json(skills);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Autonomous Agent Loop: Runs
+  apiRouter.get('/odysseus/agent-loop/runs', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const runs = autonomousAgentLoopService.listRunsForTenant(user.tenantId);
+      res.json(runs);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Autonomous Agent Loop: Approve Step
+  apiRouter.post('/odysseus/agent-loop/approve/:runId', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const { stepNumber, decision } = req.body;
+
+      if (!stepNumber || !['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ error: 'stepNumber and valid decision ("approved" | "rejected") required.' });
+      }
+
+      const updated = autonomousAgentLoopService.approveStep(
+        req.params.runId,
+        parseInt(String(stepNumber), 10),
+        decision,
+        user.id
+      );
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 4. Hybrid Knowledge: Search
+  apiRouter.post('/odysseus/knowledge/hybrid-search', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const family = droidFamilyService.getOrCreateFamily(user);
+      const { query, category, limit } = req.body;
+
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Search query string is required.' });
+      }
+
+      const results = hybridKnowledgeService.searchHybrid({
+        familyId: family.familyId,
+        query: query.trim(),
+        category,
+        limit: limit ? parseInt(String(limit), 10) : 20
+      });
+
+      res.json(results);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 4. Hybrid Knowledge: Feedback
+  apiRouter.post('/odysseus/knowledge/feedback', (req: Request, res: Response) => {
+    try {
+      const { entryId, helpful } = req.body;
+      if (!entryId || typeof helpful !== 'boolean') {
+        return res.status(400).json({ error: 'entryId and helpful boolean are required.' });
+      }
+      hybridKnowledgeService.submitRetrievalFeedback(entryId, helpful);
+      res.json({ success: true, message: 'Feedback recorded successfully.' });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 5. Workspace: Documents List & Create
+  apiRouter.get('/odysseus/workspace/documents', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const docs = workspaceProductivityService.listDocuments(user.tenantId);
+      res.json(docs);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/odysseus/workspace/documents', (req: Request, res: Response) => {
+    try {
+      const user = getSafeUser(req);
+      const { title, content, category, tags, citations } = req.body;
+
+      if (!title || typeof title !== 'string') {
+        return res.status(400).json({ error: 'Document title is required.' });
+      }
+
+      const doc = workspaceProductivityService.createDocument({
+        tenantId: user.tenantId,
+        title,
+        content: content || '',
+        category,
+        tags,
+        citations
+      });
+
+      res.status(201).json(doc);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/odysseus/workspace/documents/:docId', (req: Request, res: Response) => {
+    try {
+      const doc = workspaceProductivityService.getDocument(req.params.docId);
+      if (!doc) {
+        return res.status(404).json({ error: 'Document not found.' });
+      }
+      res.json(doc);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.put('/odysseus/workspace/documents/:docId', (req: Request, res: Response) => {
+    try {
+      const { title, content, category, tags, citations } = req.body;
+      const updated = workspaceProductivityService.updateDocument({
+        docId: req.params.docId,
+        title,
+        content,
+        category,
+        tags,
+        citations
+      });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.delete('/odysseus/workspace/documents/:docId', (req: Request, res: Response) => {
+    try {
+      const success = workspaceProductivityService.deleteDocument(req.params.docId);
+      res.json({ success });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

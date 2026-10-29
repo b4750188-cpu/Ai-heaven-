@@ -461,6 +461,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </button>
 
+        {/* Work Area 0: Odysseus Capability Suite */}
+        <button
+          onClick={() => onNavigate('odysseus')}
+          className="text-left p-4 bg-[#121822] border border-[#283242] hover:border-cyan-500/60 rounded-lg transition-colors flex flex-col justify-between group cursor-pointer"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Compass className="h-5 w-5 text-cyan-400 group-hover:scale-105 transition-transform" />
+              <ChevronRight className="h-4 w-4 text-[#9AA6B7] group-hover:text-cyan-400 transition-colors" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[#F1F4F8]">Odysseus Intelligence Suite</h3>
+              <span className="px-1.5 py-0.2 text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-800/40 rounded font-mono">
+                ODYSSEUS
+              </span>
+            </div>
+            <p className="text-xs text-[#9AA6B7] mt-1">
+              Autonomous Agent Loop, Deep Research with evidence seals, Hardware-Aware Model Cookbook, and Hybrid Vector Search.
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#283242] text-[11px] font-mono text-cyan-400 flex justify-between">
+            <span>Deep Research & Cookbook</span>
+            <span>Agent Loop Live</span>
+          </div>
+        </button>
+
         {/* Work Area 1: Brain & Router */}
         <button
           onClick={() => onNavigate('brain')}

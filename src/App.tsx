@@ -45,6 +45,7 @@ import { GitHubActionsWorkspace } from './components/actions/GitHubActionsWorksp
 import { ComfyUIWorkspace } from './components/engines/ComfyUIWorkspace';
 import { SecurityCenter } from './components/security/SecurityCenter';
 import { SourceKnowledgeView } from './components/source/SourceKnowledgeView';
+import { OdysseusWorkspace } from './components/odysseus/OdysseusWorkspace';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -373,6 +374,12 @@ export default function App() {
           <SourceKnowledgeView
             currentUser={authCurrentUser}
             onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
+        )}
+
+        {currentView === 'odysseus' && (
+          <OdysseusWorkspace
+            onNavigateToSource={() => setCurrentView('source')}
           />
         )}
 

@@ -67,6 +67,15 @@ import {
   InterDroidFamilyMessage,
   KnowledgeSearchFilter
 } from '../types/sourceKnowledge';
+import {
+  HostHardwareProfile,
+  ModelRecommendationMatrix,
+  DeepResearchTaskProgress,
+  AgentSkillDefinition,
+  AgentLoopExecutionResult,
+  HybridSearchResultItem,
+  WorkspaceDocument
+} from '../types/odysseus';
 import { Capacitor } from '@capacitor/core';
 
 export interface BackendStatus {
@@ -3810,6 +3819,183 @@ class AIHeavenApiClient {
       const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
       throw new Error(err.error || `HTTP ${res.status}`);
     }
+    return await res.json();
+  }
+
+  // ==========================================
+  // Odysseus Capability Client Methods
+  // ==========================================
+
+  public async getOdysseusStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/odysseus/status`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOdysseusHardware(fresh = false): Promise<HostHardwareProfile> {
+    const res = await fetch(`${this.baseUrl}/odysseus/cookbook/hardware?fresh=${fresh}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOdysseusModelRecommendations(): Promise<ModelRecommendationMatrix> {
+    const res = await fetch(`${this.baseUrl}/odysseus/cookbook/models`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async startOdysseusResearch(topic: string, targetDepth = 'in_depth', droidId?: string): Promise<{ taskId: string; progress: DeepResearchTaskProgress }> {
+    const res = await fetch(`${this.baseUrl}/odysseus/research/start`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ topic, targetDepth, droidId })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getOdysseusResearchTasks(): Promise<DeepResearchTaskProgress[]> {
+    const res = await fetch(`${this.baseUrl}/odysseus/research/tasks`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOdysseusResearchTask(taskId: string): Promise<DeepResearchTaskProgress> {
+    const res = await fetch(`${this.baseUrl}/odysseus/research/tasks/${taskId}`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async runOdysseusAgentLoop(params: {
+    goal: string;
+    agentId?: string;
+    maxSteps?: number;
+    skillIds?: string[];
+  }): Promise<AgentLoopExecutionResult> {
+    const res = await fetch(`${this.baseUrl}/odysseus/agent-loop/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getOdysseusSkills(): Promise<AgentSkillDefinition[]> {
+    const res = await fetch(`${this.baseUrl}/odysseus/agent-loop/skills`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOdysseusAgentRuns(): Promise<AgentLoopExecutionResult[]> {
+    const res = await fetch(`${this.baseUrl}/odysseus/agent-loop/runs`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async approveOdysseusAgentStep(runId: string, stepNumber: number, decision: 'approved' | 'rejected'): Promise<AgentLoopExecutionResult> {
+    const res = await fetch(`${this.baseUrl}/odysseus/agent-loop/approve/${runId}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ stepNumber, decision })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async searchOdysseusKnowledgeHybrid(query: string, category?: string, limit = 20): Promise<{ items: HybridSearchResultItem[]; total: number }> {
+    const res = await fetch(`${this.baseUrl}/odysseus/knowledge/hybrid-search`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ query, category, limit })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async submitOdysseusKnowledgeFeedback(entryId: string, helpful: boolean): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/odysseus/knowledge/feedback`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ entryId, helpful })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getOdysseusDocuments(): Promise<WorkspaceDocument[]> {
+    const res = await fetch(`${this.baseUrl}/odysseus/workspace/documents`, {
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async createOdysseusDocument(params: {
+    title: string;
+    content: string;
+    category?: string;
+    tags?: string[];
+  }): Promise<WorkspaceDocument> {
+    const res = await fetch(`${this.baseUrl}/odysseus/workspace/documents`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async updateOdysseusDocument(docId: string, params: {
+    title?: string;
+    content?: string;
+    category?: string;
+    tags?: string[];
+  }): Promise<WorkspaceDocument> {
+    const res = await fetch(`${this.baseUrl}/odysseus/workspace/documents/${docId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async deleteOdysseusDocument(docId: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${this.baseUrl}/odysseus/workspace/documents/${docId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   }
 }
