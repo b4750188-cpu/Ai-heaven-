@@ -78,7 +78,8 @@ export type ShellView =
   | 'comfyui'
   | 'security'
   | 'source'
-  | 'odysseus';
+  | 'odysseus'
+  | 'eyes-for-all';
 
 interface AppShellProps {
   currentView: ShellView;
@@ -189,6 +190,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       items: [
         { id: 'brain', label: 'Brain', icon: Brain, description: 'Central Brain & Model Router' },
         { id: 'chat', label: 'Chat', icon: MessageSquare, description: 'Unified AI Conversation' },
+        { id: 'eyes-for-all', label: 'Eyes for All', icon: Globe, description: "God's Eye View 3D Situational Telemetry" },
         {
           id: 'agents',
           label: 'Droids',

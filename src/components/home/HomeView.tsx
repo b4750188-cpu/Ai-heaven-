@@ -28,7 +28,8 @@ import {
   Lock,
   ChevronRight,
   FolderGit2,
-  MessageSquare
+  MessageSquare,
+  Globe
 } from 'lucide-react';
 import { AgentDefinition, ExecutionReceipt } from '../../types/foundation';
 import { AgentTask, AgentWorker } from '../../types/agentRuntime';
@@ -484,6 +485,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="mt-4 pt-3 border-t border-[#283242] text-[11px] font-mono text-cyan-400 flex justify-between">
             <span>Deep Research & Cookbook</span>
             <span>Agent Loop Live</span>
+          </div>
+        </button>
+
+        {/* Work Area: Eyes for All / God's Eye View */}
+        <button
+          onClick={() => onNavigate('eyes-for-all')}
+          className="text-left p-4 bg-[#121822] border border-[#283242] hover:border-cyan-400/60 rounded-lg transition-colors flex flex-col justify-between group cursor-pointer"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Globe className="h-5 w-5 text-cyan-400 group-hover:scale-105 transition-transform" />
+              <ChevronRight className="h-4 w-4 text-[#9AA6B7] group-hover:text-cyan-400 transition-colors" />
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[#F1F4F8]">Eyes for All (God's Eye View)</h3>
+              <span className="px-1.5 py-0.2 text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-800/40 rounded font-mono">
+                GEOINT
+              </span>
+            </div>
+            <p className="text-xs text-[#9AA6B7] mt-1">
+              Global 3D Situational Telemetry &bull; Real-world flight ADS-B, active satellites, seismic events, wildfires, and chokepoint AIS.
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#283242] text-[11px] font-mono text-cyan-400 flex justify-between">
+            <span>3D Interactive Globe</span>
+            <span>Horus-09 &bull; SGP4 &bull; USGS</span>
           </div>
         </button>
 

@@ -76,6 +76,13 @@ import {
   HybridSearchResultItem,
   WorkspaceDocument
 } from '../types/odysseus';
+import {
+  GeointEntity,
+  GeointLayerConfig,
+  GeointQueryFilter,
+  SatellitePassPrediction,
+  GeointInvestigationReport
+} from '../types/geoint';
 import { Capacitor } from '@capacitor/core';
 
 export interface BackendStatus {
@@ -3994,6 +4001,120 @@ class AIHeavenApiClient {
     const res = await fetch(`${this.baseUrl}/odysseus/workspace/documents/${docId}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders({ 'Accept': 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  // --- Eyes for All / God's Eye View Spatial Intelligence ---
+
+  public async getGeointStatus(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/geoint/status`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  public async getGeointLayers(): Promise<GeointLayerConfig[]> {
+    const res = await fetch(`${this.baseUrl}/geoint/layers`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  }
+
+  public async getGeointEntities(filter?: GeointQueryFilter): Promise<GeointEntity[]> {
+    const params = new URLSearchParams();
+    if (filter?.categories && filter.categories.length > 0) {
+      params.set('categories', filter.categories.join(','));
+    }
+    if (filter?.search) {
+      params.set('search', filter.search);
+    }
+    if (filter?.minMagnitude) {
+      params.set('minMagnitude', String(filter.minMagnitude));
+    }
+    if (filter?.limit) {
+      params.set('limit', String(filter.limit));
+    }
+    if (filter?.boundingBox) {
+      params.set('minLat', String(filter.boundingBox.minLat));
+      params.set('maxLat', String(filter.boundingBox.maxLat));
+      params.set('minLon', String(filter.boundingBox.minLon));
+      params.set('maxLon', String(filter.boundingBox.maxLon));
+    }
+
+    const queryStr = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(`${this.baseUrl}/geoint/entities${queryStr}`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.entities) ? data.entities : [];
+  }
+
+  public async getGeointEntity(id: string): Promise<GeointEntity | null> {
+    const res = await fetch(`${this.baseUrl}/geoint/entities/${encodeURIComponent(id)}`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async correlateGeointTarget(params: {
+    targetName: string;
+    targetLat: number;
+    targetLon: number;
+    radiusKm?: number;
+    categories?: string[];
+  }): Promise<GeointInvestigationReport> {
+    const res = await fetch(`${this.baseUrl}/geoint/correlate`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async predictGeointSatellitePass(params: {
+    latitude: number;
+    longitude: number;
+    locationName?: string;
+    targetSatellites?: string[];
+  }): Promise<{ location: any; count: number; passes: SatellitePassPrediction[] }> {
+    const res = await fetch(`${this.baseUrl}/geoint/predict-satellite-pass`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async depositGeointEntityToSource(entity: GeointEntity, analystNotes?: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/geoint/source/deposit`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ entity, analystNotes })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  public async getGeointMcp(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/geoint/mcp`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();

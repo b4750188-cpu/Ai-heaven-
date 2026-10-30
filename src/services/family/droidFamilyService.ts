@@ -134,7 +134,7 @@ export class DroidFamilyService {
         codename: 'ARCHITECT_PRIME',
         role: 'Autonomous Orchestrator & Task Decomposer',
         status: 'idle',
-        allowedTools: ['tool_swarm_dispatch', 'tool_dag_planner', 'tool_kill_switch', 'tool_source_search'],
+        allowedTools: ['tool_swarm_dispatch', 'tool_dag_planner', 'tool_kill_switch', 'tool_source_search', 'tool_geoint_query', 'tool_geoint_correlate'],
         permissions: { networkAccess: true, filesystemScope: 'workspace_only', requiresApprovalForDestructive: true, maxExecutionTimeSec: 600 },
         currentObjective: 'Active Orchestration Ready',
         lastActiveAt: now
@@ -145,7 +145,7 @@ export class DroidFamilyService {
         codename: 'WATCHER_CORE',
         role: 'Passive Reconnaissance & Surface Mapper',
         status: 'idle',
-        allowedTools: ['tool_dns_resolve', 'tool_cert_stream', 'tool_http_probe'],
+        allowedTools: ['tool_dns_resolve', 'tool_cert_stream', 'tool_http_probe', 'tool_geoint_query', 'tool_geoint_aircraft', 'tool_geoint_seismic'],
         permissions: { networkAccess: true, filesystemScope: 'workspace_only', requiresApprovalForDestructive: false, maxExecutionTimeSec: 180 },
         currentObjective: 'Awaiting recon target',
         lastActiveAt: now
@@ -225,6 +225,24 @@ export class DroidFamilyService {
         allowedTools: ['tool_cwe_registry', 'tool_threat_feed', 'tool_policy_evaluator'],
         permissions: { networkAccess: true, filesystemScope: 'read_only', requiresApprovalForDestructive: false, maxExecutionTimeSec: 120 },
         currentObjective: 'Policy compliance evaluation ready',
+        lastActiveAt: now
+      },
+      {
+        droidId: 'horus_09',
+        name: 'Horus-09',
+        codename: 'EYE_OF_RA',
+        role: 'Global Situational Awareness & GEOINT Specialist',
+        status: 'idle',
+        allowedTools: [
+          'tool_geoint_aircraft',
+          'tool_geoint_seismic',
+          'tool_geoint_maritime',
+          'tool_geoint_satellites',
+          'tool_geoint_environmental',
+          'tool_source_deposit'
+        ],
+        permissions: { networkAccess: true, filesystemScope: 'workspace_only', requiresApprovalForDestructive: false, maxExecutionTimeSec: 240 },
+        currentObjective: 'Global telemetry and spatial reconnaissance standby',
         lastActiveAt: now
       }
     ];

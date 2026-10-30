@@ -14,6 +14,8 @@
 import crypto from 'crypto';
 import { continuityEngine } from '../continuity/continuityEngine';
 import { githubActionsService } from '../github/githubActionsService';
+import { geointDataService } from '../geoint/geointDataService';
+import { geointCorrelationEngine } from '../geoint/geointCorrelationEngine';
 
 export interface MCPServerConfig {
   id: string;
@@ -119,6 +121,18 @@ export class MCPClientService {
         status: 'ready',
         lastPingAt: new Date().toISOString(),
         toolsCount: 1
+      },
+      {
+        id: 'mcp_geoint',
+        name: 'Eyes for All: World Spatial Intelligence MCP',
+        transport: 'http_jsonrpc',
+        endpoint: '/api/geoint/mcp',
+        description: "God's Eye View telemetry provider: live aircraft, satellites, seismic events, wildfires, and maritime chokepoints.",
+        isEnabled: true,
+        isAvailable: true,
+        status: 'ready',
+        lastPingAt: new Date().toISOString(),
+        toolsCount: 4
       }
     ];
 
@@ -127,6 +141,51 @@ export class MCPClientService {
     }
 
     // Register standard MCP tools
+    this.registerTool({
+      name: 'geoint_query_entities',
+      description: 'Query live aircraft, satellites, seismic events, wildfires, or vessels by bounding box or text search.',
+      serverId: 'mcp_geoint',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          categories: { type: 'array', description: 'Array of categories (aircraft, satellite, earthquake, wildfire, maritime)' },
+          search: { type: 'string', description: 'Search term (callsign, flight number, place, satellite name)' },
+          minMagnitude: { type: 'number', description: 'Minimum earthquake magnitude' },
+          limit: { type: 'number', description: 'Max results (default 100)' }
+        }
+      }
+    });
+
+    this.registerTool({
+      name: 'geoint_predict_satellite_pass',
+      description: 'Calculate predicted overhead passes for satellites (ISS, Tiangong, Starlink) over target geographic coordinates.',
+      serverId: 'mcp_geoint',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          latitude: { type: 'number', description: 'Target latitude (-90 to +90)' },
+          longitude: { type: 'number', description: 'Target longitude (-180 to +180)' },
+          locationName: { type: 'string', description: 'Location label' }
+        },
+        required: ['latitude', 'longitude']
+      }
+    });
+
+    this.registerTool({
+      name: 'geoint_correlate_target',
+      description: 'Correlate spatial phenomena (nearby earthquakes, flights, satellites, fires) against an infrastructure target or coordinate.',
+      serverId: 'mcp_geoint',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          targetName: { type: 'string', description: 'Target or datacenter name' },
+          targetLat: { type: 'number', description: 'Latitude' },
+          targetLon: { type: 'number', description: 'Longitude' },
+          radiusKm: { type: 'number', description: 'Search radius in km (default 250)' }
+        },
+        required: ['targetName', 'targetLat', 'targetLon']
+      }
+    });
     this.registerTool({
       name: 'memory_query',
       description: 'Search persistent engineering memories, architectural constraints, and previous task outcomes.',
@@ -230,12 +289,20 @@ export class MCPClientService {
     return Array.from(this.servers.values());
   }
 
+  public getServer(id: string): MCPServerConfig | undefined {
+    return this.servers.get(id);
+  }
+
   public getTools(serverId?: string): MCPToolDefinition[] {
     const all = Array.from(this.tools.values());
     if (serverId) {
       return all.filter((t) => t.serverId === serverId);
     }
     return all;
+  }
+
+  public listTools(serverId?: string): MCPToolDefinition[] {
+    return this.getTools(serverId);
   }
 
   public getStatus() {
@@ -379,6 +446,50 @@ export class MCPClientService {
           verified: true,
           contentSummary: `SSRF-guarded response from public destination ${urlStr}.`
         });
+      } else if (toolName === 'geoint_query_entities') {
+        const entities = await geointDataService.queryEntities({
+          categories: args.categories,
+          search: args.search,
+          minMagnitude: args.minMagnitude,
+          limit: args.limit || 50
+        });
+        outputText = JSON.stringify({
+          count: entities.length,
+          categories: args.categories || 'all',
+          entities: entities.map(e => ({
+            id: e.id,
+            category: e.category,
+            name: e.name,
+            callsign: e.callsign,
+            lat: e.position.latitude,
+            lon: e.position.longitude,
+            altM: e.position.altitudeMeters,
+            speedKts: e.speedKts,
+            heading: e.headingDeg,
+            status: e.dataStatus,
+            provider: e.sourceProvider,
+            sha256Seal: e.sha256EvidenceSeal
+          }))
+        }, null, 2);
+      } else if (toolName === 'geoint_predict_satellite_pass') {
+        const passes = await geointDataService.predictSatellitePasses(
+          Number(args.latitude),
+          Number(args.longitude),
+          args.locationName || 'Target'
+        );
+        outputText = JSON.stringify({
+          target: { lat: args.latitude, lon: args.longitude, name: args.locationName },
+          count: passes.length,
+          passes
+        }, null, 2);
+      } else if (toolName === 'geoint_correlate_target') {
+        const report = await geointCorrelationEngine.correlateTarget(
+          args.targetName,
+          Number(args.targetLat),
+          Number(args.targetLon),
+          args.radiusKm ? Number(args.radiusKm) : 250
+        );
+        outputText = JSON.stringify(report, null, 2);
       } else {
         outputText = `Executed MCP tool "${toolName}" on server "${serverId}" with JSON-RPC 2.0 protocol.`;
       }

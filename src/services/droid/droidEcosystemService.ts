@@ -197,6 +197,30 @@ export class DroidEcosystemService {
           maxExecutionTimeSec: 120,
           allowedMessageChannels: ['compliance', 'findings', 'coordination']
         }
+      },
+      {
+        droidId: 'horus_09',
+        name: 'Horus-09',
+        codename: 'EYE_OF_RA',
+        version: 'v1.0.0',
+        role: 'Global Situational Awareness & GEOINT Specialist',
+        description: 'Monitors real-time orbital telemetry, ADS-B airspace, maritime corridors, and tectonic fault zones.',
+        capabilities: ['geoint', 'satellite_tracking', 'flight_tracking', 'seismic_monitoring', 'spatial_correlation'],
+        allowedTools: [
+          'tool_geoint_aircraft',
+          'tool_geoint_seismic',
+          'tool_geoint_maritime',
+          'tool_geoint_satellites',
+          'tool_geoint_environmental',
+          'tool_source_deposit'
+        ],
+        permissions: {
+          networkAccess: true,
+          filesystemScope: 'workspace_only',
+          requiresApprovalForDestructive: false,
+          maxExecutionTimeSec: 240,
+          allowedMessageChannels: ['geoint', 'findings', 'coordination']
+        }
       }
     ];
 

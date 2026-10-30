@@ -46,6 +46,7 @@ import { ComfyUIWorkspace } from './components/engines/ComfyUIWorkspace';
 import { SecurityCenter } from './components/security/SecurityCenter';
 import { SourceKnowledgeView } from './components/source/SourceKnowledgeView';
 import { OdysseusWorkspace } from './components/odysseus/OdysseusWorkspace';
+import { EyesForAllWorkspace } from './components/geoint/EyesForAllWorkspace';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ShellView>('home');
@@ -379,6 +380,14 @@ export default function App() {
 
         {currentView === 'odysseus' && (
           <OdysseusWorkspace
+            onNavigateToSource={() => setCurrentView('source')}
+          />
+        )}
+
+        {currentView === 'eyes-for-all' && (
+          <EyesForAllWorkspace
+            currentUser={authCurrentUser}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
             onNavigateToSource={() => setCurrentView('source')}
           />
         )}

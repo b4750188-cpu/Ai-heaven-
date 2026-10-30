@@ -27,6 +27,7 @@ export type TaskDomain =
   | 'terminal'
   | 'multimodal'
   | 'document_refinement'
+  | 'geoint'
   | 'general';
 
 export type TaskComplexity = 'simple' | 'moderate' | 'complex';
@@ -496,6 +497,8 @@ class CentralBrainService {
       domain = 'research';
     } else if (/\b(architecture|design|database|schema|postgres|scalability|system)\b/.test(q)) {
       domain = 'architecture';
+    } else if (/\b(eyes for all|god's eye|satellite[s]?|orbit[s|al]?|earthquake[s]?|seismic|aircraft|flight[s]?|ads-b|transponder[s]?|maritime|vessel[s]?|ship[s]?|wildfire[s]?|geospatial|geoint|coordinate[s]?|latitude|longitude|globe|telemetry)\b/i.test(q)) {
+      domain = 'geoint';
     } else if (/\b(debug|error|exception|crash|stacktrace|fail)\b/.test(q)) {
       domain = 'debugging';
     }
@@ -1256,6 +1259,37 @@ class CentralBrainService {
           `3. Navigate to **ComfyUI Studio** in the sidebar to configure and monitor node workflows.`;
         isLiveProvider = false;
         inferenceLocation = 'local';
+      }
+    } else if (
+      lowerUserText.startsWith('/geoint') ||
+      lowerUserText.startsWith('/eyes') ||
+      lowerUserText === 'eyes for all' ||
+      domain === 'geoint'
+    ) {
+      try {
+        const { geointDataService } = await import('../geoint/geointDataService');
+        const layers = geointDataService.getLayersConfig();
+        const entities = await geointDataService.queryEntities({
+          search: userText.replace(/^(\/geoint|\/eyes)[:\s]*/i, '').trim(),
+          limit: 6
+        });
+
+        const entityList = entities.map(e =>
+          `- **${e.name}** (\`${e.category.toUpperCase()}\`): Position \`${e.position.latitude.toFixed(2)}°, ${e.position.longitude.toFixed(2)}°\` · Provider: *${e.sourceProvider}* · Status: \`${e.dataStatus.toUpperCase()}\` · Seal: \`${e.sha256EvidenceSeal.slice(0, 8)}...\``
+        ).join('\n');
+
+        assistantContent = `### Eyes for All — World Situational Intelligence\n\n` +
+          `**Architecture**: God's Eye View Integration (Bilawal Sidhu / MIT) · **Specialist Droid**: \`Horus-09 (EYE_OF_RA)\`\n` +
+          `**Telemetry Status**: Real-world public feeds active with cryptographic SHA-256 evidence seals.\n\n` +
+          `#### Active Spatial Layers:\n` +
+          layers.map(l => `- **${l.name}**: ${l.activeEntityCount} entities loaded (${l.attribution})`).join('\n') +
+          `\n\n#### Sample Live/Delayed Telemetry Observations:\n` +
+          (entities.length > 0 ? entityList : '_No entities matched search criteria. Showing nominal layer readiness._') +
+          `\n\n*Navigate to the **Eyes for All** 3D Globe workspace in the navigation bar to inspect real-time orbits, flights, and seismic activity.*`;
+        isLiveProvider = false;
+      } catch (err: any) {
+        assistantContent = `[GEOINT TELEMETRY NOTICE: ${err.message}]`;
+        isLiveProvider = false;
       }
     } else {
       // Self-Awareness & Connection Telemetry Check

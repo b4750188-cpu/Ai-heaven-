@@ -72,6 +72,10 @@ import { deepResearchEngine } from '../services/odysseus/deepResearchEngine';
 import { autonomousAgentLoopService } from '../services/odysseus/autonomousAgentLoopService';
 import { hybridKnowledgeService } from '../services/odysseus/hybridKnowledgeService';
 import { workspaceProductivityService } from '../services/odysseus/workspaceProductivityService';
+import { geointDataService } from '../services/geoint/geointDataService';
+import { geointCorrelationEngine } from '../services/geoint/geointCorrelationEngine';
+import { geointSourceBridge } from '../services/geoint/geointSourceBridge';
+import { GeointCategory } from '../types/geoint';
 
 dotenv.config();
 
@@ -5237,6 +5241,178 @@ export function createExpressApp(): express.Express {
     try {
       const success = workspaceProductivityService.deleteDocument(req.params.docId);
       res.json({ success });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // EYES FOR ALL / GOD'S EYE VIEW SPATIAL INTELLIGENCE ENDPOINTS
+  // =========================================================================
+
+  apiRouter.get('/geoint/status', async (req: Request, res: Response) => {
+    try {
+      const layers = geointDataService.getLayersConfig();
+      const totalEntities = layers.reduce((acc, l) => acc + l.activeEntityCount, 0);
+      res.json({
+        service: 'Eyes for All — World Situational Intelligence',
+        architecture: "God's Eye View Integration (Bilawal Sidhu / MIT)",
+        status: 'operational',
+        layersCount: layers.length,
+        totalEntitiesLoaded: totalEntities,
+        specialistDroid: 'Horus-09 (EYE_OF_RA)',
+        providers: [
+          { name: 'USGS Earthquake Hazards Program', status: 'live', attribution: 'earthquake.usgs.gov' },
+          { name: 'OpenSky Network ADS-B', status: 'live', attribution: 'opensky-network.org' },
+          { name: 'CelesTrak Orbital Catalog', status: 'live', attribution: 'celestrak.org' },
+          { name: 'NASA EONET (Earth Observatory)', status: 'live', attribution: 'eonet.gsfc.nasa.gov' },
+          { name: 'Public Maritime Transit Index', status: 'live', attribution: 'aishub.net' }
+        ],
+        timestamp: new Date().toISOString()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/geoint/layers', (req: Request, res: Response) => {
+    try {
+      const layers = geointDataService.getLayersConfig();
+      res.json(layers);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/geoint/entities', async (req: Request, res: Response) => {
+    try {
+      const { category, categories, search, minMagnitude, limit, minLat, maxLat, minLon, maxLon } = req.query;
+
+      let catArray: GeointCategory[] | undefined;
+      if (category && typeof category === 'string') {
+        catArray = [category as GeointCategory];
+      } else if (categories && typeof categories === 'string') {
+        catArray = categories.split(',') as GeointCategory[];
+      }
+
+      let boundingBox: { minLat: number; maxLat: number; minLon: number; maxLon: number } | undefined;
+      if (minLat && maxLat && minLon && maxLon) {
+        boundingBox = {
+          minLat: Number(minLat),
+          maxLat: Number(maxLat),
+          minLon: Number(minLon),
+          maxLon: Number(maxLon)
+        };
+      }
+
+      const entities = await geointDataService.queryEntities({
+        categories: catArray,
+        search: search ? String(search) : undefined,
+        minMagnitude: minMagnitude ? Number(minMagnitude) : undefined,
+        limit: limit ? Number(limit) : 250,
+        boundingBox
+      });
+
+      res.json({
+        count: entities.length,
+        timestamp: new Date().toISOString(),
+        entities
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/geoint/entities/:id', async (req: Request, res: Response) => {
+    try {
+      const entities = await geointDataService.queryEntities({ limit: 500 });
+      const found = entities.find(e => e.id === req.params.id);
+      if (!found) {
+        return res.status(404).json({ error: `Entity "${req.params.id}" not found in current telemetry cache.` });
+      }
+      res.json(found);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/geoint/correlate', async (req: Request, res: Response) => {
+    try {
+      const { targetName, targetLat, targetLon, radiusKm, categories } = req.body;
+      if (!targetName || typeof targetLat !== 'number' || typeof targetLon !== 'number') {
+        return res.status(400).json({ error: 'targetName, targetLat, and targetLon are required.' });
+      }
+
+      const report = await geointCorrelationEngine.correlateTarget(
+        String(targetName),
+        targetLat,
+        targetLon,
+        radiusKm ? Number(radiusKm) : 250,
+        categories
+      );
+
+      res.json(report);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/geoint/predict-satellite-pass', async (req: Request, res: Response) => {
+    try {
+      const { latitude, longitude, locationName, targetSatellites } = req.body;
+      if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+        return res.status(400).json({ error: 'latitude and longitude are required numbers.' });
+      }
+
+      const passes = await geointDataService.predictSatellitePasses(
+        latitude,
+        longitude,
+        locationName || 'Target Location',
+        targetSatellites
+      );
+
+      res.json({
+        location: { latitude, longitude, name: locationName },
+        count: passes.length,
+        passes
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.post('/geoint/source/deposit', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user || currentUser;
+      const { entity, analystNotes, droidId } = req.body;
+      if (!entity || !entity.id || !entity.position) {
+        return res.status(400).json({ error: 'Valid entity payload is required for SOURCE deposit.' });
+      }
+
+      const entry = await geointSourceBridge.depositEntityToSource(
+        user,
+        entity,
+        analystNotes,
+        droidId || 'horus_09'
+      );
+
+      res.status(201).json({
+        success: true,
+        sourceEntryId: entry.id,
+        title: entry.title,
+        evidenceSeal: entry.evidence[0]?.sha256Seal,
+        entry
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/geoint/mcp', (req: Request, res: Response) => {
+    try {
+      const server = mcpClientService.getServer('mcp_geoint');
+      const tools = mcpClientService.listTools('mcp_geoint');
+      res.json({ server, tools });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

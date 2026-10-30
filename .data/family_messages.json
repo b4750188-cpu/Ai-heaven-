@@ -971,5 +971,360 @@
     "acknowledgedAt": "2026-10-29T18:06:49.234Z",
     "acknowledgedBy": "vulcan_04",
     "signature": "e2e3e6eb5a8d713a698303ed70ab257eb73f1f43eb63d2ebabe6a7a99c0be235"
+  },
+  {
+    "id": "fmsg_fa8cd3b3-31f",
+    "familyId": "fam_user_geoint_tester",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "payload": {
+      "body": "Verified spatial entity [earthquake] deposited to SOURCE pool (ID: src_ced54389-89a7-). Coordinates: (35.800, -117.500). Evidence SHA-256: abcdef1234567890abcdef12",
+      "relatedEntryId": "src_ced54389-89a7-"
+    },
+    "correlationId": "c13a9f09-bf39-4c0d-9bcd-a8fd7f3031e0",
+    "timestamp": "2026-10-30T15:27:32.994Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:27:32.994Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "0f026d32b971afd909537f939cecc1d36672f73c14270b1fd3d18403da6b7fe9"
+  },
+  {
+    "id": "fmsg_43f00677-510",
+    "familyId": "fam_usr_dev_default_01",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: ISS (ZARYA)",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_55a7a24a-542b-). Coordinates: (20.000, 45.000). Evidence SHA-256: 11223344556677889900aabb",
+      "relatedEntryId": "src_55a7a24a-542b-"
+    },
+    "correlationId": "c734d8c6-6278-4f5d-a5d5-d0436d37b236",
+    "timestamp": "2026-10-30T15:27:45.160Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:27:45.160Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "8054d20a8ec51aa7a03abacef783842c019412508264d66eac9ae0006fee72ae"
+  },
+  {
+    "id": "fmsg_c49092f6-83f",
+    "familyId": "fam_user_geoint_tester",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "payload": {
+      "body": "Verified spatial entity [earthquake] deposited to SOURCE pool (ID: src_ced54389-89a7-). Coordinates: (35.800, -117.500). Evidence SHA-256: abcdef1234567890abcdef12",
+      "relatedEntryId": "src_ced54389-89a7-"
+    },
+    "correlationId": "4962bf6d-8559-48ad-9aa5-f93a6dc115d6",
+    "timestamp": "2026-10-30T15:28:50.546Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:28:50.546Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "d7aa080e465e5184784b4b20cc115ef5a0a5e08e80aeb7d0ca75ab994155e23e"
+  },
+  {
+    "id": "fmsg_e05cb4a0-375",
+    "familyId": "fam_usr_dev_default_01",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: ISS (ZARYA)",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_55a7a24a-542b-). Coordinates: (20.000, 45.000). Evidence SHA-256: 11223344556677889900aabb",
+      "relatedEntryId": "src_55a7a24a-542b-"
+    },
+    "correlationId": "85067b88-f1da-457f-bbf8-0d39403d9d8e",
+    "timestamp": "2026-10-30T15:29:02.779Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:29:02.779Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "48475e168867d56b54b3f94dea99f1cc539013af4ade20c0e07c04ce8f4c2a42"
+  },
+  {
+    "id": "fmsg_d588d287-a77",
+    "familyId": "fam_user_geoint_tester",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "payload": {
+      "body": "Verified spatial entity [earthquake] deposited to SOURCE pool (ID: src_0dd4ad41-9bac-). Coordinates: (35.800, -117.500). Evidence SHA-256: abcdef1234567890abcdef12",
+      "relatedEntryId": "src_0dd4ad41-9bac-"
+    },
+    "correlationId": "0abf106b-7dae-4d2d-b13f-a5e44b07a1d2",
+    "timestamp": "2026-10-30T15:46:46.665Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:46:46.665Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "9e457bb3b568751be7ca84dbb3fae3f557550c0e26fa17ec5c8faa800c9de899"
+  },
+  {
+    "id": "fmsg_393184e2-617",
+    "familyId": "fam_usr_alpha",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: STARLINK-40192",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_e2c8e6f3-b3de-). Coordinates: (12.000, 45.000). Evidence SHA-256: fedcba0987654321fedcba09",
+      "relatedEntryId": "src_e2c8e6f3-b3de-"
+    },
+    "correlationId": "2fb03006-66ce-468f-870a-c08d343fae57",
+    "timestamp": "2026-10-30T15:46:46.673Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:46:46.673Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "d0c104ab7371405864548978d3b1313188f5009615782a77a03102ea349c45d6"
+  },
+  {
+    "id": "fmsg_88a39d40-533",
+    "familyId": "fam_usr_alpha",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: STARLINK-40192",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_e2c8e6f3-b3de-). Coordinates: (12.000, 45.000). Evidence SHA-256: fedcba0987654321fedcba09",
+      "relatedEntryId": "src_e2c8e6f3-b3de-"
+    },
+    "correlationId": "bedf3a40-f1a8-4bb2-bc7d-0943e871715e",
+    "timestamp": "2026-10-30T15:46:46.677Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:46:46.677Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "e6d98783ac5781451904d90ab1b68ae125f2e2395ecc9df17e06814514260c9d"
+  },
+  {
+    "id": "fmsg_c7abaf3f-8d8",
+    "familyId": "fam_usr_dev_default_01",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: ISS (ZARYA)",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_a9d764da-94b6-). Coordinates: (20.000, 45.000). Evidence SHA-256: 11223344556677889900aabb",
+      "relatedEntryId": "src_a9d764da-94b6-"
+    },
+    "correlationId": "ca38aa9a-48e9-4801-abd0-12dcfeed10df",
+    "timestamp": "2026-10-30T15:46:58.879Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:46:58.879Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "5b35700bc94cd0626228c52285087a8761d3e2c175c5fb829f6d3b71d318f477"
+  },
+  {
+    "id": "fmsg_7d7d31dd-acf",
+    "familyId": "fam_user_geoint_tester",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "payload": {
+      "body": "Verified spatial entity [earthquake] deposited to SOURCE pool (ID: src_0dd4ad41-9bac-). Coordinates: (35.800, -117.500). Evidence SHA-256: abcdef1234567890abcdef12",
+      "relatedEntryId": "src_0dd4ad41-9bac-"
+    },
+    "correlationId": "6c9f091f-cc10-40c5-b3ca-cdd15683f115",
+    "timestamp": "2026-10-30T15:48:14.688Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:14.688Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "7681b621da9dbfcc2cb2f1cbfa8f2004e9812049e630ea3c2bc536755aa58a61"
+  },
+  {
+    "id": "fmsg_2cdffdbe-e46",
+    "familyId": "fam_usr_alpha",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: STARLINK-40192",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_e2c8e6f3-b3de-). Coordinates: (12.000, 45.000). Evidence SHA-256: fedcba0987654321fedcba09",
+      "relatedEntryId": "src_e2c8e6f3-b3de-"
+    },
+    "correlationId": "6e38f468-3708-4549-8c58-2246100211fb",
+    "timestamp": "2026-10-30T15:48:14.693Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:14.693Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "3ae26ffc88a7523bd76ed6404695d149e5fbf2235207060d4fafbf1f01eabdeb"
+  },
+  {
+    "id": "fmsg_20cfd09d-46e",
+    "familyId": "fam_usr_alpha",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: STARLINK-40192",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_e2c8e6f3-b3de-). Coordinates: (12.000, 45.000). Evidence SHA-256: fedcba0987654321fedcba09",
+      "relatedEntryId": "src_e2c8e6f3-b3de-"
+    },
+    "correlationId": "0d86d075-ab2e-43b9-8cb9-c213a2234511",
+    "timestamp": "2026-10-30T15:48:14.695Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:14.695Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "fb83c4917ead374e1059964e95f72de460abf2c1a03cd47cab83ee5a230e6667"
+  },
+  {
+    "id": "fmsg_06047560-391",
+    "familyId": "fam_usr_dev_default_01",
+    "fromDroidId": "horus_09",
+    "toDroidId": "central_brain_00",
+    "messageType": "finding_contribution",
+    "subject": "Spatial Observation Deposited: ISS (ZARYA)",
+    "payload": {
+      "body": "Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_a9d764da-94b6-). Coordinates: (20.000, 45.000). Evidence SHA-256: 11223344556677889900aabb",
+      "relatedEntryId": "src_a9d764da-94b6-"
+    },
+    "correlationId": "493e3718-fd61-44eb-9f7f-8d9eed74fe19",
+    "timestamp": "2026-10-30T15:48:26.919Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:26.919Z",
+    "acknowledgedBy": "central_brain_00",
+    "signature": "72b09c1137212a06001c96ba1c4e6987eb012581d7a33adb7dde7080e15786e8"
+  },
+  {
+    "id": "fmsg_ef4befad-ee4",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "argus_01",
+    "toDroidId": "hydra_02",
+    "messageType": "status_query",
+    "subject": "Querying Hydra current objective and status",
+    "payload": {
+      "query": "status"
+    },
+    "correlationId": "7d5a1367-7013-4877-8eb0-c5a6ae4fae9b",
+    "timestamp": "2026-10-30T15:48:43.975Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.975Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "7cdb57c1b53f63ddcfc7204205a717ad5e66b44c785958cbbe47c6098fc83c2f"
+  },
+  {
+    "id": "fmsg_9dcb9a56-0d1",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "hydra_02",
+    "toDroidId": "argus_01",
+    "messageType": "peer_response",
+    "subject": "Status Report from Hydra-02",
+    "payload": {
+      "status": "idle",
+      "currentObjective": "API authorization fuzzing ready",
+      "allowedTools": [
+        "tool_http_fuzz",
+        "tool_graphql_inspect",
+        "tool_token_rotate"
+      ]
+    },
+    "correlationId": "7d5a1367-7013-4877-8eb0-c5a6ae4fae9b",
+    "timestamp": "2026-10-30T15:48:43.976Z",
+    "acknowledged": true
+  },
+  {
+    "id": "fmsg_1703425b-454",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 1",
+    "payload": {
+      "depth": 1
+    },
+    "correlationId": "cycle_1793375323978",
+    "timestamp": "2026-10-30T15:48:43.979Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.979Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "bce5dcaddf876799d3a664b020aa942641d5b325ae8cab0e3d57d271c67accc7"
+  },
+  {
+    "id": "fmsg_0bf094b4-ebe",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 2",
+    "payload": {
+      "depth": 2
+    },
+    "correlationId": "cycle_1793375323978",
+    "timestamp": "2026-10-30T15:48:43.980Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.980Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "45979473cf521bb07e3f8c695a1d6396841bf5e2b86a8b5a19d057acb941e51f"
+  },
+  {
+    "id": "fmsg_b4efa63d-095",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 3",
+    "payload": {
+      "depth": 3
+    },
+    "correlationId": "cycle_1793375323978",
+    "timestamp": "2026-10-30T15:48:43.982Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.982Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "f4343815a316dd01bb210a59ad88d3abfbb3d213a5dc5107518822a085bb0b5f"
+  },
+  {
+    "id": "fmsg_f1379c67-2ed",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "vulcan_04",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 4",
+    "payload": {
+      "depth": 4
+    },
+    "correlationId": "cycle_1793375323978",
+    "timestamp": "2026-10-30T15:48:43.984Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.984Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "8f431feedc9ce66aa14788b71eb2cb035aec1d9ba5726dd42d7382d5a00b9f14"
+  },
+  {
+    "id": "fmsg_3d77769c-dcf",
+    "familyId": "fam_user_comm_1793375323923",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "task_delegation",
+    "subject": "Chained delegation step 5",
+    "payload": {
+      "depth": 5
+    },
+    "correlationId": "cycle_1793375323978",
+    "timestamp": "2026-10-30T15:48:43.988Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:43.988Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "076f19205af68c5105c8288d809a3c3b8ced83ce7a257ad54512d53a69a55a7e"
+  },
+  {
+    "id": "fmsg_32bb2a36-9d2",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "vulcan_04",
+    "messageType": "tool_inquiry",
+    "subject": "Can you probe endpoint /api/login for injection vulnerabilities?",
+    "payload": {
+      "target": "/api/login"
+    },
+    "correlationId": "c3c645a5-09d1-4267-a469-1dcc65e2af96",
+    "timestamp": "2026-10-30T15:48:44.290Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-30T15:48:44.290Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "fc6a0a5284aa0f70eb4428ce65eeb715809fb06e74c0f8bf878b27de6c9b2ad1"
   }
 ]

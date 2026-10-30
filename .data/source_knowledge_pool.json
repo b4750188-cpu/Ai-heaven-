@@ -2668,5 +2668,828 @@
     ],
     "createdAt": "2026-10-29T18:08:07.078Z",
     "updatedAt": "2026-10-29T18:08:07.078Z"
+  },
+  {
+    "id": "src_0dd4ad41-9bac-",
+    "familyId": "fam_user_geoint_tester",
+    "tenantId": "tenant_user_geoint_tester",
+    "title": "[GEOINT] EARTHQUAKE: M 4.5 Ridgecrest Seismic Event (USGS Earthquake Hazards Program)",
+    "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `quake_test_fixture_01`\n- **Category**: earthquake\n- **Provider**: USGS Earthquake Hazards Program\n- **Data Status**: live\n- **Coordinates**: 35.80000°, -117.50000°\n- **Altitude**: -8000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:46.660Z\n- **Evidence Seal**: `abcdef1234567890abcdef12`\n\n#### Telemetry Metadata\n```json\n{\n  \"mag\": 4.5,\n  \"depthKm\": 8,\n  \"place\": \"Ridgecrest, CA\"\n}\n```\n\n#### Analyst / Droid Assessment\nDirectly confirmed seismic wave telemetry.",
+    "category": "research_discovery",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09 (EYE_OF_RA)",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "geoint",
+      "eyes_for_all",
+      "earthquake",
+      "usgs_earthquake_hazards_program"
+    ],
+    "evidence": [
+      {
+        "id": "ev_geo_6d9d3831",
+        "evidenceType": "url_reference",
+        "uri": "geoint://USGS Earthquake Hazards Program/quake_test_fixture_01",
+        "snippet": "Provider: USGS Earthquake Hazards Program | Lat: 35.8000, Lon: -117.5000, Alt: -8000m | Status: LIVE | Heading: N/A deg, Speed: N/A kts.",
+        "sha256Seal": "abcdef1234567890abcdef12",
+        "verifiedAt": "2026-10-30T15:46:46.661Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[GEOINT] EARTHQUAKE: M 4.5 Ridgecrest Seismic Event (USGS Earthquake Hazards Program)",
+        "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `quake_test_fixture_01`\n- **Category**: earthquake\n- **Provider**: USGS Earthquake Hazards Program\n- **Data Status**: live\n- **Coordinates**: 35.80000°, -117.50000°\n- **Altitude**: -8000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:46.660Z\n- **Evidence Seal**: `abcdef1234567890abcdef12`\n\n#### Telemetry Metadata\n```json\n{\n  \"mag\": 4.5,\n  \"depthKm\": 8,\n  \"place\": \"Ridgecrest, CA\"\n}\n```\n\n#### Analyst / Droid Assessment\nDirectly confirmed seismic wave telemetry.",
+        "changedBy": "Horus-09 (EYE_OF_RA)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:46.664Z"
+      }
+    ],
+    "metadata": {
+      "latitude": 35.8,
+      "longitude": -117.5,
+      "altitudeMeters": -8000,
+      "geointCategory": "earthquake",
+      "entityId": "quake_test_fixture_01",
+      "sourceProvider": "USGS Earthquake Hazards Program",
+      "dataStatus": "live",
+      "sha256Seal": "abcdef1234567890abcdef12",
+      "expiresAt": "2026-11-06T15:46:46.661Z"
+    },
+    "createdAt": "2026-10-30T15:46:46.664Z",
+    "updatedAt": "2026-10-30T15:46:46.664Z"
+  },
+  {
+    "id": "src_39ad6e6b-782d-",
+    "familyId": "fam_user_geoint_tester",
+    "tenantId": "tenant_user_geoint_tester",
+    "title": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "content": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "horus_09"
+    ],
+    "evidence": [
+      {
+        "id": "evi_fec6e55b",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"body\":\"Verified spatial entity [earthquake] deposited to SOURCE pool (ID: src_0dd4ad41-9bac-). Coordinates: (35.800, -117.500). Evidence SHA-256: abcdef1234567890abcdef12\",\"relatedEntryId\":\"src_0dd4ad41-9bac-\"}",
+        "sha256Seal": "57698ea485fb12dbda2fc5dcc0edf2d0b2bcf8f1dc6b5c118ac1a8a10a9b89c5",
+        "verifiedAt": "2026-10-30T15:46:46.666Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+        "content": "Spatial Observation Deposited: M 4.5 Ridgecrest Seismic Event",
+        "changedBy": "Horus-09",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:46.667Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:46:46.667Z",
+    "updatedAt": "2026-10-30T15:46:46.667Z"
+  },
+  {
+    "id": "src_e2c8e6f3-b3de-",
+    "familyId": "fam_usr_alpha",
+    "tenantId": "tenant_usr_alpha",
+    "title": "[GEOINT] SATELLITE: STARLINK-40192 (CelesTrak)",
+    "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `sat_starlink_unique`\n- **Category**: satellite\n- **Provider**: CelesTrak\n- **Data Status**: estimated\n- **Coordinates**: 12.00000°, 45.00000°\n- **Altitude**: 550000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:46.670Z\n- **Evidence Seal**: `fedcba0987654321fedcba09`\n\n#### Telemetry Metadata\n```json\n{\n  \"noradId\": 58000\n}\n```\n\n#### Analyst / Droid Assessment\nAlpha observation",
+    "category": "research_discovery",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09 (EYE_OF_RA)",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "geoint",
+      "eyes_for_all",
+      "satellite",
+      "celestrak"
+    ],
+    "evidence": [
+      {
+        "id": "ev_geo_f388a761",
+        "evidenceType": "url_reference",
+        "uri": "geoint://CelesTrak/sat_starlink_unique",
+        "snippet": "Provider: CelesTrak | Lat: 12.0000, Lon: 45.0000, Alt: 550000m | Status: ESTIMATED | Heading: N/A deg, Speed: N/A kts.",
+        "sha256Seal": "fedcba0987654321fedcba09",
+        "verifiedAt": "2026-10-30T15:46:46.672Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[GEOINT] SATELLITE: STARLINK-40192 (CelesTrak)",
+        "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `sat_starlink_unique`\n- **Category**: satellite\n- **Provider**: CelesTrak\n- **Data Status**: estimated\n- **Coordinates**: 12.00000°, 45.00000°\n- **Altitude**: 550000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:46.670Z\n- **Evidence Seal**: `fedcba0987654321fedcba09`\n\n#### Telemetry Metadata\n```json\n{\n  \"noradId\": 58000\n}\n```\n\n#### Analyst / Droid Assessment\nAlpha observation",
+        "changedBy": "Horus-09 (EYE_OF_RA)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:46.672Z"
+      }
+    ],
+    "metadata": {
+      "latitude": 12,
+      "longitude": 45,
+      "altitudeMeters": 550000,
+      "geointCategory": "satellite",
+      "entityId": "sat_starlink_unique",
+      "sourceProvider": "CelesTrak",
+      "dataStatus": "estimated",
+      "sha256Seal": "fedcba0987654321fedcba09",
+      "expiresAt": "2026-11-06T15:46:46.672Z"
+    },
+    "createdAt": "2026-10-30T15:46:46.672Z",
+    "updatedAt": "2026-10-30T15:46:46.672Z"
+  },
+  {
+    "id": "src_625307ce-bd14-",
+    "familyId": "fam_usr_alpha",
+    "tenantId": "tenant_usr_alpha",
+    "title": "Spatial Observation Deposited: STARLINK-40192",
+    "content": "Spatial Observation Deposited: STARLINK-40192",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "horus_09"
+    ],
+    "evidence": [
+      {
+        "id": "evi_1c35b4b0",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"body\":\"Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_e2c8e6f3-b3de-). Coordinates: (12.000, 45.000). Evidence SHA-256: fedcba0987654321fedcba09\",\"relatedEntryId\":\"src_e2c8e6f3-b3de-\"}",
+        "sha256Seal": "f62776457c5166b946dc483ad8c18157181deb844ca24a89cec9786b6705b454",
+        "verifiedAt": "2026-10-30T15:46:46.673Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Spatial Observation Deposited: STARLINK-40192",
+        "content": "Spatial Observation Deposited: STARLINK-40192",
+        "changedBy": "Horus-09",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:46.673Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:46:46.673Z",
+    "updatedAt": "2026-10-30T15:46:46.673Z"
+  },
+  {
+    "id": "src_a9d764da-94b6-",
+    "familyId": "fam_usr_dev_default_01",
+    "tenantId": "tenant_usr_dev_default_01",
+    "title": "[GEOINT] SATELLITE: ISS (ZARYA) (CelesTrak / NORAD GP Elements)",
+    "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `sat_test_iss_01`\n- **Category**: satellite\n- **Provider**: CelesTrak / NORAD GP Elements\n- **Data Status**: estimated\n- **Coordinates**: 20.00000°, 45.00000°\n- **Altitude**: 420000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:58.873Z\n- **Evidence Seal**: `11223344556677889900aabb`\n\n#### Telemetry Metadata\n```json\n{\n  \"noradId\": 25544\n}\n```\n\n#### Analyst / Droid Assessment\nVerified LEO transit.",
+    "category": "research_discovery",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09 (EYE_OF_RA)",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "geoint",
+      "eyes_for_all",
+      "satellite",
+      "celestrak___norad_gp_elements"
+    ],
+    "evidence": [
+      {
+        "id": "ev_geo_471201c0",
+        "evidenceType": "url_reference",
+        "uri": "geoint://CelesTrak / NORAD GP Elements/sat_test_iss_01",
+        "snippet": "Provider: CelesTrak / NORAD GP Elements | Lat: 20.0000, Lon: 45.0000, Alt: 420000m | Status: ESTIMATED | Heading: N/A deg, Speed: N/A kts.",
+        "sha256Seal": "11223344556677889900aabb",
+        "verifiedAt": "2026-10-30T15:46:58.878Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[GEOINT] SATELLITE: ISS (ZARYA) (CelesTrak / NORAD GP Elements)",
+        "content": "### Spatial Intelligence Telemetry\n- **Entity ID**: `sat_test_iss_01`\n- **Category**: satellite\n- **Provider**: CelesTrak / NORAD GP Elements\n- **Data Status**: estimated\n- **Coordinates**: 20.00000°, 45.00000°\n- **Altitude**: 420000 meters\n- **Speed / Track**: Stationary @ 0°\n- **Timestamp**: 2026-10-30T15:46:58.873Z\n- **Evidence Seal**: `11223344556677889900aabb`\n\n#### Telemetry Metadata\n```json\n{\n  \"noradId\": 25544\n}\n```\n\n#### Analyst / Droid Assessment\nVerified LEO transit.",
+        "changedBy": "Horus-09 (EYE_OF_RA)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:58.878Z"
+      }
+    ],
+    "metadata": {
+      "latitude": 20,
+      "longitude": 45,
+      "altitudeMeters": 420000,
+      "geointCategory": "satellite",
+      "entityId": "sat_test_iss_01",
+      "sourceProvider": "CelesTrak / NORAD GP Elements",
+      "dataStatus": "estimated",
+      "sha256Seal": "11223344556677889900aabb",
+      "expiresAt": "2026-11-06T15:46:58.878Z"
+    },
+    "createdAt": "2026-10-30T15:46:58.878Z",
+    "updatedAt": "2026-10-30T15:46:58.878Z"
+  },
+  {
+    "id": "src_1ad61299-a276-",
+    "familyId": "fam_usr_dev_default_01",
+    "tenantId": "tenant_usr_dev_default_01",
+    "title": "Spatial Observation Deposited: ISS (ZARYA)",
+    "content": "Spatial Observation Deposited: ISS (ZARYA)",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "horus_09",
+      "name": "Horus-09",
+      "role": "Global Situational Awareness & GEOINT Specialist"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "horus_09"
+    ],
+    "evidence": [
+      {
+        "id": "evi_d36ccada",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"body\":\"Verified spatial entity [satellite] deposited to SOURCE pool (ID: src_a9d764da-94b6-). Coordinates: (20.000, 45.000). Evidence SHA-256: 11223344556677889900aabb\",\"relatedEntryId\":\"src_a9d764da-94b6-\"}",
+        "sha256Seal": "3c80d30554abd4f4c7117e6c271a82f6803a464ced4fe41a42d33c1c244b24d6",
+        "verifiedAt": "2026-10-30T15:46:58.879Z",
+        "verifiedByDroidId": "horus_09"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Spatial Observation Deposited: ISS (ZARYA)",
+        "content": "Spatial Observation Deposited: ISS (ZARYA)",
+        "changedBy": "Horus-09",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:46:58.879Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:46:58.879Z",
+    "updatedAt": "2026-10-30T15:46:58.879Z"
+  },
+  {
+    "id": "src_55f4478a-e6c3-",
+    "familyId": "family_research_test_1793375313899",
+    "tenantId": "tenant_test_odysseus",
+    "title": "Deep Research: Distributed Consensus and Raft Protocol Boundary Conditions",
+    "content": "# Deep Research Investigation: Distributed Consensus and Raft Protocol Boundary Conditions\n\n**Executive Summary**: Comprehensive multi-source synthesis across 12 verified references.\n\n**Key Finding**: Core architectural standards for Distributed Consensus and Raft Protocol Boundary Conditions confirmed across primary documentation sources.\n\n**Status**: VERIFIED with cryptographic evidence seals.",
+    "category": "research_discovery",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.94,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Research Droid (Odysseus Engine)",
+      "role": "Deep Research Specialist"
+    },
+    "tags": [
+      "deep_research",
+      "odysseus",
+      "verified_synthesis",
+      "evidence_backed"
+    ],
+    "evidence": [
+      {
+        "id": "evi_src_a4947208",
+        "evidenceType": "url_reference",
+        "uri": "https://github.com/topics/distributed-consensus-and-raft-protocol-boundary-conditions-architecture-core-specifications",
+        "snippet": "Verified architectural designs, core contracts, and implementation specifications for Distributed Consensus and Raft Protocol Boundary Conditions architecture core specifications.",
+        "sha256Seal": "85696dcb2a201ddc66ef90c2787cc2429704090ffc5d46ae559bfea0516d0b80",
+        "verifiedAt": "2026-10-30T15:48:34.008Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_fbe5efea",
+        "evidenceType": "url_reference",
+        "uri": "https://developer.mozilla.org/en-US/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20architecture%20core%20specifications",
+        "snippet": "Official documentation, cross-platform compatibility benchmarks, and reference manuals related to Distributed Consensus and Raft Protocol Boundary Conditions architecture core specifications.",
+        "sha256Seal": "62b08388887f0c368c1bbbafa688686b801ea06bff298c27f89513d6ccf686cb",
+        "verifiedAt": "2026-10-30T15:48:34.008Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_fd5e88ce",
+        "evidenceType": "url_reference",
+        "uri": "https://reddit.com/r/programming/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20architecture%20core%20specifications",
+        "snippet": "Practitioner consensus and post-mortem discussions detailing operational performance under scale.",
+        "sha256Seal": "d6c6215fd25da711ea6b13a12d8a1ce0ad5f002945141ddac69d32a7205ba926",
+        "verifiedAt": "2026-10-30T15:48:34.008Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_6f78304f",
+        "evidenceType": "url_reference",
+        "uri": "https://github.com/topics/distributed-consensus-and-raft-protocol-boundary-conditions-benchmark-performance-latency-empirical-tests",
+        "snippet": "Verified architectural designs, core contracts, and implementation specifications for Distributed Consensus and Raft Protocol Boundary Conditions benchmark performance latency empirical tests.",
+        "sha256Seal": "8215d45c8079710631ba7eeba5ae6782d291f5c86570ebb8702d5e7fab0d8b56",
+        "verifiedAt": "2026-10-30T15:48:34.010Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_c0afef31",
+        "evidenceType": "url_reference",
+        "uri": "https://developer.mozilla.org/en-US/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20benchmark%20performance%20latency%20empirical%20tests",
+        "snippet": "Official documentation, cross-platform compatibility benchmarks, and reference manuals related to Distributed Consensus and Raft Protocol Boundary Conditions benchmark performance latency empirical tests.",
+        "sha256Seal": "d1b1b80330b8c0b0771b6027bbaaec7b95e123801a34cac1ac8e9fcd8acf927f",
+        "verifiedAt": "2026-10-30T15:48:34.010Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_0e2f5173",
+        "evidenceType": "url_reference",
+        "uri": "https://reddit.com/r/programming/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20benchmark%20performance%20latency%20empirical%20tests",
+        "snippet": "Practitioner consensus and post-mortem discussions detailing operational performance under scale.",
+        "sha256Seal": "25a7dc7a90d897655a5b3c38d564025ab912692953a89361f8a4ea6a256c41b1",
+        "verifiedAt": "2026-10-30T15:48:34.011Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_203a5206",
+        "evidenceType": "url_reference",
+        "uri": "https://github.com/topics/distributed-consensus-and-raft-protocol-boundary-conditions-security-vulnerabilities-cve-limitations-trade-offs",
+        "snippet": "Verified architectural designs, core contracts, and implementation specifications for Distributed Consensus and Raft Protocol Boundary Conditions security vulnerabilities CVE limitations trade-offs.",
+        "sha256Seal": "ed63fc1cbdd2675f396d1d05723fb914b1748a733057b079f09bf2a72bf1d831",
+        "verifiedAt": "2026-10-30T15:48:34.013Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_5e355ad9",
+        "evidenceType": "url_reference",
+        "uri": "https://developer.mozilla.org/en-US/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20security%20vulnerabilities%20CVE%20limitations%20trade-offs",
+        "snippet": "Official documentation, cross-platform compatibility benchmarks, and reference manuals related to Distributed Consensus and Raft Protocol Boundary Conditions security vulnerabilities CVE limitations trade-offs.",
+        "sha256Seal": "61c1ec21a43ad242977d412cdf326bc9ee1f54d01c65dd03ae0d93b0cfad1574",
+        "verifiedAt": "2026-10-30T15:48:34.013Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_2b2e1d41",
+        "evidenceType": "url_reference",
+        "uri": "https://reddit.com/r/programming/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20security%20vulnerabilities%20CVE%20limitations%20trade-offs",
+        "snippet": "Practitioner consensus and post-mortem discussions detailing operational performance under scale.",
+        "sha256Seal": "7606f66567e6c1c5fee1996db5010a2d85efdce48fe104a06d5b3d0d7d081604",
+        "verifiedAt": "2026-10-30T15:48:34.013Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_43fde9d4",
+        "evidenceType": "url_reference",
+        "uri": "https://github.com/topics/distributed-consensus-and-raft-protocol-boundary-conditions-production-implementation-case-studies-deployment",
+        "snippet": "Verified architectural designs, core contracts, and implementation specifications for Distributed Consensus and Raft Protocol Boundary Conditions production implementation case studies deployment.",
+        "sha256Seal": "05ea9c160b782e5f5ec37e46b9559f31ac9ca8534f3a42f04836ce77ac987f78",
+        "verifiedAt": "2026-10-30T15:48:34.015Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_4f8c1615",
+        "evidenceType": "url_reference",
+        "uri": "https://developer.mozilla.org/en-US/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20production%20implementation%20case%20studies%20deployment",
+        "snippet": "Official documentation, cross-platform compatibility benchmarks, and reference manuals related to Distributed Consensus and Raft Protocol Boundary Conditions production implementation case studies deployment.",
+        "sha256Seal": "79fd0a0004aa48b1d72bbe87053fbed2270eb5da12a4b8771b523390065e4108",
+        "verifiedAt": "2026-10-30T15:48:34.015Z",
+        "verifiedByDroidId": "argus_01"
+      },
+      {
+        "id": "evi_src_1814acb8",
+        "evidenceType": "url_reference",
+        "uri": "https://reddit.com/r/programming/search?q=Distributed%20Consensus%20and%20Raft%20Protocol%20Boundary%20Conditions%20production%20implementation%20case%20studies%20deployment",
+        "snippet": "Practitioner consensus and post-mortem discussions detailing operational performance under scale.",
+        "sha256Seal": "39247712231092aeb127b7d9a69afb7cd8778d312a3b3f8e9ca19ddea79b8680",
+        "verifiedAt": "2026-10-30T15:48:34.015Z",
+        "verifiedByDroidId": "argus_01"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Deep Research: Distributed Consensus and Raft Protocol Boundary Conditions",
+        "content": "# Deep Research Investigation: Distributed Consensus and Raft Protocol Boundary Conditions\n\n**Executive Summary**: Comprehensive multi-source synthesis across 12 verified references.\n\n**Key Finding**: Core architectural standards for Distributed Consensus and Raft Protocol Boundary Conditions confirmed across primary documentation sources.\n\n**Status**: VERIFIED with cryptographic evidence seals.",
+        "changedBy": "Research Droid (Odysseus Engine)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:34.223Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:34.223Z",
+    "updatedAt": "2026-10-30T15:48:34.223Z"
+  },
+  {
+    "id": "src_e1e4faab-fa0e-",
+    "familyId": "family_hybrid_test_1793375314315",
+    "tenantId": "tenant_hybrid",
+    "title": "PostgreSQL Connection Pool Sizing and Transaction Timeouts",
+    "content": "Configure max connections to 20 with idle timeout of 10000ms to prevent pool exhaustion.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "central_brain_00",
+      "name": "Brain"
+    },
+    "tags": [
+      "postgres",
+      "database",
+      "tuning"
+    ],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "PostgreSQL Connection Pool Sizing and Transaction Timeouts",
+        "content": "Configure max connections to 20 with idle timeout of 10000ms to prevent pool exhaustion.",
+        "changedBy": "Brain",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:34.315Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:34.315Z",
+    "updatedAt": "2026-10-30T15:48:34.315Z"
+  },
+  {
+    "id": "src_277e1fca-d2ad-",
+    "familyId": "family_hybrid_test_1793375314315",
+    "tenantId": "tenant_hybrid",
+    "title": "Capacitor Android Keystore Signing Configuration",
+    "content": "Generate release key using keytool and configure build.gradle signingConfigs block.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "daedalus_07",
+      "name": "Daedalus"
+    },
+    "tags": [
+      "android",
+      "gradle",
+      "apk"
+    ],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Capacitor Android Keystore Signing Configuration",
+        "content": "Generate release key using keytool and configure build.gradle signingConfigs block.",
+        "changedBy": "Daedalus",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:34.317Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:34.317Z",
+    "updatedAt": "2026-10-30T15:48:34.317Z"
+  },
+  {
+    "id": "src_1ffa4930-bef2-",
+    "familyId": "family_test_1793375322160",
+    "tenantId": "tenant_audit_test",
+    "title": "Setup guide with key: [REDACTED_SECRET]90",
+    "content": "Run system test with credential [REDACTED_SECRET]90",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "droid_security_auditor",
+      "name": "Security Auditor"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Setup guide with key: [REDACTED_SECRET]90",
+        "content": "Run system test with credential [REDACTED_SECRET]90",
+        "changedBy": "Security Auditor",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:42.160Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:42.160Z",
+    "updatedAt": "2026-10-30T15:48:42.160Z"
+  },
+  {
+    "id": "src_1d6bc374-8d1d-",
+    "familyId": "family_test_update_1793375322163",
+    "tenantId": "tenant_update_test",
+    "title": "Updated title with [REDACTED_SECRET]34",
+    "content": "Updated instructions with [REDACTED_SECRET]34",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_1",
+      "name": "Admin"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial safe procedure",
+        "content": "Original safe step 1",
+        "changedBy": "Admin",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:42.163Z"
+      },
+      {
+        "versionNumber": 2,
+        "title": "Updated title with [REDACTED_SECRET]34",
+        "content": "Updated instructions with [REDACTED_SECRET]34",
+        "changedBy": "Admin",
+        "changeReason": "Added config snippet",
+        "timestamp": "2026-10-30T15:48:42.164Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:42.163Z",
+    "updatedAt": "2026-10-30T15:48:42.164Z"
+  },
+  {
+    "id": "src_4ad15f2d-ec77-",
+    "familyId": "fam_test_contribute_1793375323921",
+    "tenantId": "tenant_test_1793375323921",
+    "title": "Safe Database Connection Pool Teardown",
+    "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [
+      "postgres",
+      "connection_pool",
+      "teardown"
+    ],
+    "evidence": [
+      {
+        "id": "ev_1",
+        "evidenceType": "test_result",
+        "snippet": "Zero open sockets detected post test completion across 240 test suites.",
+        "sha256Seal": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verifiedAt": "2026-10-30T15:48:43.946Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Safe Database Connection Pool Teardown",
+        "content": "Always invoke pool.end() inside afterEach hooks to avoid leaked TCP sockets.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.946Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.946Z",
+    "updatedAt": "2026-10-30T15:48:43.946Z"
+  },
+  {
+    "id": "src_c35e4f17-999a-",
+    "familyId": "fam_rel_test_1793375323923",
+    "tenantId": "tenant_rel_1793375323923",
+    "title": "Initial API Rate Limit is 100 req/s",
+    "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+    "category": "research_discovery",
+    "verificationStatus": "OUTDATED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Initial API Rate Limit is 100 req/s",
+        "content": "Documented rate limit appears to be 100 requests per second based on legacy header.",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.959Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.959Z",
+    "updatedAt": "2026-10-30T15:48:43.962Z",
+    "supersededByEntryId": "src_f58e186e-7061-"
+  },
+  {
+    "id": "src_f58e186e-7061-",
+    "familyId": "fam_rel_test_1793375323923",
+    "tenantId": "tenant_rel_1793375323923",
+    "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+    "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+    "category": "solution_procedure",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "hydra_02",
+      "name": "Hydra-02"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_c35e4f17-999a-",
+        "relationType": "SUPERSEDES",
+        "rationale": "Empirical load test invalidated legacy header claim",
+        "createdAt": "2026-10-30T15:48:43.962Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Empirical API Rate Limit is 250 req/s with Burst Allowance",
+        "content": "Fuzzing verified that token-bucket refill allows up to 250 req/s with 500 burst.",
+        "changedBy": "Hydra-02",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.961Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.961Z",
+    "updatedAt": "2026-10-30T15:48:43.962Z"
+  },
+  {
+    "id": "src_8bfc5350-c321-",
+    "familyId": "fam_rel_test_1793375323923",
+    "tenantId": "tenant_rel_1793375323923",
+    "title": "Claim: All endpoints support Bearer auth",
+    "content": "All endpoints accept Bearer tokens without exception.",
+    "category": "research_discovery",
+    "verificationStatus": "DISPUTED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Claim: All endpoints support Bearer auth",
+        "content": "All endpoints accept Bearer tokens without exception.",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.964Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.964Z",
+    "updatedAt": "2026-10-30T15:48:43.967Z"
+  },
+  {
+    "id": "src_bb5defb2-5f3b-",
+    "familyId": "fam_rel_test_1793375323923",
+    "tenantId": "tenant_rel_1793375323923",
+    "title": "Dispute: /health rejects Authorization header",
+    "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+    "category": "correction_verification",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [
+      {
+        "targetEntryId": "src_8bfc5350-c321-",
+        "relationType": "REFUTES",
+        "rationale": "Empirical test proves health endpoint rejects auth headers",
+        "createdAt": "2026-10-30T15:48:43.967Z"
+      }
+    ],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Dispute: /health rejects Authorization header",
+        "content": "Health endpoint requires anonymous access and returns 400 when auth is provided.",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.965Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.965Z",
+    "updatedAt": "2026-10-30T15:48:43.967Z"
+  },
+  {
+    "id": "src_b82ac7dd-b7e3-",
+    "familyId": "fam_user_alpha_1793375323923",
+    "tenantId": "tenant_user_alpha_1793375323923",
+    "title": "Alice Highly Confidential Finding",
+    "content": "Secret algorithmic heuristic for quantum optimization.",
+    "category": "research_discovery",
+    "verificationStatus": "UNVERIFIED",
+    "confidence": 0.85,
+    "contributor": {
+      "type": "user",
+      "id": "user_alpha_1793375323923",
+      "name": "Alice Google"
+    },
+    "tags": [],
+    "evidence": [],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Alice Highly Confidential Finding",
+        "content": "Secret algorithmic heuristic for quantum optimization.",
+        "changedBy": "Alice Google",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-30T15:48:43.973Z"
+      }
+    ],
+    "createdAt": "2026-10-30T15:48:43.973Z",
+    "updatedAt": "2026-10-30T15:48:43.973Z"
   }
 ]
