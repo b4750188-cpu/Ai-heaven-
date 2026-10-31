@@ -33,6 +33,8 @@ import { authService } from '../services/auth/authService';
 import { AuthenticatedUser } from '../types/auth';
 import { bugHuntService } from '../services/bughunt/bugHuntService';
 import { hackerOneService } from '../services/bughunt/hackerOneService';
+import { securityToolIntegrations } from '../services/bughunt/toolIntegrations';
+import { vulnerabilityBenchmarkSuite } from '../services/bughunt/vulnerabilityBenchmarkSuite';
 import { realityRegistryService } from '../services/reality/realityRegistryService';
 import { beastEngineRegistry } from '../engines/registry';
 import { autonomousRealityRepairEngine } from '../services/reality/autonomousRealityRepairEngine';
@@ -1732,6 +1734,52 @@ export function createExpressApp(): express.Express {
       const { programHandle = 'aiheaven-sandbox' } = req.body || {};
       const snapshot = await hackerOneService.captureScopeSnapshot(programHandle);
       res.json(snapshot);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Bug Hunt Benchmark & Quality Control Endpoints
+  apiRouter.post('/bughunt/benchmarks/run', (_req: Request, res: Response) => {
+    try {
+      const result = bugHuntService.runBenchmark();
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: `Benchmark run failed: ${err.message}` });
+    }
+  });
+
+  apiRouter.get('/bughunt/benchmarks/run', (_req: Request, res: Response) => {
+    try {
+      const result = bugHuntService.runBenchmark();
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: `Benchmark run failed: ${err.message}` });
+    }
+  });
+
+  apiRouter.get('/bughunt/benchmarks/latest', (_req: Request, res: Response) => {
+    try {
+      const latest = bugHuntService.getLatestBenchmark() || bugHuntService.runBenchmark();
+      res.json(latest);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/bughunt/benchmarks/cases', (_req: Request, res: Response) => {
+    try {
+      const cases = bugHuntService.getBenchmarkTestCases();
+      res.json({ count: cases.length, cases });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  apiRouter.get('/bughunt/tools', (_req: Request, res: Response) => {
+    try {
+      const tools = securityToolIntegrations.getToolStatuses();
+      res.json({ count: tools.length, tools });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

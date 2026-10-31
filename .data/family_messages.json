@@ -1326,5 +1326,1027 @@
     "acknowledgedAt": "2026-10-30T15:48:44.290Z",
     "acknowledgedBy": "vulcan_04",
     "signature": "fc6a0a5284aa0f70eb4428ce65eeb715809fb06e74c0f8bf878b27de6c9b2ad1"
+  },
+  {
+    "id": "fmsg_4f3ac3f9-efa",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "test-target.sandbox.local",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "e2ac4c5d-ed34-46f1-b667-b4fcfb6cb034",
+    "timestamp": "2026-10-31T17:31:33.290Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.290Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "867900cef3a2eefd6443abcde01b729b4174d46fca97d5f787e8032f2acacce8"
+  },
+  {
+    "id": "fmsg_d4fa5e57-c67",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "7bba2125-519b-492e-9837-92faa53dce34",
+    "timestamp": "2026-10-31T17:31:33.298Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.298Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "e06e8898edaa5f73733ea1b165edb3a16f8f20cab6a93581a30cc9c255c00cbf"
+  },
+  {
+    "id": "fmsg_ad6afc62-74c",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "7b427359-4dcd-4e44-877b-a2df5dcfb8c6",
+    "timestamp": "2026-10-31T17:31:33.302Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.302Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "eed532195a9cd6ee958808f9500a356cda6ba200c5bb30d2249d604dbd26c889"
+  },
+  {
+    "id": "fmsg_f1a1a66f-bff",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "994e0ca4-93a7-4eee-9183-a9029ef956b9",
+    "timestamp": "2026-10-31T17:31:33.307Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.307Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "ec04f81408efd2cac2ba1fe14df2941e57819759deadd74a28beb7dac1031274"
+  },
+  {
+    "id": "fmsg_c5aef142-13d",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "2d746772-65c3-4b72-9a5c-8548eb90b040",
+    "timestamp": "2026-10-31T17:31:33.335Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.335Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "b890f6e762c7e82a3b7c8c25194a70dcc1d1416582db908f90017e43490e0368"
+  },
+  {
+    "id": "fmsg_bccd2335-dec",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "886a1fce-63a8-4aa8-b109-7e1299311295",
+    "timestamp": "2026-10-31T17:31:33.340Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.340Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "08322d88bfeae54eef7bbbd847dfb8c2ac7be22d9ed6280502103baac871afed"
+  },
+  {
+    "id": "fmsg_e5155505-4c5",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "998863a6-3e49-4a52-b67b-61802cebf7d8",
+    "timestamp": "2026-10-31T17:31:33.351Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.351Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "510818ebec7472d1f3dea41727ddfff468ce4526a4c519259aa79529398a5e98"
+  },
+  {
+    "id": "fmsg_95ec6fd4-e52",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "5141d645-d7b9-4859-9b7f-92a551253135",
+    "timestamp": "2026-10-31T17:31:33.357Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:31:33.357Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "c2ab63bd4424779fa513f902486652c596ce0dcb4fcefa4effc0e27fcdf4aa69"
+  },
+  {
+    "id": "fmsg_8ceaa52c-749",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "test-target.sandbox.local",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "96c75b7a-62d9-49ac-b46f-bacfc62ffba7",
+    "timestamp": "2026-10-31T17:32:18.779Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.779Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "6698682127094e9cba86b5bb41e551ca73f7ff9310853584ff39c4ad3a27030c"
+  },
+  {
+    "id": "fmsg_7b3b5950-6e8",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "ae35ada7-a6e6-48b1-9a7c-bfc6ae0a8453",
+    "timestamp": "2026-10-31T17:32:18.786Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.786Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "0b061a7dc47ce34e3cf2807c006893a0ed3f2af5527561ab0223362e3d17593c"
+  },
+  {
+    "id": "fmsg_f117ce85-c45",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "51ef1ae6-2c60-492d-a3f4-718e66ed5f10",
+    "timestamp": "2026-10-31T17:32:18.789Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.789Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "393307f59fb9790170e24c25ce8cb99fdaeed1052ca37d668f3920663edd6160"
+  },
+  {
+    "id": "fmsg_661c72c2-b86",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "f048bffd-bdc6-44df-b589-7e246d452f09",
+    "timestamp": "2026-10-31T17:32:18.793Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.793Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "016262b9d054c0fc67168662be5aa589886cf80663157c787e50363960d92a73"
+  },
+  {
+    "id": "fmsg_c291ce44-602",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "34c9d738-c2e5-439b-9114-40680eb0636c",
+    "timestamp": "2026-10-31T17:32:18.802Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.802Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "8a6dc9d78fbcbadd39bf806e3ad47a51728726ea96c32859025ef16fdfb23a71"
+  },
+  {
+    "id": "fmsg_c6824792-9b3",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "1c884feb-ee92-4572-bdcd-137392a726b2",
+    "timestamp": "2026-10-31T17:32:18.805Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.805Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "ceaca3d7098fa112da328b9f83444ab7ad7466973a96c1f4f7c00e15c4413eae"
+  },
+  {
+    "id": "fmsg_2a74b074-259",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "d365de11-236c-425e-b67f-2e276b568f2b",
+    "timestamp": "2026-10-31T17:32:18.808Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.808Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "f265b0123cbf170534a10d1833978bc869a8c49e3573b5a7e2e060cc70096250"
+  },
+  {
+    "id": "fmsg_54a89fa6-c90",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "b3205a56-80fd-4eac-ba7a-04ad85818aad",
+    "timestamp": "2026-10-31T17:32:18.810Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:32:18.810Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "7f4b2625f3710968a8788c40bf7bc73cb42ccb6cad21085720dcbb7e7c458874"
+  },
+  {
+    "id": "fmsg_75b37f90-432",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "test-target.sandbox.local",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "b1195a5f-0f9f-4aa9-b98d-1a57d271fe05",
+    "timestamp": "2026-10-31T17:35:16.015Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.015Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "afaeba6d69b7a26bb4e2ca5cca0ed65e24be869aeaabf01f6f6028c2ce173e62"
+  },
+  {
+    "id": "fmsg_869a1afe-87b",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "ca99e084-ac65-4519-87ec-121d3c4474b9",
+    "timestamp": "2026-10-31T17:35:16.023Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.023Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "6e2d13830a7fd6c03b72537196b4722423761a38a028761be32412002a067d15"
+  },
+  {
+    "id": "fmsg_1a871180-bde",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "c30a5b18-f136-472e-b718-bb4771a3559f",
+    "timestamp": "2026-10-31T17:35:16.026Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.026Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "fd0078b6a1d46a7fd9bf3a058eda8126ba76200657c821f2d933b7b6ab5f5b1e"
+  },
+  {
+    "id": "fmsg_c1f20258-f8d",
+    "familyId": "fam_user_test_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "52607006-1f13-4ab6-a07d-a596edf25825",
+    "timestamp": "2026-10-31T17:35:16.031Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.031Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "8dc6e486a90ec7943686aab75988d7c8592068c9f919300b348c6521a9f98a54"
+  },
+  {
+    "id": "fmsg_6fe63ade-48c",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "3f716efe-77c2-48cf-9e4a-2f7eee780c28",
+    "timestamp": "2026-10-31T17:35:16.044Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.044Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "618dbe4208e0796e8cbf7fbb56ed85be17a64ef8d1b95ea91eb95f526c037ff5"
+  },
+  {
+    "id": "fmsg_1591e9ac-713",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "e881ea6e-f926-4aef-ae8b-6df89558260c",
+    "timestamp": "2026-10-31T17:35:16.046Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.046Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "253610924343082c9aee45ae6350cda87f5f977f815996cc3febd8dbe7223b3c"
+  },
+  {
+    "id": "fmsg_d84456a7-464",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "9872ae49-f090-495d-aae0-46f36cf30682",
+    "timestamp": "2026-10-31T17:35:16.050Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.050Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "6f3d0c430a0b562383fb4453388e47b4364fa4d09f3da88fe761e80f2662b7fe"
+  },
+  {
+    "id": "fmsg_03ccdc8b-689",
+    "familyId": "fam_user_alpha_01",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "cc922139-d740-438e-a512-cbfb9284c4cb",
+    "timestamp": "2026-10-31T17:35:16.053Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:16.053Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "0e729ac2893d818f8b9220ff4e9fbaabcbfcbc6c73638dd5c503484112161990"
+  },
+  {
+    "id": "fmsg_69c416b2-9f9",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "6a3c2eec-10b6-4996-829e-b2b9976294bc",
+    "timestamp": "2026-10-31T17:35:26.938Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.938Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "fc8078ce2485db826cc8cdacab340722c1170edf12958caf5733199ef7a36695"
+  },
+  {
+    "id": "fmsg_3eacc55e-16d",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "cd2bd8c2-7e09-4473-8cb2-8039f7504c48",
+    "timestamp": "2026-10-31T17:35:26.951Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.951Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "c381da0fea0eb63a36b216e1f76e9fac3885c8352d54ee09361e2be0cdcf7117"
+  },
+  {
+    "id": "fmsg_223cd607-04a",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "b89e52b9-27e7-4167-914b-3178d97c2e11",
+    "timestamp": "2026-10-31T17:35:26.957Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.957Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "41c657b5460766f4d2a62ebb4383d6c14f8b21ad1b6068029a6d792505fcb729"
+  },
+  {
+    "id": "fmsg_3aec7799-140",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "38239b56-79ba-49ae-adc3-e9890ac81824",
+    "timestamp": "2026-10-31T17:35:26.964Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.964Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "99e8260b3dfe0873552d7f70f4f2103e5b758a90074a1d75505a0075d19440e4"
+  },
+  {
+    "id": "fmsg_3c79678f-29c",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "f19c8e4c-bc05-4d64-ac97-259bb79bafa3",
+    "timestamp": "2026-10-31T17:35:26.979Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.979Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "09725e181128c966596d2fbfda2bcae768f1d97c77ed02ea929fcd3b2de50c09"
+  },
+  {
+    "id": "fmsg_2a098c71-ef5",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "476d88c7-27fb-4a59-8756-6e11a7e9dbcd",
+    "timestamp": "2026-10-31T17:35:26.981Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.981Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "dd3de93fd042ba6d9797dfe0d98e67aac4c9bc873187ceb2687395d9671ba569"
+  },
+  {
+    "id": "fmsg_5691545f-9b9",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "ddb789b1-1995-45ca-8445-2a5124197639",
+    "timestamp": "2026-10-31T17:35:26.984Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.984Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "40d1e3913bec7ebee5062b1f7734a04a352a28b22699200bb5e260ef25cbb43b"
+  },
+  {
+    "id": "fmsg_9090e43f-b69",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "368fb3e3-305c-4b0e-b2d7-6058e04ced55",
+    "timestamp": "2026-10-31T17:35:26.987Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.987Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "bfed3db8a78aeb31422a8c9504927e2501b1119126b4c24706d157302793830d"
+  },
+  {
+    "id": "fmsg_f2182daa-c43",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "ce3d9896-b61a-4a9a-ab99-ab527f00c212",
+    "timestamp": "2026-10-31T17:35:26.994Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.994Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "c199daec362bbbaaf8fdf27fab41f5b422a405b9d90c2f8055dfb0d00b4dccd5"
+  },
+  {
+    "id": "fmsg_55df2edc-45f",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "e5b30ff8-94ff-4a4b-996e-8034fb05bf39",
+    "timestamp": "2026-10-31T17:35:26.997Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:26.997Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "5400ba5ccc5de6aa0fab17c83f7a86140c712c121ca7c193355c8690e2388305"
+  },
+  {
+    "id": "fmsg_d98fe585-3a1",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "aa45edb3-75bf-4818-b879-fa90c8b5d79e",
+    "timestamp": "2026-10-31T17:35:27.000Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.000Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "befa949fd61785f82045593be71d5b1846d8527d28bdccad3319bab05884d23d"
+  },
+  {
+    "id": "fmsg_9f5d0198-978",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "7ca02f10-44e5-45e6-81b1-1a199c3f7258",
+    "timestamp": "2026-10-31T17:35:27.003Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.003Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "1593be3bf66edc4e4e10e97bc9c1d858a3e3c8c64b45ebf3b667e9c3682d1f15"
+  },
+  {
+    "id": "fmsg_3cb4e19d-fa4",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "f14297fc-c083-4239-b464-e83db8a03855",
+    "timestamp": "2026-10-31T17:35:27.551Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.551Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "34f73ba17347db2f0d399124a9eee8e729d5f309b07202470739eb754c4109ca"
+  },
+  {
+    "id": "fmsg_be247999-f30",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "fe48c558-dc0b-40cf-9d08-234481c670e2",
+    "timestamp": "2026-10-31T17:35:27.554Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.554Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "2ecc4ebab52cb17c55938fdcf3e7b26092f765714d6646317d8c80271885a2c6"
+  },
+  {
+    "id": "fmsg_54fe011e-78f",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "e2bbf986-30ba-4077-a835-88ae36d2926d",
+    "timestamp": "2026-10-31T17:35:27.557Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.557Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "c803a67b2ddb833ef3bb21735af96cb621ca1fb54cd13925f92722d3922b86bb"
+  },
+  {
+    "id": "fmsg_677efcc1-6e6",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "a403ae45-476d-42cd-86e9-6ff778b01268",
+    "timestamp": "2026-10-31T17:35:27.559Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:35:27.559Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "52f5ef1d3cbc772033ecb7d902266ae3e310ba4ec5b22eab726a2950717ebd83"
+  },
+  {
+    "id": "fmsg_b0c86d37-024",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "7153f62b-4d83-47f0-bf55-599ed66d3d71",
+    "timestamp": "2026-10-31T17:37:12.433Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.433Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "438238ed1a938458d3cf49dc95fc171c7f050a7aecf99630a799eebd209083cb"
+  },
+  {
+    "id": "fmsg_3ec9f49a-61a",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "57894be1-b73e-4933-99ed-f2ecc3a7fa51",
+    "timestamp": "2026-10-31T17:37:12.443Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.443Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "1886cd7bb50d392daa84db0a0329f162f2db2005d1d8209d816d36a25eb116a4"
+  },
+  {
+    "id": "fmsg_bd01386e-026",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "0d5e5a59-4a07-418e-b6ad-54640e611dc6",
+    "timestamp": "2026-10-31T17:37:12.447Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.447Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "5bea2419beb085898375465a7d200698e90fed708c5a5715b2233adc4d1b3980"
+  },
+  {
+    "id": "fmsg_0b255fab-73f",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "0c3bcde2-220f-491d-a714-f7ba736fdc63",
+    "timestamp": "2026-10-31T17:37:12.451Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.451Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "bd106ea8fd156744a36e4c146ff9f48ca711899a4e3030b83caae2bc9d24e357"
+  },
+  {
+    "id": "fmsg_9eb8b688-b60",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "6a9b5164-396b-4ccf-bf75-12982a951a85",
+    "timestamp": "2026-10-31T17:37:12.461Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.461Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "294728dbfb109f201c4fa836f7738aaaf2ed446b21f2203971a3b23a48d3ef43"
+  },
+  {
+    "id": "fmsg_31b12510-62c",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "8abcf345-1342-496c-848f-e64955655af5",
+    "timestamp": "2026-10-31T17:37:12.463Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.463Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "522c25cc0917ce577f71dd7e4588776b0c7219884f356529476754e47d73a140"
+  },
+  {
+    "id": "fmsg_9c7a794f-367",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "1c6e76ba-044e-4c7d-8de2-2e7a51f7f645",
+    "timestamp": "2026-10-31T17:37:12.466Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.466Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "952dd08d2286772e8065d1d08c587d6b6f759f3e7351dd5b178feeeaaba4aaa0"
+  },
+  {
+    "id": "fmsg_cb92876d-335",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "04deb402-ffc8-482e-b227-68d8ff3535c3",
+    "timestamp": "2026-10-31T17:37:12.469Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.469Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "bbef023c766e797356ec7e0ea46040d603a3d9654cfd13e49a06d937777d8ade"
+  },
+  {
+    "id": "fmsg_08a3e794-3ef",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "115f84bb-7a52-4ed9-8eae-c9a769ecc73d",
+    "timestamp": "2026-10-31T17:37:12.477Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.477Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "df601fea04f32c755e27aaa37ee4421067a9aae0c2b8a19e5f7d4e3cd257b39f"
+  },
+  {
+    "id": "fmsg_7b6b2fab-369",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "043aa643-18fe-4d1b-8856-2cb64e6a7568",
+    "timestamp": "2026-10-31T17:37:12.480Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.480Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "845f1a866e61e29c2ba935a83001683d9431a72a3c92a39186a430eb41267b53"
+  },
+  {
+    "id": "fmsg_771674a8-83c",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "2554cf1b-a66a-4f20-a80f-2b2dc37e3e52",
+    "timestamp": "2026-10-31T17:37:12.483Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.483Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "b3517e8036cf3836a8860f78eee8162d4df2241b5d761e4cb429f79145d38c0b"
+  },
+  {
+    "id": "fmsg_fb97f8bc-b4d",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "0552f7e5-1916-4116-86c6-7589ab0a9e13",
+    "timestamp": "2026-10-31T17:37:12.486Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.486Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "eb5330d58450239e9de2e2d7b81f3a17577c156f13f938453ecccf2beff8918d"
+  },
+  {
+    "id": "fmsg_c9747292-a93",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "argus_01",
+    "toDroidId": "aegis_03",
+    "messageType": "finding_contribution",
+    "subject": "Surface Map Dispatch",
+    "payload": {
+      "target": "localhost",
+      "endpoints": [
+        "/api/v1/auth",
+        "/api/v1/users",
+        "/api/v1/projects"
+      ]
+    },
+    "correlationId": "6ff74448-bda9-4fbd-8f19-5796c61daa72",
+    "timestamp": "2026-10-31T17:37:12.923Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.923Z",
+    "acknowledgedBy": "aegis_03",
+    "signature": "df8f0400e778cf49e5001ea14dc7685138936966130c05b505d41b533edf6bbe"
+  },
+  {
+    "id": "fmsg_d03a7ca1-28d",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "aegis_03",
+    "toDroidId": "vulcan_04",
+    "messageType": "finding_contribution",
+    "subject": "Weakness Vectors for Injection Testing",
+    "payload": {
+      "zapFindingsCount": 6
+    },
+    "correlationId": "52af25c2-73e6-4e93-a954-9e2d1c0fe648",
+    "timestamp": "2026-10-31T17:37:12.926Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.926Z",
+    "acknowledgedBy": "vulcan_04",
+    "signature": "88db047b3440df577268ff3027006890118c9981f8a566d11b1961c964891d6d"
+  },
+  {
+    "id": "fmsg_3674fa3f-3f0",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "vulcan_04",
+    "toDroidId": "cerberus_06",
+    "messageType": "finding_contribution",
+    "subject": "Candidate Findings for Sandbox Reproduction",
+    "payload": {
+      "candidateCount": 3
+    },
+    "correlationId": "672b5353-d479-4dda-ae23-e58ae3ee6a2f",
+    "timestamp": "2026-10-31T17:37:12.929Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.929Z",
+    "acknowledgedBy": "cerberus_06",
+    "signature": "a8814aace6b9635b0f5061e06b4435af0ad6504cac661545c71bb8a98759ba07"
+  },
+  {
+    "id": "fmsg_ed087327-633",
+    "familyId": "fam_user_default_researcher",
+    "fromDroidId": "cerberus_06",
+    "toDroidId": "hydra_02",
+    "messageType": "finding_contribution",
+    "subject": "Verified Findings for SOURCE Correlation",
+    "payload": {
+      "verifiedCount": 3
+    },
+    "correlationId": "a4f879d7-66c4-48a7-b4ff-ae325d5a6261",
+    "timestamp": "2026-10-31T17:37:12.931Z",
+    "acknowledged": true,
+    "acknowledgedAt": "2026-10-31T17:37:12.931Z",
+    "acknowledgedBy": "hydra_02",
+    "signature": "f21cd2a32e9939acb43c2d66addd15e94e3830e4825cee0b0d576ff20d69303a"
   }
 ]

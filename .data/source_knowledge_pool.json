@@ -3491,5 +3491,956 @@
     ],
     "createdAt": "2026-10-30T15:48:43.973Z",
     "updatedAt": "2026-10-30T15:48:43.973Z"
+  },
+  {
+    "id": "src_7734b3db-8c4a-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "Surface Map Dispatch",
+    "content": "Surface Map Dispatch",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01",
+      "role": "Passive Reconnaissance & Surface Mapper"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "argus_01"
+    ],
+    "evidence": [
+      {
+        "id": "evi_c4158aac",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"target\":\"test-target.sandbox.local\",\"endpoints\":[\"/api/v1/auth\",\"/api/v1/users\",\"/api/v1/projects\"]}",
+        "sha256Seal": "a9b96f848ccf030dbbbbe389da04cb021a79d683a8a429eaea45ed2de6f44692",
+        "verifiedAt": "2026-10-31T17:31:33.291Z",
+        "verifiedByDroidId": "argus_01"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Surface Map Dispatch",
+        "content": "Surface Map Dispatch",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.294Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.294Z",
+    "updatedAt": "2026-10-31T17:31:33.294Z"
+  },
+  {
+    "id": "src_1e90f7c8-5afe-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "Weakness Vectors for Injection Testing",
+    "content": "Weakness Vectors for Injection Testing",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03",
+      "role": "Identity & Authentication Bypass Auditor"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "aegis_03"
+    ],
+    "evidence": [
+      {
+        "id": "evi_fd0fdbf9",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"zapFindingsCount\":6}",
+        "sha256Seal": "f0dd28e2f7b5944dea288880d2563a97015e37723a1903294224f47ac34321e6",
+        "verifiedAt": "2026-10-31T17:31:33.299Z",
+        "verifiedByDroidId": "aegis_03"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Weakness Vectors for Injection Testing",
+        "content": "Weakness Vectors for Injection Testing",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.299Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.299Z",
+    "updatedAt": "2026-10-31T17:31:33.299Z"
+  },
+  {
+    "id": "src_a55621b9-64fe-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "Candidate Findings for Sandbox Reproduction",
+    "content": "Candidate Findings for Sandbox Reproduction",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "vulcan_04",
+      "name": "Vulcan-04",
+      "role": "Deep Injection & Logic Bug Probe"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "vulcan_04"
+    ],
+    "evidence": [
+      {
+        "id": "evi_3d488f68",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"candidateCount\":3}",
+        "sha256Seal": "a33d305cdf32e3b1d582d5373193ba588b3d2a60961a30310005e081abe24db1",
+        "verifiedAt": "2026-10-31T17:31:33.302Z",
+        "verifiedByDroidId": "vulcan_04"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Candidate Findings for Sandbox Reproduction",
+        "content": "Candidate Findings for Sandbox Reproduction",
+        "changedBy": "Vulcan-04",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.303Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.303Z",
+    "updatedAt": "2026-10-31T17:31:33.303Z"
+  },
+  {
+    "id": "src_ffca9108-1a70-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "Verified Findings for SOURCE Correlation",
+    "content": "Verified Findings for SOURCE Correlation",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06",
+      "role": "Independent PoC & Cryptographic Evidence Verifier"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "cerberus_06"
+    ],
+    "evidence": [
+      {
+        "id": "evi_13d08b6f",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"verifiedCount\":3}",
+        "sha256Seal": "7c001eeed9c3ad996e1cc05c4812b44fdf64693eb646bb0297450c251d877a7a",
+        "verifiedAt": "2026-10-31T17:31:33.307Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Verified Findings for SOURCE Correlation",
+        "content": "Verified Findings for SOURCE Correlation",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.307Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.307Z",
+    "updatedAt": "2026-10-31T17:31:33.307Z"
+  },
+  {
+    "id": "src_ed4ab183-1031-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+    "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://test-target.sandbox.local/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-942",
+      "high"
+    ],
+    "evidence": [
+      {
+        "id": "evi_142e8f0c-f",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "48a1efa2975b102e01629d6fce1d9b1047a139a0caeb63b9dc855de38d769f7b",
+        "verifiedAt": "2026-10-31T17:31:33.325Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+        "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://test-target.sandbox.local/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.325Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.325Z",
+    "updatedAt": "2026-10-31T17:31:33.325Z"
+  },
+  {
+    "id": "src_4960a7ea-d20b-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+    "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://test-target.sandbox.local/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-319",
+      "medium"
+    ],
+    "evidence": [
+      {
+        "id": "evi_02176839-e",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "61074213eb0e550d352f0fd9f75beedd5c158983e822e6ad69fb783b43830c6a",
+        "verifiedAt": "2026-10-31T17:31:33.326Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+        "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://test-target.sandbox.local/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.327Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.327Z",
+    "updatedAt": "2026-10-31T17:31:33.327Z"
+  },
+  {
+    "id": "src_4ea03a7a-8072-",
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+    "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://test-target.sandbox.local/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-209",
+      "low"
+    ],
+    "evidence": [
+      {
+        "id": "evi_2fc1f55d-4",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "1e256a63fb46873db7d4afa4cda4e53630ea6691470eee95d3d0f8ccfcc1b6c1",
+        "verifiedAt": "2026-10-31T17:31:33.328Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+        "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://test-target.sandbox.local/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.329Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.329Z",
+    "updatedAt": "2026-10-31T17:31:33.329Z"
+  },
+  {
+    "id": "src_cb2cd373-850f-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "Surface Map Dispatch",
+    "content": "Surface Map Dispatch",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01",
+      "role": "Passive Reconnaissance & Surface Mapper"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "argus_01"
+    ],
+    "evidence": [
+      {
+        "id": "evi_1834dcd8",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"target\":\"localhost\",\"endpoints\":[\"/api/v1/auth\",\"/api/v1/users\",\"/api/v1/projects\"]}",
+        "sha256Seal": "4ccccc81c47e6c149e186fa6fabb05443fdf9308096fe2bc09b912afe8c3f3a5",
+        "verifiedAt": "2026-10-31T17:31:33.335Z",
+        "verifiedByDroidId": "argus_01"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Surface Map Dispatch",
+        "content": "Surface Map Dispatch",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.336Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.336Z",
+    "updatedAt": "2026-10-31T17:31:33.336Z"
+  },
+  {
+    "id": "src_befd4509-56de-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "Weakness Vectors for Injection Testing",
+    "content": "Weakness Vectors for Injection Testing",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03",
+      "role": "Identity & Authentication Bypass Auditor"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "aegis_03"
+    ],
+    "evidence": [
+      {
+        "id": "evi_813effd7",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"zapFindingsCount\":6}",
+        "sha256Seal": "f0dd28e2f7b5944dea288880d2563a97015e37723a1903294224f47ac34321e6",
+        "verifiedAt": "2026-10-31T17:31:33.340Z",
+        "verifiedByDroidId": "aegis_03"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Weakness Vectors for Injection Testing",
+        "content": "Weakness Vectors for Injection Testing",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.340Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.340Z",
+    "updatedAt": "2026-10-31T17:31:33.340Z"
+  },
+  {
+    "id": "src_5210472c-765a-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "Candidate Findings for Sandbox Reproduction",
+    "content": "Candidate Findings for Sandbox Reproduction",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "vulcan_04",
+      "name": "Vulcan-04",
+      "role": "Deep Injection & Logic Bug Probe"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "vulcan_04"
+    ],
+    "evidence": [
+      {
+        "id": "evi_9c1cf78d",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"candidateCount\":3}",
+        "sha256Seal": "a33d305cdf32e3b1d582d5373193ba588b3d2a60961a30310005e081abe24db1",
+        "verifiedAt": "2026-10-31T17:31:33.351Z",
+        "verifiedByDroidId": "vulcan_04"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Candidate Findings for Sandbox Reproduction",
+        "content": "Candidate Findings for Sandbox Reproduction",
+        "changedBy": "Vulcan-04",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.352Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.352Z",
+    "updatedAt": "2026-10-31T17:31:33.352Z"
+  },
+  {
+    "id": "src_b6754fc7-5d87-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "Verified Findings for SOURCE Correlation",
+    "content": "Verified Findings for SOURCE Correlation",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06",
+      "role": "Independent PoC & Cryptographic Evidence Verifier"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "cerberus_06"
+    ],
+    "evidence": [
+      {
+        "id": "evi_d5ddae04",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"verifiedCount\":3}",
+        "sha256Seal": "7c001eeed9c3ad996e1cc05c4812b44fdf64693eb646bb0297450c251d877a7a",
+        "verifiedAt": "2026-10-31T17:31:33.357Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Verified Findings for SOURCE Correlation",
+        "content": "Verified Findings for SOURCE Correlation",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.357Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.357Z",
+    "updatedAt": "2026-10-31T17:31:33.357Z"
+  },
+  {
+    "id": "src_734708ce-a278-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+    "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://localhost/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-942",
+      "high"
+    ],
+    "evidence": [
+      {
+        "id": "evi_075b531e-b",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "114bf71d3c77d631591de8a2a3e51864acd871c63a34a44bbb54accd4fe5571d",
+        "verifiedAt": "2026-10-31T17:31:33.361Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+        "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://localhost/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.361Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.361Z",
+    "updatedAt": "2026-10-31T17:31:33.361Z"
+  },
+  {
+    "id": "src_eeaa85f8-ec57-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+    "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://localhost/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-319",
+      "medium"
+    ],
+    "evidence": [
+      {
+        "id": "evi_1f6835ac-2",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "7163c96e61bbaa7c74a528e8a46ebdb29bde25ae603db764dd2535fe43690e77",
+        "verifiedAt": "2026-10-31T17:31:33.362Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+        "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://localhost/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.363Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.363Z",
+    "updatedAt": "2026-10-31T17:31:33.363Z"
+  },
+  {
+    "id": "src_b905e20f-8839-",
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+    "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://localhost/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+    "category": "solution",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-209",
+      "low"
+    ],
+    "evidence": [
+      {
+        "id": "evi_c67a8c69-f",
+        "evidenceType": "log_excerpt",
+        "sha256Seal": "a8dc4a5432be4328a38f9fee45054a24da44cca92498f945f067d04222b40bb8",
+        "verifiedAt": "2026-10-31T17:31:33.364Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+        "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://localhost/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:31:33.364Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:31:33.364Z",
+    "updatedAt": "2026-10-31T17:31:33.364Z"
+  },
+  {
+    "id": "src_04a54d83-c273-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "Surface Map Dispatch",
+    "content": "Surface Map Dispatch",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "argus_01",
+      "name": "Argus-01",
+      "role": "Passive Reconnaissance & Surface Mapper"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "argus_01"
+    ],
+    "evidence": [
+      {
+        "id": "evi_16752d89",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"target\":\"localhost\",\"endpoints\":[\"/api/v1/auth\",\"/api/v1/users\",\"/api/v1/projects\"]}",
+        "sha256Seal": "4ccccc81c47e6c149e186fa6fabb05443fdf9308096fe2bc09b912afe8c3f3a5",
+        "verifiedAt": "2026-10-31T17:35:26.939Z",
+        "verifiedByDroidId": "argus_01"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Surface Map Dispatch",
+        "content": "Surface Map Dispatch",
+        "changedBy": "Argus-01",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.946Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.946Z",
+    "updatedAt": "2026-10-31T17:35:26.946Z"
+  },
+  {
+    "id": "src_32329794-c2de-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "Weakness Vectors for Injection Testing",
+    "content": "Weakness Vectors for Injection Testing",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "aegis_03",
+      "name": "Aegis-03",
+      "role": "Identity & Authentication Bypass Auditor"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "aegis_03"
+    ],
+    "evidence": [
+      {
+        "id": "evi_02316980",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"zapFindingsCount\":6}",
+        "sha256Seal": "f0dd28e2f7b5944dea288880d2563a97015e37723a1903294224f47ac34321e6",
+        "verifiedAt": "2026-10-31T17:35:26.952Z",
+        "verifiedByDroidId": "aegis_03"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Weakness Vectors for Injection Testing",
+        "content": "Weakness Vectors for Injection Testing",
+        "changedBy": "Aegis-03",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.952Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.952Z",
+    "updatedAt": "2026-10-31T17:35:26.952Z"
+  },
+  {
+    "id": "src_fca2ba06-3529-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "Candidate Findings for Sandbox Reproduction",
+    "content": "Candidate Findings for Sandbox Reproduction",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "vulcan_04",
+      "name": "Vulcan-04",
+      "role": "Deep Injection & Logic Bug Probe"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "vulcan_04"
+    ],
+    "evidence": [
+      {
+        "id": "evi_db9afdca",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"candidateCount\":3}",
+        "sha256Seal": "a33d305cdf32e3b1d582d5373193ba588b3d2a60961a30310005e081abe24db1",
+        "verifiedAt": "2026-10-31T17:35:26.958Z",
+        "verifiedByDroidId": "vulcan_04"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Candidate Findings for Sandbox Reproduction",
+        "content": "Candidate Findings for Sandbox Reproduction",
+        "changedBy": "Vulcan-04",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.958Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.958Z",
+    "updatedAt": "2026-10-31T17:35:26.958Z"
+  },
+  {
+    "id": "src_30a6d397-df2b-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "Verified Findings for SOURCE Correlation",
+    "content": "Verified Findings for SOURCE Correlation",
+    "category": "droid_experience",
+    "verificationStatus": "INFERRED",
+    "confidence": 0.88,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06",
+      "role": "Independent PoC & Cryptographic Evidence Verifier"
+    },
+    "tags": [
+      "autonomous_contribution",
+      "cerberus_06"
+    ],
+    "evidence": [
+      {
+        "id": "evi_c2a5fb9e",
+        "evidenceType": "log_excerpt",
+        "snippet": "{\"verifiedCount\":3}",
+        "sha256Seal": "7c001eeed9c3ad996e1cc05c4812b44fdf64693eb646bb0297450c251d877a7a",
+        "verifiedAt": "2026-10-31T17:35:26.964Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "Verified Findings for SOURCE Correlation",
+        "content": "Verified Findings for SOURCE Correlation",
+        "changedBy": "Cerberus-06",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.964Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.964Z",
+    "updatedAt": "2026-10-31T17:35:26.964Z"
+  },
+  {
+    "id": "src_2b8d6227-327e-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+    "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://localhost/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-942",
+      "high"
+    ],
+    "evidence": [
+      {
+        "id": "evi_8e84aaab-b",
+        "evidenceType": "test_result",
+        "uri": "hunt:hunt_90df05394fd94e22",
+        "snippet": "Reproduced in sandbox with command: curl -i -X OPTIONS \"https://localhost/api/v1/auth/session\" \\\n  -H \"Origin: https://attacker-controlled.net\" \\\n  -H \"Access-Control-Request-Method: POST\"",
+        "sha256Seal": "114bf71d3c77d631591de8a2a3e51864acd871c63a34a44bbb54accd4fe5571d",
+        "verifiedAt": "2026-10-31T17:35:26.969Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Permissive CORS Origin Reflection with Credentials Allowed",
+        "content": "Vulnerability: Permissive CORS Origin Reflection with Credentials Allowed\nCWE: CWE-942\nCVSS: 7.5\nTarget: https://localhost/api/v1/auth/session\nDescription: The API reflects arbitrary 'Origin' headers in Access-Control-Allow-Origin while simultaneously enabling Access-Control-Allow-Credentials: true. An external malicious web application can issue cross-origin credentialed XMLHttpRequest requests and read private session responses.\nRemediation: Restrict Access-Control-Allow-Origin to an explicit, authenticated whitelist of trusted origins. Never dynamically reflect untrusted Origin values when Access-Control-Allow-Credentials is set to true.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.970Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.970Z",
+    "updatedAt": "2026-10-31T17:35:26.970Z"
+  },
+  {
+    "id": "src_0ef83c1c-ee7c-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+    "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://localhost/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-319",
+      "medium"
+    ],
+    "evidence": [
+      {
+        "id": "evi_ac64c7bd-e",
+        "evidenceType": "test_result",
+        "uri": "hunt:hunt_90df05394fd94e22",
+        "snippet": "Reproduced in sandbox with command: curl -I \"https://localhost/\" | grep -i \"strict-transport-security\"",
+        "sha256Seal": "7163c96e61bbaa7c74a528e8a46ebdb29bde25ae603db764dd2535fe43690e77",
+        "verifiedAt": "2026-10-31T17:35:26.971Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Missing HTTP Strict Transport Security (HSTS) Header",
+        "content": "Vulnerability: Missing HTTP Strict Transport Security (HSTS) Header\nCWE: CWE-319\nCVSS: 5.3\nTarget: https://localhost/\nDescription: The target domain serves traffic without transmitting the Strict-Transport-Security (HSTS) response header, allowing man-in-the-middle SSL-stripping attacks on subsequent connections.\nRemediation: Add Strict-Transport-Security header: \"max-age=31536000; includeSubDomains; preload\" across all HTTPS endpoints.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.972Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.972Z",
+    "updatedAt": "2026-10-31T17:35:26.972Z"
+  },
+  {
+    "id": "src_f2936600-4284-",
+    "familyId": "fam_user_default_researcher",
+    "tenantId": "tenant_researcher_01",
+    "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+    "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://localhost/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+    "category": "solution_procedure",
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.95,
+    "contributor": {
+      "type": "droid",
+      "id": "cerberus_06",
+      "name": "Cerberus-06 (Verifier)"
+    },
+    "tags": [
+      "bughunt",
+      "vulnerability",
+      "cwe-209",
+      "low"
+    ],
+    "evidence": [
+      {
+        "id": "evi_e6156547-4",
+        "evidenceType": "test_result",
+        "uri": "hunt:hunt_90df05394fd94e22",
+        "snippet": "Reproduced in sandbox with command: curl -X POST \"https://localhost/api/v1/projects\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"malformed\": syntax_error}'",
+        "sha256Seal": "a8dc4a5432be4328a38f9fee45054a24da44cca92498f945f067d04222b40bb8",
+        "verifiedAt": "2026-10-31T17:35:26.973Z",
+        "verifiedByDroidId": "cerberus_06"
+      }
+    ],
+    "relationships": [],
+    "accessScope": "private_family",
+    "isArchived": false,
+    "versions": [
+      {
+        "versionNumber": 1,
+        "title": "[BugHunt] Information Exposure Through Debug Stack Trace in API Errors",
+        "content": "Vulnerability: Information Exposure Through Debug Stack Trace in API Errors\nCWE: CWE-209\nCVSS: 4.3\nTarget: https://localhost/api/v1/projects\nDescription: Malformed input to API endpoints returns full internal server stack traces, revealing absolute file paths (/app/node_modules/...) and library versions.\nRemediation: Implement a centralized global error handler that returns sanitized, generic error codes in production and suppresses stack traces.",
+        "changedBy": "Cerberus-06 (Verifier)",
+        "changeReason": "Initial contribution to family SOURCE pool",
+        "timestamp": "2026-10-31T17:35:26.974Z"
+      }
+    ],
+    "createdAt": "2026-10-31T17:35:26.974Z",
+    "updatedAt": "2026-10-31T17:35:26.974Z"
   }
 ]

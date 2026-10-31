@@ -2512,6 +2512,50 @@ class AIHeavenApiClient {
     return await res.json();
   }
 
+  public async runBugHuntBenchmark(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/benchmarks/run`, {
+      method: 'POST',
+      headers: this.getAuthHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Benchmark run failed');
+    return data;
+  }
+
+  public async getLatestBugHuntBenchmark(): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/bughunt/benchmarks/latest`, {
+      headers: this.getAuthHeaders({ Accept: 'application/json' })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+
+  public async getBugHuntBenchmarkTestCases(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/benchmarks/cases`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.cases || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async getBugHuntSecurityTools(): Promise<any[]> {
+    try {
+      const res = await fetch(`${this.baseUrl}/bughunt/tools`, {
+        headers: this.getAuthHeaders({ Accept: 'application/json' })
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.tools || [];
+    } catch {
+      return [];
+    }
+  }
+
   public async requestEmailVerification(email: string): Promise<any> {
     const res = await fetch(`${this.baseUrl}/auth/request-verification`, {
       method: 'POST',

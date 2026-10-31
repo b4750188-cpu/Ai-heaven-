@@ -6,27 +6,47 @@
 
 export type VulnerabilitySeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
+export type FindingConfidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'PROVISIONAL';
+
 export type FindingReviewStatus =
-  | 'SUSPECTED'
-  | 'NEEDS REVIEW'
+  | 'CONFIRMED'
   | 'VERIFIED'
+  | 'NEEDS_REVIEW'
+  | 'NEEDS REVIEW'
+  | 'UNVERIFIED'
+  | 'SUSPECTED'
+  | 'FALSE_POSITIVE'
   | 'FALSE POSITIVE'
+  | 'OUT_OF_SCOPE'
   | 'NOT REPRODUCIBLE'
   | 'BLOCKED';
 
 // Backward compatible alias
-export type EvidenceStatus = FindingReviewStatus | 'INFERRED' | 'UNVERIFIED' | 'REJECTED';
+export type EvidenceStatus = FindingReviewStatus | 'INFERRED' | 'REJECTED';
+
+export type InvestigationPhase =
+  | 'PLAN'
+  | 'DISCOVER'
+  | 'ANALYZE'
+  | 'TEST'
+  | 'VERIFY'
+  | 'CORRELATE'
+  | 'REPORT'
+  | 'LEARN';
 
 export type SecurityDroidType =
   | 'commander_droid'
   | 'recon_droid'
+  | 'discovery_droid'
   | 'research_droid'
   | 'source_code_droid'
   | 'api_fuzzer_droid'
   | 'auth_bypass_droid'
   | 'dependency_droid'
   | 'injection_droid'
+  | 'security_droid'
   | 'secrets_droid'
+  | 'intelligence_droid'
   | 'verifier_droid'
   | 'adversarial_review_droid'
   | 'remediation_droid'
@@ -108,10 +128,14 @@ export interface VulnerabilityFinding {
   cvssScore: number;
   cvssVector: string;
   severity: VulnerabilitySeverity;
+  confidence?: FindingConfidence;
   category: string;
+  vrtCategory?: string;
+  vrtId?: string;
   targetUrl: string;
   affectedComponent: string;
   description: string;
+  impact?: string;
   reproductionSteps: string[];
   curlCommand: string;
   rawRequest: string;
@@ -119,6 +143,10 @@ export interface VulnerabilityFinding {
   evidenceHash: string; // SHA-256 of payload & response evidence
   verificationStatus: FindingReviewStatus;
   verifiedByDroidId: string;
+  participatingDroids?: string[];
+  detectionTools?: string[];
+  investigationPhase?: InvestigationPhase;
+  sourceKnowledgeId?: string;
   remediation: string;
   falsePositiveReviewNotes?: string;
   isDataRedacted: boolean;
@@ -163,6 +191,7 @@ export interface BugHuntJob {
   completedAt?: string;
   cancellationReason?: string;
   resumedFromPhase?: string;
+  investigationPlan?: InvestigationPlan;
 }
 
 export interface UserBugHuntWorkspace {
@@ -177,4 +206,71 @@ export interface UserBugHuntWorkspace {
   recentHunts: BugHuntJob[];
   authorizedPrograms: SecurityProgram[];
   toolConfigs: Record<string, { enabled: boolean; maxThreads: number; timeoutMs: number }>;
+  latestBenchmark?: BugHuntBenchmarkResult;
+}
+
+export interface InvestigationPhasePlan {
+  phase: InvestigationPhase;
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped';
+  assignedDroid: string;
+  toolsUsed?: string[];
+  durationMs?: number;
+  actions: string[];
+  outputSummary?: string;
+}
+
+export interface InvestigationPlan {
+  id: string;
+  huntId: string;
+  target: string;
+  currentPhase?: string;
+  phases: InvestigationPhasePlan[];
+  adaptiveAdjustments: string[];
+  requiresHumanApproval: boolean;
+  approvalGranted?: boolean;
+  createdAt: string;
+}
+
+export interface BenchmarkTestCase {
+  id: string;
+  title: string;
+  category: string;
+  targetType: string;
+  inputPayload: string;
+  expectedVulnerability: boolean;
+  expectedCweId?: string;
+  expectedSeverity?: VulnerabilitySeverity;
+  description: string;
+}
+
+export interface BugHuntBenchmarkResult {
+  id: string;
+  timestamp: string;
+  totalTestCases: number;
+  truePositives: number;
+  falsePositives: number;
+  falseNegatives: number;
+  trueNegatives: number;
+  vulnerabilityDetectionRate: number; // TP / (TP + FN)
+  precision: number; // TP / (TP + FP)
+  falsePositiveRate: number; // FP / (FP + TN)
+  falseNegativeRate: number; // FN / (TP + FN)
+  verificationSuccessRate: number; // Verified / Total TP
+  duplicateDetectionRate: number;
+  investigationCompletionRate: number;
+  averageDetectionTimeMs: number;
+  coverageByCategory: Record<string, { total: number; detected: number; rate: number }>;
+  sha256ProofSeal: string;
+}
+
+export interface SecurityToolStatus {
+  id: 'semgrep' | 'codeql' | 'zap' | 'nmap' | 'trivy' | 'gitleaks' | 'vrt';
+  name: string;
+  category: string;
+  operationalState: 'READY' | 'ADAPTER_ACTIVE' | 'INTEGRATED' | 'SERVICE_REQUIRED' | 'NOT_INSTALLED';
+  version: string;
+  isAvailable: boolean;
+  description: string;
+  capabilities: string[];
+  ruleCount?: number;
 }

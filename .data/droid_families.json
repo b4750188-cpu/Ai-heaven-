@@ -679,7 +679,7 @@
           "maxExecutionTimeSec": 180
         },
         "currentObjective": "Awaiting recon target",
-        "lastActiveAt": "2026-10-30T15:48:44.290Z"
+        "lastActiveAt": "2026-10-31T17:37:12.923Z"
       },
       {
         "droidId": "hydra_02",
@@ -719,7 +719,7 @@
           "maxExecutionTimeSec": 240
         },
         "currentObjective": "OAuth and JWT auditing standby",
-        "lastActiveAt": "2026-10-28T18:15:24.336Z"
+        "lastActiveAt": "2026-10-31T17:37:12.926Z"
       },
       {
         "droidId": "vulcan_04",
@@ -739,7 +739,7 @@
           "maxExecutionTimeSec": 300
         },
         "currentObjective": "Safe injection probing standby",
-        "lastActiveAt": "2026-10-28T18:15:24.336Z"
+        "lastActiveAt": "2026-10-31T17:37:12.929Z"
       },
       {
         "droidId": "specter_05",
@@ -779,7 +779,7 @@
           "maxExecutionTimeSec": 240
         },
         "currentObjective": "Evidence seal reproduction ready",
-        "lastActiveAt": "2026-10-28T18:15:24.336Z"
+        "lastActiveAt": "2026-10-31T17:37:12.931Z"
       },
       {
         "droidId": "daedalus_07",
@@ -823,13 +823,13 @@
       }
     ],
     "stats": {
-      "totalKnowledgeEntries": 2,
+      "totalKnowledgeEntries": 34,
       "verifiedEntriesCount": 0,
       "tasksCoordinatedCount": 0,
-      "messagesExchangedCount": 8
+      "messagesExchangedCount": 40
     },
     "createdAt": "2026-10-28T18:15:24.336Z",
-    "updatedAt": "2026-10-30T15:48:44.290Z"
+    "updatedAt": "2026-10-31T17:37:12.931Z"
   },
   {
     "familyId": "fam_user_comm_1793211358860",
@@ -6462,5 +6462,477 @@
     },
     "createdAt": "2026-10-30T15:48:43.970Z",
     "updatedAt": "2026-10-30T15:48:43.970Z"
+  },
+  {
+    "familyId": "fam_user_test_01",
+    "tenantId": "tenant_intel_upgrade_test",
+    "ownerUserId": "user_test_01",
+    "ownerEmail": "user_test_01@aiheaven.local",
+    "familyName": "user_test_01's Droid Family",
+    "centralBrainContext": {
+      "brainId": "brain_user_test_01",
+      "persona": "Adaptive Chief Architect & Family Orchestrator",
+      "activeDirectives": [
+        "Enforce strict least privilege on all tool invocations.",
+        "Always query SOURCE before starting novel tasks.",
+        "Require cryptographic SHA-256 evidence for all VERIFIED claims."
+      ],
+      "activeModelId": "gemini-2.5-pro"
+    },
+    "members": [
+      {
+        "droidId": "central_brain_00",
+        "name": "Central Brain-00",
+        "codename": "ARCHITECT_PRIME",
+        "role": "Autonomous Orchestrator & Task Decomposer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_swarm_dispatch",
+          "tool_dag_planner",
+          "tool_kill_switch",
+          "tool_source_search",
+          "tool_geoint_query",
+          "tool_geoint_correlate"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 600
+        },
+        "currentObjective": "Active Orchestration Ready",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      },
+      {
+        "droidId": "argus_01",
+        "name": "Argus-01",
+        "codename": "WATCHER_CORE",
+        "role": "Passive Reconnaissance & Surface Mapper",
+        "status": "idle",
+        "allowedTools": [
+          "tool_dns_resolve",
+          "tool_cert_stream",
+          "tool_http_probe",
+          "tool_geoint_query",
+          "tool_geoint_aircraft",
+          "tool_geoint_seismic"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 180
+        },
+        "currentObjective": "Awaiting recon target",
+        "lastActiveAt": "2026-10-31T17:35:16.015Z"
+      },
+      {
+        "droidId": "hydra_02",
+        "name": "Hydra-02",
+        "codename": "BOLA_FALCON",
+        "role": "REST & GraphQL Authorization Fuzzer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_http_fuzz",
+          "tool_graphql_inspect",
+          "tool_token_rotate"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 300
+        },
+        "currentObjective": "API authorization fuzzing ready",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      },
+      {
+        "droidId": "aegis_03",
+        "name": "Aegis-03",
+        "codename": "AUTH_SENTINEL",
+        "role": "Identity & Authentication Bypass Auditor",
+        "status": "idle",
+        "allowedTools": [
+          "tool_oauth_trace",
+          "tool_jwt_forge_test",
+          "tool_cookie_analyzer"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "OAuth and JWT auditing standby",
+        "lastActiveAt": "2026-10-31T17:35:16.023Z"
+      },
+      {
+        "droidId": "vulcan_04",
+        "name": "Vulcan-04",
+        "codename": "SYNTAX_BREAKER",
+        "role": "Deep Injection & Logic Bug Probe",
+        "status": "idle",
+        "allowedTools": [
+          "tool_sqli_probe",
+          "tool_ssti_verify",
+          "tool_safe_payload_engine"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 300
+        },
+        "currentObjective": "Safe injection probing standby",
+        "lastActiveAt": "2026-10-31T17:35:16.026Z"
+      },
+      {
+        "droidId": "specter_05",
+        "name": "Specter-05",
+        "codename": "VAULT_HARVESTER",
+        "role": "Credential & Source Leak Detector",
+        "status": "idle",
+        "allowedTools": [
+          "tool_git_dumper",
+          "tool_entropy_scanner",
+          "tool_credential_verifier"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 200
+        },
+        "currentObjective": "Public git and env scan standby",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      },
+      {
+        "droidId": "cerberus_06",
+        "name": "Cerberus-06",
+        "codename": "EVIDENCE_LOCK",
+        "role": "Independent PoC & Cryptographic Evidence Verifier",
+        "status": "idle",
+        "allowedTools": [
+          "tool_isolated_curl",
+          "tool_sha256_hasher",
+          "tool_cvss_calculator"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "Evidence seal reproduction ready",
+        "lastActiveAt": "2026-10-31T17:35:16.031Z"
+      },
+      {
+        "droidId": "daedalus_07",
+        "name": "Daedalus-07",
+        "codename": "HEURISTIC_FORGE",
+        "role": "Remediation & Secure Patch Synthesizer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_ast_patch",
+          "tool_regression_harness",
+          "tool_diff_generator"
+        ],
+        "permissions": {
+          "networkAccess": false,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 180
+        },
+        "currentObjective": "Automated patch synthesis ready",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      },
+      {
+        "droidId": "athena_08",
+        "name": "Athena-08",
+        "codename": "AEGIS_COUNCIL",
+        "role": "Threat Intelligence & Policy Auditor",
+        "status": "idle",
+        "allowedTools": [
+          "tool_cwe_registry",
+          "tool_threat_feed",
+          "tool_policy_evaluator"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "read_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 120
+        },
+        "currentObjective": "Policy compliance evaluation ready",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      },
+      {
+        "droidId": "horus_09",
+        "name": "Horus-09",
+        "codename": "EYE_OF_RA",
+        "role": "Global Situational Awareness & GEOINT Specialist",
+        "status": "idle",
+        "allowedTools": [
+          "tool_geoint_aircraft",
+          "tool_geoint_seismic",
+          "tool_geoint_maritime",
+          "tool_geoint_satellites",
+          "tool_geoint_environmental",
+          "tool_source_deposit"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "Global telemetry and spatial reconnaissance standby",
+        "lastActiveAt": "2026-10-31T17:31:33.285Z"
+      }
+    ],
+    "stats": {
+      "totalKnowledgeEntries": 12,
+      "verifiedEntriesCount": 0,
+      "tasksCoordinatedCount": 0,
+      "messagesExchangedCount": 12
+    },
+    "createdAt": "2026-10-31T17:31:33.285Z",
+    "updatedAt": "2026-10-31T17:35:16.031Z"
+  },
+  {
+    "familyId": "fam_user_alpha_01",
+    "tenantId": "tenant_security_alpha",
+    "ownerUserId": "user_alpha_01",
+    "ownerEmail": "user_alpha_01@aiheaven.local",
+    "familyName": "user_alpha_01's Droid Family",
+    "centralBrainContext": {
+      "brainId": "brain_user_alpha_01",
+      "persona": "Adaptive Chief Architect & Family Orchestrator",
+      "activeDirectives": [
+        "Enforce strict least privilege on all tool invocations.",
+        "Always query SOURCE before starting novel tasks.",
+        "Require cryptographic SHA-256 evidence for all VERIFIED claims."
+      ],
+      "activeModelId": "gemini-2.5-pro"
+    },
+    "members": [
+      {
+        "droidId": "central_brain_00",
+        "name": "Central Brain-00",
+        "codename": "ARCHITECT_PRIME",
+        "role": "Autonomous Orchestrator & Task Decomposer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_swarm_dispatch",
+          "tool_dag_planner",
+          "tool_kill_switch",
+          "tool_source_search",
+          "tool_geoint_query",
+          "tool_geoint_correlate"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 600
+        },
+        "currentObjective": "Active Orchestration Ready",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      },
+      {
+        "droidId": "argus_01",
+        "name": "Argus-01",
+        "codename": "WATCHER_CORE",
+        "role": "Passive Reconnaissance & Surface Mapper",
+        "status": "idle",
+        "allowedTools": [
+          "tool_dns_resolve",
+          "tool_cert_stream",
+          "tool_http_probe",
+          "tool_geoint_query",
+          "tool_geoint_aircraft",
+          "tool_geoint_seismic"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 180
+        },
+        "currentObjective": "Awaiting recon target",
+        "lastActiveAt": "2026-10-31T17:35:16.044Z"
+      },
+      {
+        "droidId": "hydra_02",
+        "name": "Hydra-02",
+        "codename": "BOLA_FALCON",
+        "role": "REST & GraphQL Authorization Fuzzer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_http_fuzz",
+          "tool_graphql_inspect",
+          "tool_token_rotate"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 300
+        },
+        "currentObjective": "API authorization fuzzing ready",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      },
+      {
+        "droidId": "aegis_03",
+        "name": "Aegis-03",
+        "codename": "AUTH_SENTINEL",
+        "role": "Identity & Authentication Bypass Auditor",
+        "status": "idle",
+        "allowedTools": [
+          "tool_oauth_trace",
+          "tool_jwt_forge_test",
+          "tool_cookie_analyzer"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "OAuth and JWT auditing standby",
+        "lastActiveAt": "2026-10-31T17:35:16.046Z"
+      },
+      {
+        "droidId": "vulcan_04",
+        "name": "Vulcan-04",
+        "codename": "SYNTAX_BREAKER",
+        "role": "Deep Injection & Logic Bug Probe",
+        "status": "idle",
+        "allowedTools": [
+          "tool_sqli_probe",
+          "tool_ssti_verify",
+          "tool_safe_payload_engine"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 300
+        },
+        "currentObjective": "Safe injection probing standby",
+        "lastActiveAt": "2026-10-31T17:35:16.050Z"
+      },
+      {
+        "droidId": "specter_05",
+        "name": "Specter-05",
+        "codename": "VAULT_HARVESTER",
+        "role": "Credential & Source Leak Detector",
+        "status": "idle",
+        "allowedTools": [
+          "tool_git_dumper",
+          "tool_entropy_scanner",
+          "tool_credential_verifier"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 200
+        },
+        "currentObjective": "Public git and env scan standby",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      },
+      {
+        "droidId": "cerberus_06",
+        "name": "Cerberus-06",
+        "codename": "EVIDENCE_LOCK",
+        "role": "Independent PoC & Cryptographic Evidence Verifier",
+        "status": "idle",
+        "allowedTools": [
+          "tool_isolated_curl",
+          "tool_sha256_hasher",
+          "tool_cvss_calculator"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "Evidence seal reproduction ready",
+        "lastActiveAt": "2026-10-31T17:35:16.053Z"
+      },
+      {
+        "droidId": "daedalus_07",
+        "name": "Daedalus-07",
+        "codename": "HEURISTIC_FORGE",
+        "role": "Remediation & Secure Patch Synthesizer",
+        "status": "idle",
+        "allowedTools": [
+          "tool_ast_patch",
+          "tool_regression_harness",
+          "tool_diff_generator"
+        ],
+        "permissions": {
+          "networkAccess": false,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": true,
+          "maxExecutionTimeSec": 180
+        },
+        "currentObjective": "Automated patch synthesis ready",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      },
+      {
+        "droidId": "athena_08",
+        "name": "Athena-08",
+        "codename": "AEGIS_COUNCIL",
+        "role": "Threat Intelligence & Policy Auditor",
+        "status": "idle",
+        "allowedTools": [
+          "tool_cwe_registry",
+          "tool_threat_feed",
+          "tool_policy_evaluator"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "read_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 120
+        },
+        "currentObjective": "Policy compliance evaluation ready",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      },
+      {
+        "droidId": "horus_09",
+        "name": "Horus-09",
+        "codename": "EYE_OF_RA",
+        "role": "Global Situational Awareness & GEOINT Specialist",
+        "status": "idle",
+        "allowedTools": [
+          "tool_geoint_aircraft",
+          "tool_geoint_seismic",
+          "tool_geoint_maritime",
+          "tool_geoint_satellites",
+          "tool_geoint_environmental",
+          "tool_source_deposit"
+        ],
+        "permissions": {
+          "networkAccess": true,
+          "filesystemScope": "workspace_only",
+          "requiresApprovalForDestructive": false,
+          "maxExecutionTimeSec": 240
+        },
+        "currentObjective": "Global telemetry and spatial reconnaissance standby",
+        "lastActiveAt": "2026-10-31T17:31:33.333Z"
+      }
+    ],
+    "stats": {
+      "totalKnowledgeEntries": 12,
+      "verifiedEntriesCount": 0,
+      "tasksCoordinatedCount": 0,
+      "messagesExchangedCount": 12
+    },
+    "createdAt": "2026-10-31T17:31:33.333Z",
+    "updatedAt": "2026-10-31T17:35:16.053Z"
   }
 ]

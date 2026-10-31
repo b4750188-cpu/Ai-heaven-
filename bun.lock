@@ -20,6 +20,7 @@
         "pg": "^8.23.1",
         "react": "^19.0.1",
         "react-dom": "^19.0.1",
+        "satellite.js": "^7.1.0",
         "three": "^0.186.1",
         "vite": "^8.3.0",
       },
@@ -506,6 +507,8 @@
     "safe-buffer": ["safe-buffer@5.2.1", "", {}, ""],
 
     "safer-buffer": ["safer-buffer@2.1.2", "", {}, ""],
+
+    "satellite.js": ["satellite.js@7.1.0", "", {}, "sha512-U6nRml9Nb7dV9LJPiMNPyna7U7ry+1nXYkOeCEG7K/YbojQQLHHmcjPisp03VNY+HLcbQHqbt7t4t1vQMaKCLQ=="],
 
     "sax": ["sax@1.6.1", "", {}, "sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q=="],
 
