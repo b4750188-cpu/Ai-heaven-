@@ -177,9 +177,13 @@ export class SourceKnowledgeService {
     const familyEntries = this.listEntriesForFamily(params.familyId);
     for (const existing of familyEntries) {
       if (!existing.isArchived) {
+        const isSameEntity = Boolean(
+          params.metadata?.entityId &&
+          existing.metadata?.entityId &&
+          existing.metadata.entityId === params.metadata.entityId
+        );
         const similarity = knowledgeSanitizer.computeSimilarity(existing.content, sanitization.redactedContent);
-        if (similarity > 0.88 && existing.title.toLowerCase() === params.title.trim().toLowerCase()) {
-          // Exact or near-identical duplicate exists
+        if (isSameEntity || (similarity > 0.85 && existing.title.toLowerCase() === params.title.trim().toLowerCase())) {
           return {
             success: true,
             entry: existing,
@@ -554,6 +558,28 @@ export class SourceKnowledgeService {
       verifiedEntries: verified,
       disputedEntries: disputed,
       categories
+    };
+  }
+
+  public getGlobalStats(): {
+    totalEntries: number;
+    verifiedEntries: number;
+    disputedEntries: number;
+  } {
+    let verified = 0;
+    let disputed = 0;
+    let active = 0;
+    for (const e of this.entries.values()) {
+      if (!e.isArchived) {
+        active++;
+        if (e.verificationStatus === 'VERIFIED') verified++;
+        if (e.verificationStatus === 'DISPUTED') disputed++;
+      }
+    }
+    return {
+      totalEntries: active,
+      verifiedEntries: verified,
+      disputedEntries: disputed
     };
   }
 }

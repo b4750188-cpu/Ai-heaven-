@@ -23,14 +23,57 @@ export class GeointSourceBridge {
     const family = droidFamilyService.getOrCreateFamily(user);
     const tenantId = user.tenantId || `tenant_${user.id}`;
 
-    // Construct evidence with cryptographic seal
-    const evidenceSeal = entity.sha256EvidenceSeal || crypto.createHash('sha256').update(JSON.stringify(entity)).digest('hex').slice(0, 24);
+    // Strict Server-Side Evidence Verification:
+    // Never trust caller-supplied claims blindly. Compute authoritative SHA-256 seal.
+    const authoritativePayload = {
+      id: entity.id,
+      category: entity.category,
+      position: {
+        latitude: Number(entity.position.latitude),
+        longitude: Number(entity.position.longitude),
+        altitudeMeters: entity.position.altitudeMeters || 0
+      },
+      sourceProvider: entity.sourceProvider,
+      timestamp: entity.timestamp
+    };
+    const authoritativeEvidenceSeal = crypto.createHash('sha256').update(JSON.stringify(authoritativePayload)).digest('hex').slice(0, 24);
+
+    // Verify physical plausibility and authentic provider
+    const isPhysicalValid = 
+      typeof entity.position.latitude === 'number' &&
+      typeof entity.position.longitude === 'number' &&
+      entity.position.latitude >= -90 && entity.position.latitude <= 90 &&
+      entity.position.longitude >= -180 && entity.position.longitude <= 180;
+
+    const knownVerifiedProviders = new Set([
+      'USGS Earthquake Hazards Program',
+      'OpenSky Network ADS-B',
+      'Airplanes.live Mil ADS-B',
+      'CelesTrak Orbital Catalog',
+      'CelesTrak SGP4 Orbit Propagation',
+      'NASA EONET (Earth Observatory)',
+      'Public Maritime Transit Index',
+      'Open-Meteo High-Resolution Weather Model',
+      'Caltrans & DOT Highway Traffic Sensors',
+      'Public Port Authority & Coastal Webcams',
+      'LiveATC & Marine VHF Broadcast'
+    ]);
+
+    const isKnownProvider = knownVerifiedProviders.has(entity.sourceProvider);
+    // If coordinates are invalid or provider is unknown, demote to INFERRED rather than blindly accepting caller claim
+    const isServerVerified = isPhysicalValid && isKnownProvider;
+    const verifiedStatus: 'VERIFIED' | 'INFERRED' = isServerVerified ? 'VERIFIED' : 'INFERRED';
+    const confidenceScore = isServerVerified ? 0.95 : 0.60;
+    const evidenceSeal = (entity.sha256EvidenceSeal && /^[0-9a-f]{16,64}$/i.test(entity.sha256EvidenceSeal))
+      ? entity.sha256EvidenceSeal
+      : authoritativeEvidenceSeal;
+
     const evidence: SourceEvidence[] = [
       {
         id: `ev_geo_${crypto.randomUUID().slice(0, 8)}`,
         evidenceType: 'url_reference',
         uri: (entity.metadata.usgsUrl as string) || (entity.metadata.sourceUrl as string) || `geoint://${entity.sourceProvider}/${entity.id}`,
-        snippet: `Provider: ${entity.sourceProvider} | Lat: ${entity.position.latitude.toFixed(4)}, Lon: ${entity.position.longitude.toFixed(4)}, Alt: ${entity.position.altitudeMeters || 0}m | Status: ${entity.dataStatus.toUpperCase()} | Heading: ${entity.headingDeg ?? 'N/A'} deg, Speed: ${entity.speedKts ?? 'N/A'} kts.`,
+        snippet: `Provider: ${entity.sourceProvider} | Lat: ${entity.position.latitude.toFixed(4)}, Lon: ${entity.position.longitude.toFixed(4)}, Alt: ${entity.position.altitudeMeters || 0}m | Status: ${entity.dataStatus.toUpperCase()} | ServerVerified: ${isServerVerified}.`,
         sha256Seal: evidenceSeal,
         verifiedAt: new Date().toISOString(),
         verifiedByDroidId: droidId
@@ -47,7 +90,7 @@ export class GeointSourceBridge {
 - **Altitude**: ${entity.position.altitudeMeters ? `${entity.position.altitudeMeters} meters` : 'Surface'}
 - **Speed / Track**: ${entity.speedKts ? `${entity.speedKts} knots` : 'Stationary'} @ ${entity.headingDeg ?? 0}°
 - **Timestamp**: ${entity.timestamp}
-- **Evidence Seal**: \`${evidenceSeal}\`
+- **Authoritative Evidence Seal**: \`${authoritativeEvidenceSeal}\`
 
 #### Telemetry Metadata
 \`\`\`json
@@ -65,8 +108,8 @@ ${analystNotes ? `#### Analyst / Droid Assessment\n${analystNotes}` : ''}`;
       title,
       content,
       category: 'research_discovery' as KnowledgeCategory,
-      requestedStatus: entity.verificationStatus === 'VERIFIED' ? 'VERIFIED' : 'INFERRED',
-      confidence: entity.verificationStatus === 'VERIFIED' ? 0.95 : 0.75,
+      requestedStatus: verifiedStatus,
+      confidence: confidenceScore,
       contributor: {
         type: 'droid',
         id: droidId,

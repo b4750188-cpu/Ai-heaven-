@@ -7,6 +7,16 @@ coverage/
 .env*
 !.env.example
 
+# Runtime stores and sensitive data directories
+.data/
+.data
+*.sqlite
+*.db
+data/test-*.json
+data/*_session*.json
+data/*_auth*.json
+data/*_token*.json
+
 # Android build outputs and sensitive signing keys
 android/.gradle/
 android/app/build/

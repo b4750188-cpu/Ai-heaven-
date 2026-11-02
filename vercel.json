@@ -35,6 +35,10 @@
       "destination": "/api/index.ts"
     },
     {
+      "source": "/.data(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
       "source": "/(.*).sql",
       "destination": "/api/index.ts"
     },

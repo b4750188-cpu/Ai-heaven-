@@ -164,6 +164,28 @@ export class JCodeEngine implements IUnifiedBeastEngine {
     }
   }
 
+  public generateDiff(
+    oldContent: string,
+    newContent: string,
+    targetPath?: string
+  ): { diff: string; hunksCount: number; stats: { insertions: number; deletions: number } } {
+    if (oldContent === newContent) {
+      return { diff: '', hunksCount: 0, stats: { insertions: 0, deletions: 0 } };
+    }
+    const pathLabel = targetPath || 'file';
+    const oldLines = oldContent.split('\n');
+    const newLines = newContent.split('\n');
+    const diff = `--- a/${pathLabel}\n+++ b/${pathLabel}\n@@ -1,${oldLines.length} +1,${newLines.length} @@\n${oldLines.map(l => `-${l}`).join('\n')}\n${newLines.map(l => `+${l}`).join('\n')}\n`;
+    return {
+      diff,
+      hunksCount: 1,
+      stats: {
+        insertions: newLines.length,
+        deletions: oldLines.length
+      }
+    };
+  }
+
   public async cancelTask(taskId: string): Promise<boolean> {
     if (this.activeTasks.has(taskId)) {
       this.activeTasks.delete(taskId);

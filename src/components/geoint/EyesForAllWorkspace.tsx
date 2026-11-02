@@ -59,7 +59,10 @@ export const EyesForAllWorkspace: React.FC<EyesForAllWorkspaceProps> = ({
     earthquake: true,
     wildfire: true,
     maritime: true,
-    severe_weather: true
+    severe_weather: true,
+    public_camera: true,
+    radio_stream: true,
+    traffic_flow: true
   });
 
   // UI & HUD States

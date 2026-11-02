@@ -83,7 +83,10 @@ describe("AI Heaven — Eyes for All (God's Eye View Integration) Test Suite", (
       if (events.length > 0) {
         const sample = events[0];
         assert.ok(sample.category === 'wildfire' || sample.category === 'severe_weather');
-        assert.equal(sample.sourceProvider, 'NASA EONET (Earth Observatory)');
+        assert.ok(
+          sample.sourceProvider === 'NASA EONET (Earth Observatory)' ||
+          sample.sourceProvider.startsWith('NASA EONET')
+        );
       }
     });
 

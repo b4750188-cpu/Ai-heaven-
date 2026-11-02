@@ -287,6 +287,13 @@ export class AgentSwarmEngine implements IAgentSwarmEngine {
       completedAt
     };
   }
+
+  public getStatus(): { activeAgentsCount: number; registeredRoles: string[] } {
+    return {
+      activeAgentsCount: this.agents.size,
+      registeredRoles: Array.from(new Set(Array.from(this.agents.values()).map(a => a.role)))
+    };
+  }
 }
 
 export const agentSwarmEngine = new AgentSwarmEngine();

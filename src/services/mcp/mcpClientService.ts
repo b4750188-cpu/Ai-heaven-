@@ -521,6 +521,10 @@ export class MCPClientService {
       receipt
     };
   }
+
+  public getAvailableServers(): MCPServerConfig[] {
+    return this.getServers().filter(s => s.isAvailable);
+  }
 }
 
 export const mcpClientService = new MCPClientService();

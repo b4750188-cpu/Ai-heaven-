@@ -268,6 +268,14 @@ export class OpenWOPAdapter implements IOpenWOPAdapter {
   public async getEvents(runId: string): Promise<OpenWOPEvent[]> {
     return this.events.get(runId) || [];
   }
+
+  public listRuns(tenantId?: string): OpenWOPRunRecord[] {
+    const all = Array.from(this.runs.values());
+    if (tenantId && tenantId !== 'tenant_default') {
+      return all.filter(r => r.tenantId === tenantId);
+    }
+    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
 }
 
 export const openwopAdapter = new OpenWOPAdapter();

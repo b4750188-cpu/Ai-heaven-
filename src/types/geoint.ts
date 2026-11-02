@@ -1,7 +1,18 @@
 /**
  * AI HEAVEN — Eyes for All: World Intelligence & Situational Awareness Contracts
  * Upstream Reference: God's Eye View (https://github.com/bilawalsidhu/gods-eye-view)
- * License Compatibility: MIT / Apache-2.0 Clean-Room Architecture
+ * License Compatibility: MIT Clean-Room Native Integration
+ * 
+ * Supports:
+ * - 3D Globe with photorealistic Blue Marble / Tactical / Terrain / Graticule views
+ * - Comprehensive live telemetry: Aircraft, Maritime, Satellites, Earthquakes, Fires, Weather,
+ *   Public Webcams, Radio ATC/VHF, Urban Traffic Congestion
+ * - Click-to-track & lock-on camera targeting with distance matrix & nearby contacts
+ * - Cockpit mode with first-person perspective and flight instrument HUD
+ * - FLIR Thermal IR, NVG Night Vision, Amber CRT, and Tactical Vector shader optical filters
+ * - Voice commands interface for hands-free situational navigation
+ * - Geospatial annotations, great-circle waypoint route planning, and sensor viewsheds
+ * - Scene Director with timeline keyframe bookmarks and shareable scene JSON exports
  */
 
 export type GeointCategory =
@@ -10,7 +21,10 @@ export type GeointCategory =
   | 'satellite'
   | 'earthquake'
   | 'wildfire'
-  | 'severe_weather';
+  | 'severe_weather'
+  | 'public_camera'
+  | 'radio_stream'
+  | 'traffic_flow';
 
 export type GeointDataStatus =
   | 'live'        // Real-time or near real-time feed (< 5 min latency)
@@ -19,9 +33,9 @@ export type GeointDataStatus =
   | 'historical'; // Archived/retrospective observation
 
 export type GeointVerificationStatus =
-  | 'VERIFIED'    // Formally validated against official authoritative feed (USGS, OpenSky, CelesTrak, NASA)
+  | 'VERIFIED'    // Formally validated against official authoritative feed (USGS, OpenSky, CelesTrak, NASA, Open-Meteo)
   | 'UNVERIFIED'  // Raw observation pending multi-source validation
-  | 'CORRELATED';  // Linked with known AI Heaven infrastructure, targets, or security incidents
+  | 'CORRELATED'; // Linked with known AI Heaven infrastructure, targets, or security incidents
 
 export interface GeoPoint {
   latitude: number;   // -90 to +90
@@ -39,10 +53,29 @@ export interface GeointEntity {
   speedKts?: number;        // Ground speed in knots
   verticalRateFpm?: number; // Feet per minute
   timestamp: string;        // ISO 8601
-  sourceProvider: string;   // 'USGS' | 'OpenSky' | 'CelesTrak' | 'NASA_EONET' | 'OpenMeteo' | 'AIS_Open'
+  sourceProvider: string;   // 'USGS' | 'OpenSky' | 'CelesTrak' | 'NASA_EONET' | 'OpenMeteo' | 'AIS_Open' | 'LiveTraffic' | 'PublicCam' | 'VHF_ATC'
   dataStatus: GeointDataStatus;
   verificationStatus: GeointVerificationStatus;
   sha256EvidenceSeal: string;
+  military?: boolean;
+  squawk?: string;
+  viewshed?: {
+    fovDeg: number;
+    rangeKm: number;
+    azimuthDeg: number;
+  };
+  streamUrl?: string;
+  cockpitCapable?: boolean;
+  audioFrequencyMhz?: number;
+  trafficCongestionLevel?: 'light' | 'moderate' | 'heavy' | 'gridlock';
+  weatherConditions?: {
+    temperatureC: number;
+    windKts: number;
+    windHeadingDeg: number;
+    visibilityKm: number;
+    precipitationMm: number;
+    barometricHpa: number;
+  };
   metadata: Record<string, unknown>;
 }
 
@@ -71,6 +104,7 @@ export interface GeointQueryFilter {
   };
   minMagnitude?: number; // For earthquakes (e.g. 2.5)
   limit?: number;        // Default 100, max 500
+  militaryOnly?: boolean;
 }
 
 export interface SatellitePassPrediction {
@@ -111,4 +145,116 @@ export interface GeointInvestigationReport {
   summary: string;
   timestamp: string;
   analystDroidId: string;
+}
+
+// -----------------------------------------------------------------------------
+// GOD'S EYE VIEW ADVANCED ORIGINAL CAPABILITIES CONTRACTS
+// -----------------------------------------------------------------------------
+
+export interface NearbyContact {
+  entity: GeointEntity;
+  distanceKm: number;
+  bearingDeg: number;
+  relativeAltitudeMeters?: number;
+  closingSpeedKts?: number;
+}
+
+export interface CockpitTelemetry {
+  entityId: string;
+  callsign: string;
+  category: GeointCategory;
+  altitudeMeters: number;
+  altitudeFeet: number;
+  airspeedKts: number;
+  headingDeg: number;
+  pitchDeg: number;
+  rollDeg: number;
+  verticalSpeedFpm: number;
+  gForce: number;
+  latitude: number;
+  longitude: number;
+  nearestAirfieldOrPort?: string;
+}
+
+export interface GeospatialAnnotation {
+  id: string;
+  title: string;
+  type: 'tactical_marker' | 'perimeter_fence' | 'hazard_zone' | 'sensor_viewshed';
+  coordinates: GeoPoint[];
+  color: string;
+  notes: string;
+  radiusKm?: number;
+  createdBy: string;
+  createdAt: string;
+  tenantId: string;
+}
+
+export interface GeospatialRoute {
+  id: string;
+  name: string;
+  waypoints: GeoPoint[];
+  totalDistanceKm: number;
+  totalDistanceNm: number;
+  plannedSpeedKts: number;
+  estimatedEnrouteHours: number;
+  color: string;
+  notes?: string;
+}
+
+export interface ViewshedFrustum {
+  id: string;
+  entityId: string;
+  origin: GeoPoint;
+  azimuthDeg: number;
+  fovAngleDeg: number;
+  rangeKm: number;
+  visualColor: string;
+  elevationAngleDeg?: number;
+}
+
+export interface SceneDirectorBookmark {
+  id: string;
+  name: string;
+  timestamp: string;
+  cameraPosition: { x: number; y: number; z: number };
+  targetCoordinates: GeoPoint;
+  targetEntityId?: string;
+  opticMode: 'standard' | 'flir_thermal' | 'night_vision' | 'radar_hud' | 'amber_crt';
+  globeImagery: 'blue_marble' | 'dark_tactical' | 'terrain' | 'graticule';
+  activeCategories: GeointCategory[];
+  notes?: string;
+}
+
+export interface ShareableSceneState {
+  sceneId: string;
+  title: string;
+  description: string;
+  exportedBy: string;
+  exportedAt: string;
+  sha256Seal: string;
+  bookmarks: SceneDirectorBookmark[];
+  annotations: GeospatialAnnotation[];
+  routes: GeospatialRoute[];
+}
+
+export interface VoiceCommandIntent {
+  recognizedText: string;
+  action:
+    | 'track_entity'
+    | 'switch_optic_mode'
+    | 'fly_to_location'
+    | 'toggle_layer'
+    | 'enter_cockpit'
+    | 'exit_cockpit'
+    | 'calculate_nearby'
+    | 'reset_view';
+  parameters: {
+    targetEntityName?: string;
+    targetLocationName?: string;
+    opticMode?: 'standard' | 'flir_thermal' | 'night_vision' | 'radar_hud' | 'amber_crt';
+    layerId?: GeointCategory;
+    latitude?: number;
+    longitude?: number;
+  };
+  confidence: number;
 }

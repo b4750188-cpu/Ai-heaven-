@@ -5431,7 +5431,7 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/geoint/source/deposit', async (req: Request, res: Response) => {
     try {
-      const user = (req as any).user || currentUser;
+      const user = getRequestUser(req) || (req as any).user || getSafeUser(req);
       const { entity, analystNotes, droidId } = req.body;
       if (!entity || !entity.id || !entity.position) {
         return res.status(400).json({ error: 'Valid entity payload is required for SOURCE deposit.' });

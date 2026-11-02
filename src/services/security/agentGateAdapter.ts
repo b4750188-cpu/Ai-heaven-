@@ -116,6 +116,69 @@ export class AgentGateAdapter implements IAgentGateGateway {
       timestamp: now
     };
   }
+
+  public evaluateAction(params: {
+    toolId: string;
+    agentId: string;
+    commandOrPayload: string;
+    targetResource?: string;
+    parameters?: Record<string, any>;
+  }): {
+    decision: 'allow' | 'intercept_and_reject' | 'route_to_human_approval';
+    isAllowed: boolean;
+    requiresHumanReview: boolean;
+    matchedPolicy?: AgentGatePolicy | null;
+    reason: string;
+    auditEvidenceHash: string;
+    timestamp: string;
+  } {
+    const now = new Date().toISOString();
+    const payload = `${params.commandOrPayload} ${JSON.stringify(params.parameters || {})}`.trim();
+    const auditEvidenceHash = crypto.createHash('sha256').update(`${params.agentId}:${params.toolId}:${payload}:${now}`).digest('hex');
+
+    for (const policy of this.policies.values()) {
+      try {
+        const regex = new RegExp(policy.resourcePattern, 'i');
+        if (regex.test(payload) || (params.targetResource && regex.test(params.targetResource))) {
+          if (policy.action === 'intercept_and_reject') {
+            return {
+              decision: 'intercept_and_reject',
+              isAllowed: false,
+              requiresHumanReview: false,
+              matchedPolicy: policy,
+              reason: `AgentGate Interception [${policy.policyId}]: ${policy.description}`,
+              auditEvidenceHash,
+              timestamp: now
+            };
+          }
+
+          if (policy.action === 'route_to_human_approval') {
+            return {
+              decision: 'route_to_human_approval',
+              isAllowed: false,
+              requiresHumanReview: true,
+              matchedPolicy: policy,
+              reason: `AgentGate Approval Gate [${policy.policyId}]: ${policy.description}`,
+              auditEvidenceHash,
+              timestamp: now
+            };
+          }
+        }
+      } catch {
+        // Continue
+      }
+    }
+
+    return {
+      decision: 'allow',
+      isAllowed: true,
+      requiresHumanReview: false,
+      matchedPolicy: null,
+      reason: 'Compliant with all AgentGate zero-trust security policies.',
+      auditEvidenceHash,
+      timestamp: now
+    };
+  }
 }
 
 export const agentGateAdapter = new AgentGateAdapter();

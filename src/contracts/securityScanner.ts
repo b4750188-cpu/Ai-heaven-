@@ -88,6 +88,7 @@ export interface ScanJobRequest {
   targetScope: ScanTargetScope;
   parameters?: Record<string, any>;
   tenantId?: string;
+  scanType?: string;
 }
 
 export interface ScanJobResult {
