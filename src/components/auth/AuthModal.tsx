@@ -124,16 +124,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const googleEmail = currentUser?.email || 'security.researcher@gmail.com';
-      const res = await apiClient.loginWithOAuth(
-        'google',
-        `google_sub_${Date.now()}`,
-        googleEmail,
-        'Google Verified Researcher',
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face'
-      );
+      const res = await apiClient.startOAuthPopup('google');
       onUserChanged(res.user);
-      setSuccessMessage('Connected via Google OAuth.');
+      setSuccessMessage('Connected via official Google OAuth.');
       setTimeout(() => onClose(), 800);
     } catch (err: any) {
       setError(err.message || 'Google OAuth failed.');
@@ -146,16 +139,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     setError(null);
     try {
-      const githubEmail = `${currentUser?.email?.split('@')[0] || 'octocat'}@users.noreply.github.com`;
-      const res = await apiClient.loginWithOAuth(
-        'github',
-        `github_id_${Date.now()}`,
-        githubEmail,
-        'GitHub Bounty Hunter',
-        'https://avatars.githubusercontent.com/u/583231?v=4'
-      );
+      const res = await apiClient.startOAuthPopup('github');
       onUserChanged(res.user);
-      setSuccessMessage('Connected via GitHub OAuth.');
+      setSuccessMessage('Connected via official GitHub OAuth.');
       setTimeout(() => onClose(), 800);
     } catch (err: any) {
       setError(err.message || 'GitHub OAuth failed.');

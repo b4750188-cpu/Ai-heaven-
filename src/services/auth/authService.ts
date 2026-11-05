@@ -105,7 +105,7 @@ class AuthService {
       const researcherUser: StoredUserAccount = {
         id: 'user_default_researcher',
         email: 'researcher@aiheaven.local',
-        phone: '+1-555-0100',
+        phone: undefined,
         fullName: 'Development Security Researcher',
         passwordHash: hash1,
         salt: salt1,
@@ -139,7 +139,7 @@ class AuthService {
       const auditorUser: StoredUserAccount = {
         id: 'user_external_auditor',
         email: 'auditor@external-org.local',
-        phone: '+1-555-0199',
+        phone: undefined,
         fullName: 'External Compliance Auditor (Dev)',
         passwordHash: hash2,
         salt: salt2,
@@ -173,7 +173,7 @@ class AuthService {
       const securityUser: StoredUserAccount = {
         id: 'user_security_lead',
         email: 'researcher@aiheaven.security',
-        phone: '+1-555-0105',
+        phone: undefined,
         fullName: 'Lead Security Researcher',
         passwordHash: hash3,
         salt: salt3,
@@ -216,20 +216,24 @@ class AuthService {
   // ==========================================
 
   public register(email: string, password: string, fullName: string, phone?: string): AuthTokens {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+    if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
       throw new Error('A valid email address is required.');
+    }
+    if (!fullName || !fullName.trim()) {
+      throw new Error('Full name is required.');
     }
     if (!password || password.length < 8) {
       throw new Error('Password must be at least 8 characters long.');
     }
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumberOrSymbol = /[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+    if (!hasLetter || !hasNumberOrSymbol) {
+      throw new Error('Password must contain at least one letter and at least one number or special character.');
+    }
     if (this.usersByEmail.has(normalizedEmail)) {
-      if (process.env.NODE_ENV !== 'production' && normalizedEmail === 'security_auditor_test@aiheaven.org') {
-        const oldId = this.usersByEmail.get(normalizedEmail);
-        if (oldId) this.deleteAccount(oldId);
-      } else {
-        throw new Error('An account with this email address already exists.');
-      }
+      throw new Error('An account with this email address already exists.');
     }
 
     const userId = `user_${crypto.randomUUID().replace(/-/g, '').substring(0, 16)}`;
@@ -238,11 +242,12 @@ class AuthService {
     const passwordHash = this.hashPassword(password, salt);
 
     const now = new Date().toISOString();
+    const sanitizedPhone = phone && phone.trim().length > 0 ? phone.trim() : undefined;
     const newUser: StoredUserAccount = {
       id: userId,
       email: normalizedEmail,
-      phone: phone ? phone.trim() : undefined,
-      fullName: fullName.trim() || normalizedEmail.split('@')[0],
+      phone: sanitizedPhone,
+      fullName: fullName.trim(),
       passwordHash,
       salt,
       role: 'security_researcher',
@@ -313,6 +318,9 @@ class AuthService {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
       if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
         user.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS).toISOString();
+        this.recordLoginHistory(user, ipAddress, userAgent, 'failed', 'Account locked out after excessive failures');
+        this.persist();
+        throw new Error('Account temporarily locked due to multiple failed login attempts. Please try again in 15 minute(s).');
       }
       this.recordLoginHistory(user, ipAddress, userAgent, 'failed', 'Invalid password credential');
       this.persist();
@@ -450,14 +458,15 @@ class AuthService {
   // SAFE OAUTH (NO UNVERIFIED AUTOMATIC LINKING)
   // ==========================================
 
-  public loginOrRegisterOAuth(
-    provider: AuthProviderType,
-    providerUserId: string,
-    email: string,
-    fullName?: string,
-    avatarUrl?: string
-  ): AuthTokens {
-    const normalizedEmail = email.trim().toLowerCase();
+  public handleVerifiedOAuthLogin(identity: {
+    provider: AuthProviderType;
+    providerUserId: string;
+    email: string;
+    fullName?: string;
+    avatarUrl?: string;
+    isEmailVerified: boolean;
+  }): AuthTokens {
+    const normalizedEmail = identity.email.trim().toLowerCase();
     const existingUserId = this.usersByEmail.get(normalizedEmail);
 
     if (existingUserId) {
@@ -466,19 +475,23 @@ class AuthService {
 
       // Check if this provider identity is already linked to this user
       const existingIdentity = user.linkedIdentities.find(
-        i => i.provider === provider && i.providerUserId === providerUserId
+        i => i.provider === identity.provider && i.providerUserId === identity.providerUserId
       );
 
       if (existingIdentity) {
         existingIdentity.lastLoginAt = new Date().toISOString();
+        if (identity.avatarUrl && !user.avatarUrl) {
+          user.avatarUrl = identity.avatarUrl;
+        }
         user.updatedAt = new Date().toISOString();
         this.persist();
         return this.createSession(user);
       }
 
       // DO NOT automatically link accounts solely because their email addresses match.
+      // Require explicit authenticated linking from account settings.
       throw new Error(
-        `An account with the email '${normalizedEmail}' already exists. To prevent unauthorized account takeover, please sign in using your existing credentials and link ${provider} securely from Account Settings.`
+        `An account with the email '${normalizedEmail}' already exists. To prevent unauthorized account takeover, please sign in using your existing credentials and link ${identity.provider.toUpperCase()} securely from Account Settings.`
       );
     }
 
@@ -490,21 +503,21 @@ class AuthService {
     const newUser: StoredUserAccount = {
       id: userId,
       email: normalizedEmail,
-      fullName: fullName?.trim() || normalizedEmail.split('@')[0],
+      fullName: identity.fullName?.trim() || normalizedEmail.split('@')[0],
       role: 'security_researcher',
       isActive: true,
-      isEmailVerified: true,
+      isEmailVerified: Boolean(identity.isEmailVerified),
       mfaEnabled: false,
-      avatarUrl,
+      avatarUrl: identity.avatarUrl,
       tenantId,
       linkedIdentities: [
         {
-          provider,
-          providerUserId,
+          provider: identity.provider,
+          providerUserId: identity.providerUserId,
           email: normalizedEmail,
           linkedAt: now,
           lastLoginAt: now,
-          avatarUrl
+          avatarUrl: identity.avatarUrl
         }
       ],
       loginHistory: [],
@@ -517,6 +530,23 @@ class AuthService {
     this.persist();
 
     return this.createSession(newUser);
+  }
+
+  public loginOrRegisterOAuth(
+    provider: AuthProviderType,
+    providerUserId: string,
+    email: string,
+    fullName?: string,
+    avatarUrl?: string
+  ): AuthTokens {
+    return this.handleVerifiedOAuthLogin({
+      provider,
+      providerUserId,
+      email,
+      fullName,
+      avatarUrl,
+      isEmailVerified: true
+    });
   }
 
   public linkAccount(userId: string, provider: AuthProviderType, providerUserId: string, email: string): AuthenticatedUser {
@@ -918,10 +948,240 @@ class AuthService {
     return true;
   }
 
+  public getOAuthAuthorizationUrl(
+    provider: 'google' | 'github',
+    redirectUri: string
+  ): { url: string; state: string } {
+    if (provider === 'github') {
+      const clientId = (process.env.GITHUB_CLIENT_ID || '').trim();
+      const clientSecret = (process.env.GITHUB_CLIENT_SECRET || '').trim();
+      if (!clientId || !clientSecret) {
+        const missing: string[] = [];
+        if (!clientId) missing.push('GITHUB_CLIENT_ID');
+        if (!clientSecret) missing.push('GITHUB_CLIENT_SECRET');
+        throw new Error(`GitHub OAuth is not configured on this server. Missing ${missing.join(', ')}.`);
+      }
+      const state = this.generateOAuthState('github');
+      const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: 'read:user user:email',
+        state
+      });
+      return {
+        url: `https://github.com/login/oauth/authorize?${params.toString()}`,
+        state
+      };
+    }
+
+    if (provider === 'google') {
+      const clientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+      const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+      if (!clientId || !clientSecret) {
+        const missing: string[] = [];
+        if (!clientId) missing.push('GOOGLE_CLIENT_ID');
+        if (!clientSecret) missing.push('GOOGLE_CLIENT_SECRET');
+        throw new Error(`Google OAuth is not configured on this server. Missing ${missing.join(', ')}.`);
+      }
+      const state = this.generateOAuthState('google');
+      const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        scope: 'openid email profile',
+        access_type: 'offline',
+        prompt: 'select_account',
+        state
+      });
+      return {
+        url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+        state
+      };
+    }
+
+    throw new Error(`Unsupported OAuth provider: ${provider}`);
+  }
+
+  public async exchangeGitHubCode(code: string, state: string, redirectUri: string): Promise<AuthTokens> {
+    if (!this.verifyOAuthState(state, 'github')) {
+      throw new Error('Invalid or expired OAuth CSRF state. Please initiate sign-in again.');
+    }
+
+    const clientId = (process.env.GITHUB_CLIENT_ID || '').trim();
+    const clientSecret = (process.env.GITHUB_CLIENT_SECRET || '').trim();
+    if (!clientId || !clientSecret) {
+      throw new Error('GitHub OAuth is not configured on this server. Missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET.');
+    }
+
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'AI-Heaven-Gateway/2026'
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        redirect_uri: redirectUri
+      })
+    });
+
+    const tokenData = await tokenRes.json().catch(() => ({}));
+    if (tokenData.error || !tokenData.access_token) {
+      throw new Error(`GitHub token exchange failed: ${tokenData.error_description || tokenData.error || 'Invalid code'}`);
+    }
+
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'AI-Heaven-Gateway/2026'
+      }
+    });
+
+    if (!userRes.ok) {
+      throw new Error(`Failed to retrieve GitHub user profile: HTTP ${userRes.status}`);
+    }
+
+    const ghUser = await userRes.json();
+    let email = ghUser.email;
+    let isEmailVerified = false;
+
+    // Query all emails associated with GitHub account to find verified primary
+    try {
+      const emailsRes = await fetch('https://api.github.com/user/emails', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'AI-Heaven-Gateway/2026'
+        }
+      });
+      if (emailsRes.ok) {
+        const emails = await emailsRes.json();
+        if (Array.isArray(emails)) {
+          const primary = emails.find((e: any) => e.primary && e.verified) || emails.find((e: any) => e.verified);
+          if (primary) {
+            email = primary.email;
+            isEmailVerified = true;
+          }
+        }
+      }
+    } catch {
+      // Best effort
+    }
+
+    if (!email) {
+      throw new Error('No verified email address found on your GitHub account. Please verify an email address on GitHub.');
+    }
+
+    if (!isEmailVerified && !ghUser.email) {
+      throw new Error('Your GitHub email address is not verified. AI Heaven requires a verified email address.');
+    }
+
+    return this.handleVerifiedOAuthLogin({
+      provider: 'github',
+      providerUserId: String(ghUser.id),
+      email,
+      fullName: ghUser.name || ghUser.login,
+      avatarUrl: ghUser.avatar_url,
+      isEmailVerified: true
+    });
+  }
+
+  public async exchangeGoogleCode(code: string, state: string, redirectUri: string): Promise<AuthTokens> {
+    if (!this.verifyOAuthState(state, 'google')) {
+      throw new Error('Invalid or expired OAuth CSRF state. Please initiate sign-in again.');
+    }
+
+    const clientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    if (!clientId || !clientSecret) {
+      throw new Error('Google OAuth is not configured on this server. Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET.');
+    }
+
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
+      }).toString()
+    });
+
+    const tokenData = await tokenRes.json().catch(() => ({}));
+    if (tokenData.error || !tokenData.access_token) {
+      throw new Error(`Google token exchange failed: ${tokenData.error_description || tokenData.error || 'Invalid code'}`);
+    }
+
+    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`
+      }
+    });
+
+    if (!userInfoRes.ok) {
+      throw new Error(`Failed to retrieve Google user profile: HTTP ${userInfoRes.status}`);
+    }
+
+    const gUser = await userInfoRes.json();
+    if (!gUser.email) {
+      throw new Error('Google account returned no email address.');
+    }
+
+    if (gUser.email_verified !== true && gUser.email_verified !== 'true') {
+      throw new Error('Google email address is not verified. AI Heaven requires a verified email address.');
+    }
+
+    return this.handleVerifiedOAuthLogin({
+      provider: 'google',
+      providerUserId: gUser.sub,
+      email: gUser.email,
+      fullName: gUser.name,
+      avatarUrl: gUser.picture,
+      isEmailVerified: true
+    });
+  }
+
+  public async verifyGoogleCredential(idToken: string): Promise<AuthTokens> {
+    const tokenInfoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+    if (!tokenInfoRes.ok) {
+      throw new Error('Failed to verify Google identity credential with Google token authority.');
+    }
+
+    const payload = await tokenInfoRes.json();
+    const expectedClientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    if (expectedClientId && payload.aud !== expectedClientId) {
+      throw new Error('Google credential audience mismatch.');
+    }
+    if (payload.iss !== 'https://accounts.google.com' && payload.iss !== 'accounts.google.com') {
+      throw new Error('Google credential issuer invalid.');
+    }
+    if (payload.email_verified !== 'true' && payload.email_verified !== true) {
+      throw new Error('Google email address is not verified.');
+    }
+
+    return this.handleVerifiedOAuthLogin({
+      provider: 'google',
+      providerUserId: payload.sub,
+      email: payload.email,
+      fullName: payload.name,
+      avatarUrl: payload.picture,
+      isEmailVerified: true
+    });
+  }
+
   public getProviderStatuses(userId?: string): AuthProviderStatus[] {
-    const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
-    const githubClientId = process.env.GITHUB_CLIENT_ID || '';
-    const githubClientSecret = process.env.GITHUB_CLIENT_SECRET || '';
+    const googleClientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    const googleClientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    const githubClientId = (process.env.GITHUB_CLIENT_ID || '').trim();
+    const githubClientSecret = (process.env.GITHUB_CLIENT_SECRET || '').trim();
 
     const user = userId ? this.users.get(userId) : undefined;
     const isLinked = (p: AuthProviderType) =>
@@ -955,20 +1215,23 @@ class AuthService {
       {
         provider: 'google',
         name: 'Continue with Google (OAuth 2.0 / GIS)',
-        isConfigured: Boolean(googleClientId.trim()),
+        isConfigured: Boolean(googleClientId && googleClientSecret),
         isEnabled: true,
-        statusLabel: googleClientId.trim() ? 'CONFIGURED' : 'SETUP_REQUIRED',
-        missingEnvVars: googleClientId ? [] : ['VITE_GOOGLE_CLIENT_ID'],
+        statusLabel: (googleClientId && googleClientSecret) ? 'CONFIGURED' : 'SETUP_REQUIRED',
+        missingEnvVars: [
+          ...(googleClientId ? [] : ['GOOGLE_CLIENT_ID']),
+          ...(googleClientSecret ? [] : ['GOOGLE_CLIENT_SECRET'])
+        ],
         setupGuideUrl: 'https://developers.google.com/identity/gsi/web/guides/overview',
-        setupInstructions: googleClientId
-          ? 'Configured and active via Google Identity Services token flow.'
-          : 'Set VITE_GOOGLE_CLIENT_ID in your environment and whitelist domain in Google Cloud Console.',
-        clientIdPreview: googleClientId ? `${googleClientId.substring(0, 14)}...apps.googleusercontent.com` : undefined,
+        setupInstructions: (googleClientId && googleClientSecret)
+          ? 'Configured and active via Google OAuth 2.0 authorization-code flow.'
+          : 'Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your environment and add Authorized Redirect URI /api/auth/callback/google in Google Cloud Console.',
+        clientIdPreview: googleClientId ? `${googleClientId.substring(0, Math.min(14, googleClientId.length))}...` : undefined,
         isConnectedForUser: isLinked('google'),
         credentials: {
-          publicClientIdentifiers: ['VITE_GOOGLE_CLIENT_ID'],
-          confidentialSecrets: [],
-          authorizedCallbackUrl: 'Client-side postMessage or /api/auth/callback/google',
+          publicClientIdentifiers: ['GOOGLE_CLIENT_ID'],
+          confidentialSecrets: ['GOOGLE_CLIENT_SECRET'],
+          authorizedCallbackUrl: '/api/auth/callback/google',
           developerConsoleUrl: 'https://console.cloud.google.com/apis/credentials',
           requiredPermissions: ['openid', 'email', 'profile'],
           domainVerificationRequired: true
@@ -983,18 +1246,18 @@ class AuthService {
       {
         provider: 'github',
         name: 'Continue with GitHub (OAuth 2.0)',
-        isConfigured: Boolean(githubClientId.trim() && githubClientSecret.trim()),
+        isConfigured: Boolean(githubClientId && githubClientSecret),
         isEnabled: true,
-        statusLabel: (githubClientId.trim() && githubClientSecret.trim()) ? 'CONFIGURED' : 'SETUP_REQUIRED',
+        statusLabel: (githubClientId && githubClientSecret) ? 'CONFIGURED' : 'SETUP_REQUIRED',
         missingEnvVars: [
           ...(githubClientId ? [] : ['GITHUB_CLIENT_ID']),
           ...(githubClientSecret ? [] : ['GITHUB_CLIENT_SECRET'])
         ],
         setupGuideUrl: 'https://docs.github.com/en/apps/oauth-apps/building-oauth-apps',
         setupInstructions: githubClientId && githubClientSecret
-          ? 'Configured and ready. Supports direct code exchange and personal token linking.'
+          ? 'Configured and ready. Supports official authorization-code flow and email verification.'
           : 'Create an OAuth App on GitHub Developer Settings with Authorization Callback URL /api/auth/callback/github.',
-        clientIdPreview: githubClientId ? `${githubClientId.substring(0, 8)}...` : undefined,
+        clientIdPreview: githubClientId ? `${githubClientId.substring(0, Math.min(8, githubClientId.length))}...` : undefined,
         isConnectedForUser: isLinked('github'),
         credentials: {
           publicClientIdentifiers: ['GITHUB_CLIENT_ID'],

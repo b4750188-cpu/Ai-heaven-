@@ -131,18 +131,47 @@ jobs:
         id: check_apk
         run: |
           APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
-          if [ -f "$APK_PATH" ]; then
-            FILE_SIZE=$(stat -c%s "$APK_PATH")
-            FILE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $FILE_SIZE/1024/1024}")
-            SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
-            echo "apk_exists=true" >> $GITHUB_OUTPUT
-            echo "apk_size=$FILE_SIZE_MB MB" >> $GITHUB_OUTPUT
-            echo "apk_sha256=$SHA256" >> $GITHUB_OUTPUT
-            echo "Found debug APK at $APK_PATH ($FILE_SIZE_MB MB)"
-          else
-            echo "FATAL: APK file was not produced." >&2
+          if [ ! -f "$APK_PATH" ]; then
+            echo "FATAL: APK file was not produced at $APK_PATH." >&2
             exit 1
           fi
+
+          FILE_SIZE=$(stat -c%s "$APK_PATH")
+          if [ "$FILE_SIZE" -lt 1048576 ]; then
+            echo "FATAL: APK file size ($FILE_SIZE bytes) is below minimum expected size (1 MB)." >&2
+            exit 1
+          fi
+
+          FILE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $FILE_SIZE/1024/1024}")
+          SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
+
+          # Verify package ID matches com.aiheaven.app
+          if grep -q 'applicationId "com.aiheaven.app"' android/app/build.gradle; then
+            PACKAGE_ID="com.aiheaven.app"
+          else
+            echo "FATAL: Expected applicationId com.aiheaven.app not found in build.gradle." >&2
+            exit 1
+          fi
+
+          # Inspect APK archive integrity
+          unzip -l "$APK_PATH" | grep -q "classes.dex" || {
+            echo "FATAL: APK does not contain classes.dex bytecode." >&2
+            exit 1
+          }
+          unzip -l "$APK_PATH" | grep -q "AndroidManifest.xml" || {
+            echo "FATAL: APK does not contain AndroidManifest.xml." >&2
+            exit 1
+          }
+
+          echo "apk_exists=true" >> $GITHUB_OUTPUT
+          echo "apk_size=$FILE_SIZE_MB MB" >> $GITHUB_OUTPUT
+          echo "apk_sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "apk_package=$PACKAGE_ID" >> $GITHUB_OUTPUT
+          echo "Successfully verified Android APK:"
+          echo "  - Path: $APK_PATH"
+          echo "  - Package ID: $PACKAGE_ID"
+          echo "  - Size: $FILE_SIZE_MB MB ($FILE_SIZE bytes)"
+          echo "  - SHA-256: $SHA256"
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4

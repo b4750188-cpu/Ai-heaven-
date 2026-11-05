@@ -110,21 +110,38 @@ const DATABASE_URL = process.env.DATABASE_URL;
 export function signJwt(payload: Record<string, any>, secret?: string): string {
   const activeSecret = secret || getEffectiveJwtSecret();
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const fullPayload = {
+    iss: 'aiheaven.io',
+    aud: 'aiheaven_workspace',
+    ...payload
+  };
+  const body = Buffer.from(JSON.stringify(fullPayload)).toString('base64url');
   const signature = crypto.createHmac('sha256', activeSecret).update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${signature}`;
 }
 
 export function verifyJwt(token: string, secret?: string): Record<string, any> | null {
   try {
+    if (!token || typeof token !== 'string') return null;
+    if (authService.isTokenRevoked(token)) return null;
+
     const activeSecret = secret || getEffectiveJwtSecret();
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const [header, body, signature] = parts;
     const expectedSig = crypto.createHmac('sha256', activeSecret).update(`${header}.${body}`).digest('base64url');
-    if (signature !== expectedSig) return null;
+
+    // Constant-time comparison to prevent HMAC timing side-channel attacks
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expectedSig);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return null;
+    }
+
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf-8'));
-    if (payload.exp && Date.now() / 1000 > payload.exp) return null;
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (payload.exp && nowSec > payload.exp) return null;
+    if (payload.nbf && nowSec < payload.nbf) return null;
     return payload;
   } catch {
     return null;
@@ -1043,15 +1060,20 @@ export function createExpressApp(): express.Express {
   const setSessionCookie = (res: Response, token: string) => {
     res.cookie('ai_heaven_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/'
     });
   };
 
   const clearSessionCookie = (res: Response) => {
-    res.clearCookie('ai_heaven_session', { path: '/' });
+    res.clearCookie('ai_heaven_session', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/'
+    });
   };
 
   // Helper to extract authenticated user with strict tenant binding
@@ -1386,6 +1408,177 @@ export function createExpressApp(): express.Express {
       authService.deleteAccount(user.id, password);
       clearSessionCookie(res);
       res.json({ success: true, deleted: true });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // OAuth HTML Response Helpers for Popup Window
+  const sendOAuthSuccessHtml = (res: Response, session: any) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI Heaven - Authentication Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { background-color: #080B10; color: #F1F4F8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+      .card { background: #0D1118; border: 1px solid #283242; border-radius: 12px; padding: 24px; text-align: center; max-width: 380px; }
+      h2 { color: #34D399; font-size: 18px; margin: 0 0 8px; }
+      p { color: #9AA6B7; font-size: 12px; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>&#10003; Authentication Successful</h2>
+      <p>Synchronizing session with secure workspace. Closing window...</p>
+    </div>
+    <script>
+      (function() {
+        const payload = ${JSON.stringify({ type: 'OAUTH_AUTH_SUCCESS', token: session.token, user: session.user })};
+        if (window.opener) {
+          window.opener.postMessage(payload, '*');
+          setTimeout(function() { window.close(); }, 350);
+        } else {
+          window.location.href = '/';
+        }
+      })();
+    </script>
+  </body>
+</html>`);
+  };
+
+  const sendOAuthErrorHtml = (res: Response, errorMsg: string, status = 400) => {
+    res.status(status).setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI Heaven - Authentication Failed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { background-color: #080B10; color: #F1F4F8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+      .card { background: #0D1118; border: 1px solid #F87171; border-radius: 12px; padding: 24px; text-align: center; max-width: 380px; }
+      h2 { color: #F87171; font-size: 18px; margin: 0 0 8px; }
+      p { color: #9AA6B7; font-size: 12px; margin: 0 0 16px; word-break: break-word; }
+      button { background: #171F2B; border: 1px solid #283242; color: #F1F4F8; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>&#9888; Authentication Failed</h2>
+      <p>${errorMsg.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+      <button onclick="window.close()">Close Window</button>
+    </div>
+    <script>
+      (function() {
+        const payload = ${JSON.stringify({ type: 'OAUTH_AUTH_ERROR', error: errorMsg })};
+        if (window.opener) {
+          window.opener.postMessage(payload, '*');
+          setTimeout(function() { window.close(); }, 1500);
+        }
+      })();
+    </script>
+  </body>
+</html>`);
+  };
+
+  // 4a. Official OAuth Authorization URL Generator
+  apiRouter.get('/auth/oauth/url', (req: Request, res: Response) => {
+    try {
+      const provider = (req.query.provider as string)?.toLowerCase();
+      if (provider !== 'github' && provider !== 'google') {
+        return res.status(400).json({ error: 'Valid provider (github or google) is required' });
+      }
+
+      let redirectUri = req.query.redirect_uri as string;
+      if (!redirectUri) {
+        const appUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+        redirectUri = `${appUrl.replace(/\/$/, '')}/api/auth/callback/${provider}`;
+      }
+
+      const result = authService.getOAuthAuthorizationUrl(provider, redirectUri);
+      res.json({
+        url: result.url,
+        state: result.state,
+        provider,
+        redirectUri
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // 4b. Official GitHub OAuth Callback Endpoint
+  apiRouter.get(['/auth/callback/github', '/auth/callback/github/'], async (req: Request, res: Response) => {
+    try {
+      const { code, state, error, error_description } = req.query;
+
+      if (error) {
+        return sendOAuthErrorHtml(res, String(error_description || error));
+      }
+
+      if (!code || !state) {
+        return sendOAuthErrorHtml(res, 'Missing authorization code or CSRF state parameter from GitHub.');
+      }
+
+      let redirectUri = req.query.redirect_uri as string;
+      if (!redirectUri) {
+        const appUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+        redirectUri = `${appUrl.replace(/\/$/, '')}/api/auth/callback/github`;
+      }
+
+      const session = await authService.exchangeGitHubCode(String(code), String(state), redirectUri);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
+      return sendOAuthSuccessHtml(res, session);
+    } catch (err: any) {
+      return sendOAuthErrorHtml(res, err.message || 'GitHub OAuth failed.');
+    }
+  });
+
+  // 4c. Official Google OAuth Callback Endpoint
+  apiRouter.get(['/auth/callback/google', '/auth/callback/google/'], async (req: Request, res: Response) => {
+    try {
+      const { code, state, error } = req.query;
+
+      if (error) {
+        return sendOAuthErrorHtml(res, String(error));
+      }
+
+      if (!code || !state) {
+        return sendOAuthErrorHtml(res, 'Missing authorization code or CSRF state parameter from Google.');
+      }
+
+      let redirectUri = req.query.redirect_uri as string;
+      if (!redirectUri) {
+        const appUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+        redirectUri = `${appUrl.replace(/\/$/, '')}/api/auth/callback/google`;
+      }
+
+      const session = await authService.exchangeGoogleCode(String(code), String(state), redirectUri);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
+      return sendOAuthSuccessHtml(res, session);
+    } catch (err: any) {
+      return sendOAuthErrorHtml(res, err.message || 'Google OAuth failed.');
+    }
+  });
+
+  // 4d. Google Identity Services (GIS) Credential Verification
+  apiRouter.post('/auth/google/verify-credential', async (req: Request, res: Response) => {
+    try {
+      const idToken = req.body?.idToken || req.body?.credential;
+      if (!idToken) {
+        return res.status(400).json({ error: 'idToken or credential is required.' });
+      }
+
+      const session = await authService.verifyGoogleCredential(idToken);
+      if (session?.token) {
+        setSessionCookie(res, session.token);
+      }
+      res.json(session);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }

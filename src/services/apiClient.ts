@@ -2095,6 +2095,95 @@ class AIHeavenApiClient {
     return data;
   }
 
+  public async getOAuthUrl(provider: 'google' | 'github', redirectUri?: string): Promise<{ url: string; state: string; provider: string; redirectUri: string }> {
+    const defaultRedirect = typeof window !== 'undefined'
+      ? `${window.location.origin}/api/auth/callback/${provider}`
+      : `/api/auth/callback/${provider}`;
+    const targetRedirect = redirectUri || defaultRedirect;
+
+    const res = await fetch(
+      `${this.baseUrl}/auth/oauth/url?provider=${encodeURIComponent(provider)}&redirect_uri=${encodeURIComponent(targetRedirect)}`,
+      {
+        headers: { Accept: 'application/json' }
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || `Failed to get OAuth authorization URL for ${provider}.`);
+    }
+    return data;
+  }
+
+  public async startOAuthPopup(provider: 'google' | 'github'): Promise<any> {
+    const authData = await this.getOAuthUrl(provider);
+    if (!authData?.url) {
+      throw new Error(`Invalid OAuth URL received for ${provider}`);
+    }
+
+    return new Promise((resolve, reject) => {
+      const width = 600;
+      const height = 700;
+      const left = typeof window !== 'undefined' ? window.screenX + (window.outerWidth - width) / 2 : 100;
+      const top = typeof window !== 'undefined' ? window.screenY + (window.outerHeight - height) / 2 : 100;
+      
+      const popup = window.open(
+        authData.url,
+        `oauth_${provider}_window`,
+        `width=${width},height=${height},left=${left},top=${top},status=yes,scrollbars=yes`
+      );
+
+      if (!popup) {
+        reject(new Error('Sign-in popup was blocked. Please enable popups for this site to sign in.'));
+        return;
+      }
+
+      let timer: any = null;
+      const cleanup = () => {
+        if (timer) clearInterval(timer);
+        window.removeEventListener('message', handleMessage);
+      };
+
+      const handleMessage = (event: MessageEvent) => {
+        // AI Studio and preview container origin safety
+        const origin = event.origin;
+        if (!origin.endsWith('.run.app') && !origin.includes('localhost') && origin !== window.location.origin) {
+          return;
+        }
+
+        if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
+          cleanup();
+          const { token, user } = event.data;
+          if (token) this.setAuthToken(token);
+          resolve({ token, accessToken: token, user });
+        } else if (event.data?.type === 'OAUTH_AUTH_ERROR') {
+          cleanup();
+          reject(new Error(event.data.error || `${provider} authentication failed.`));
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      timer = setInterval(() => {
+        if (popup.closed) {
+          cleanup();
+          reject(new Error('Authentication window was closed before completing sign-in.'));
+        }
+      }, 500);
+    });
+  }
+
+  public async verifyGoogleCredential(idToken: string): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/auth/google/verify-credential`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Google credential verification failed');
+    if (data.accessToken || data.token) this.setAuthToken(data.accessToken || data.token);
+    return data;
+  }
+
   public async getAuthCurrentUser(): Promise<any> {
     const token = this.getAuthToken();
     if (!token) return null;

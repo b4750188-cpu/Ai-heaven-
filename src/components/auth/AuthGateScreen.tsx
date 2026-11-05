@@ -4,7 +4,9 @@
  * Features:
  * - Direct authentication gate matching Android mobile guidelines
  * - Dark glass UI using #080B10, #0D1118, #121822, #171F2B, #283242
- * - Supports Email/Password, Registration, Google OAuth, GitHub OAuth, and Verified Researcher Switcher
+ * - Real PBKDF2 Password Authentication & Registration (empty inputs, zero dummy credentials)
+ * - Official Google and GitHub OAuth Authorization flows (with live configuration badges & setup guidance)
+ * - Password visibility toggle
  * - Touch-friendly >= 44px buttons, safe area support, error and loading states
  */
 
@@ -22,7 +24,14 @@ import {
   CheckCircle2,
   Users,
   ChevronRight,
-  Phone
+  Phone,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  X,
+  Info,
+  Copy,
+  Check
 } from 'lucide-react';
 import { SkullLogo } from '../common/SkullLogo';
 import { apiClient } from '../../services/apiClient';
@@ -38,10 +47,12 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
   isBackendConnected
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset' | 'mfa'>('signin');
-  const [email, setEmail] = useState('researcher@aiheaven.local');
-  const [password, setPassword] = useState('DevResearcher2026!Local');
-  const [fullName, setFullName] = useState('Security Researcher');
+  // Clear empty initial inputs - no hardcoded identities or default passwords
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [mfaTicket, setMfaTicket] = useState('');
@@ -51,12 +62,29 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Available users list for quick dev identity switching
+  // Live provider statuses
+  const [providers, setProviders] = useState<any[]>([]);
+  const [providerConfigModal, setProviderConfigModal] = useState<any | null>(null);
+  const [copiedCallback, setCopiedCallback] = useState(false);
+
+  // Available users list for quick dev identity switching (admin/dev only)
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
 
   useEffect(() => {
     loadUsers();
+    loadProviders();
   }, []);
+
+  const loadProviders = async () => {
+    try {
+      const list = await apiClient.getAuthProviders();
+      if (Array.isArray(list)) {
+        setProviders(list);
+      }
+    } catch {
+      // Best effort in dev mode
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -120,46 +148,48 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password || !fullName.trim()) {
-      setError('Please fill in all required fields.');
+      setError('Please fill in all required fields (Full Name, Email, Password).');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
       const res = await apiClient.registerAccount(email.trim(), password, fullName.trim(), phone.trim() || undefined);
-      setSuccess('Account created! Initializing workspace session...');
+      setSuccess('Account created! Initializing secure workspace session...');
       setTimeout(() => {
         onAuthenticated(res.user);
       }, 400);
     } catch (err: any) {
-      setError(err?.message || 'Registration failed. Please try a different email.');
+      setError(err?.message || 'Registration failed. Please check the provided information.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
+    const targetProvider = providers.find((p: any) => p.provider === provider);
+    if (!targetProvider || !targetProvider.isConfigured) {
+      setProviderConfigModal(targetProvider || {
+        provider,
+        name: provider === 'google' ? 'Google' : 'GitHub',
+        missingEnvVars: provider === 'google' ? ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'] : ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET'],
+        setupInstructions: `Set ${provider.toUpperCase()}_CLIENT_ID and ${provider.toUpperCase()}_CLIENT_SECRET in environment to enable official OAuth.`
+      });
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      const providers = await apiClient.getAuthProviders();
-      const targetProvider = providers.find((p: any) => p.provider === provider);
-      if (!targetProvider || !targetProvider.isConfigured) {
-        const missingVars = targetProvider?.missingEnvVars?.join(', ') || `${provider.toUpperCase()}_CLIENT_ID`;
-        setError(
-          `${targetProvider?.name || provider} OAuth is not configured on this server. To initiate official ${targetProvider?.name || provider} OAuth, configure ${missingVars} in your environment.`
-        );
-        return;
-      }
-
-      // If configured, initiate official OAuth authorization redirect
-      const state = await apiClient.generateOAuthState(provider);
-      const redirectUri = `${window.location.origin}/api/auth/callback/${provider}`;
-      const authUrl = provider === 'google'
-        ? `https://accounts.google.com/o/oauth2/v2/auth?client_id=${targetProvider.clientIdPreview}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&state=${state}`
-        : `https://github.com/login/oauth/authorize?client_id=${targetProvider.clientIdPreview}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20user:email&state=${state}`;
-      
-      window.location.href = authUrl;
+      const res = await apiClient.startOAuthPopup(provider);
+      setSuccess(`${provider === 'google' ? 'Google' : 'GitHub'} verified. Entering workspace...`);
+      setTimeout(() => {
+        onAuthenticated(res.user);
+      }, 400);
     } catch (err: any) {
       setError(err?.message || `${provider} OAuth sign-in failed.`);
     } finally {
@@ -177,15 +207,20 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
         onAuthenticated(res.user);
       }, 400);
     } catch (err: any) {
-      // Fallback: log in with direct researcher credentials if switch requires admin token
-      try {
-        const fallbackRes = await apiClient.loginWithPassword('researcher@aiheaven.local', 'DevResearcher2026!Local');
-        onAuthenticated(fallbackRes.user);
-      } catch {
-        setError(err?.message || 'Failed to switch identity.');
-      }
+      setError(err?.message || 'Failed to switch identity.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const googleProvider = providers.find((p: any) => p.provider === 'google');
+  const githubProvider = providers.find((p: any) => p.provider === 'github');
+
+  const copyCallbackUrl = (url: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      setCopiedCallback(true);
+      setTimeout(() => setCopiedCallback(false), 2000);
     }
   };
 
@@ -220,11 +255,13 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
               {mode === 'signin' && 'Welcome to AI Heaven'}
               {mode === 'signup' && 'Create Your Researcher Account'}
               {mode === 'reset' && 'Password Recovery'}
+              {mode === 'mfa' && 'Multi-Factor Challenge'}
             </h1>
             <p className="text-xs text-[#9AA6B7] leading-relaxed">
               {mode === 'signin' && 'Sign in to access Central Brain, Autonomous Droids, and Bug Hunt.'}
               {mode === 'signup' && 'Register your verified operator identity with cryptographic audit logging.'}
               {mode === 'reset' && 'Enter your token and set a new password.'}
+              {mode === 'mfa' && 'Enter your 6-digit TOTP authenticator code.'}
             </p>
           </div>
 
@@ -232,7 +269,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
           <div className="grid grid-cols-2 rounded-xl bg-[#121822] p-1 border border-[#283242]">
             <button
               type="button"
-              onClick={() => { setMode('signin'); setError(null); }}
+              onClick={() => { setMode('signin'); setError(null); setSuccess(null); }}
               className={`py-2 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
                 mode === 'signin'
                   ? 'bg-[#171F2B] text-[#42D9F5] shadow-xs'
@@ -243,7 +280,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => { setMode('signup'); setError(null); }}
+              onClick={() => { setMode('signup'); setError(null); setSuccess(null); }}
               className={`py-2 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
                 mode === 'signup'
                   ? 'bg-[#171F2B] text-[#42D9F5] shadow-xs'
@@ -283,7 +320,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
-                    placeholder="researcher@aiheaven.local"
+                    placeholder="researcher@organization.com"
                     className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
                   />
                 </div>
@@ -305,13 +342,21 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9AA6B7]" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
                     placeholder="••••••••••••"
-                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
+                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-10 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9AA6B7] hover:text-[#F1F4F8] p-1 cursor-pointer"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -378,7 +423,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                     type="tel"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    placeholder="+1 555 0100"
+                    placeholder="+1 555 0100 (Optional)"
                     className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
                   />
                 </div>
@@ -391,13 +436,21 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9AA6B7]" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
-                    placeholder="Minimum 8 characters"
-                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-3 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
+                    placeholder="Minimum 8 characters (letter + number/symbol)"
+                    className="w-full rounded-xl border border-[#283242] bg-[#121822] pl-10 pr-10 py-2.5 text-xs text-[#F1F4F8] placeholder-[#9AA6B7]/50 focus:border-[#42D9F5] focus:outline-none focus:ring-1 focus:ring-[#42D9F5] transition-colors"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9AA6B7] hover:text-[#F1F4F8] p-1 cursor-pointer"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -480,7 +533,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="researcher@aiheaven.local"
+                  placeholder="your.email@organization.com"
                   className="w-full rounded-xl border border-[#283242] bg-[#121822] px-3.5 py-2.5 text-xs text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none"
                 />
               </div>
@@ -515,7 +568,7 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                     type="password"
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
+                    placeholder="Enter new password (min 8 characters)"
                     className="w-full rounded-xl border border-[#283242] bg-[#121822] px-3.5 py-2.5 text-xs text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none"
                   />
 
@@ -561,29 +614,56 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
             </div>
           </div>
 
-          {/* OAuth Buttons */}
+          {/* OAuth Buttons with Real Live Configuration Badges */}
           <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => handleOAuthLogin('google')}
               disabled={isLoading}
-              className="h-11 rounded-xl border border-[#283242] bg-[#121822] hover:bg-[#171F2B] text-xs font-mono text-[#F1F4F8] flex items-center justify-center gap-2 transition-colors cursor-pointer touch-target-44"
+              className={`h-14 rounded-xl border p-2 flex flex-col items-center justify-center gap-0.5 transition-colors cursor-pointer touch-target-44 ${
+                googleProvider?.isConfigured
+                  ? 'border-[#283242] bg-[#121822] hover:bg-[#171F2B] text-[#F1F4F8]'
+                  : 'border-[#283242]/70 bg-[#0D1118] hover:bg-[#121822] text-[#9AA6B7]'
+              }`}
             >
-              <Sparkles className="h-4 w-4 text-[#42D9F5]" />
-              <span>Google</span>
+              <div className="flex items-center gap-1.5 text-xs font-mono font-medium">
+                <Sparkles className="h-3.5 w-3.5 text-[#42D9F5]" />
+                <span>Google</span>
+              </div>
+              <span className={`text-[9px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded ${
+                googleProvider?.isConfigured
+                  ? 'bg-[#34D399]/15 text-[#34D399]'
+                  : 'bg-[#FBBF24]/15 text-[#FBBF24]'
+              }`}>
+                {googleProvider?.isConfigured ? 'READY' : 'SETUP REQUIRED'}
+              </span>
             </button>
+
             <button
               type="button"
               onClick={() => handleOAuthLogin('github')}
               disabled={isLoading}
-              className="h-11 rounded-xl border border-[#283242] bg-[#121822] hover:bg-[#171F2B] text-xs font-mono text-[#F1F4F8] flex items-center justify-center gap-2 transition-colors cursor-pointer touch-target-44"
+              className={`h-14 rounded-xl border p-2 flex flex-col items-center justify-center gap-0.5 transition-colors cursor-pointer touch-target-44 ${
+                githubProvider?.isConfigured
+                  ? 'border-[#283242] bg-[#121822] hover:bg-[#171F2B] text-[#F1F4F8]'
+                  : 'border-[#283242]/70 bg-[#0D1118] hover:bg-[#121822] text-[#9AA6B7]'
+              }`}
             >
-              <Github className="h-4 w-4 text-[#F1F4F8]" />
-              <span>GitHub</span>
+              <div className="flex items-center gap-1.5 text-xs font-mono font-medium">
+                <Github className="h-3.5 w-3.5 text-[#F1F4F8]" />
+                <span>GitHub</span>
+              </div>
+              <span className={`text-[9px] font-mono font-bold tracking-wider px-1.5 py-0.2 rounded ${
+                githubProvider?.isConfigured
+                  ? 'bg-[#34D399]/15 text-[#34D399]'
+                  : 'bg-[#FBBF24]/15 text-[#FBBF24]'
+              }`}>
+                {githubProvider?.isConfigured ? 'READY' : 'SETUP REQUIRED'}
+              </span>
             </button>
           </div>
 
-          {/* Development Quick-Access Switcher */}
+          {/* Development Quick-Access Switcher (when available) */}
           {availableUsers.length > 0 && (
             <div className="pt-2 border-t border-[#283242]/70 space-y-2">
               <div className="flex items-center justify-between text-[10px] font-mono text-[#9AA6B7]">
@@ -610,6 +690,83 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
           )}
         </div>
       </div>
+
+      {/* Provider Setup Guidance Modal */}
+      {providerConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-lg rounded-2xl border border-[#283242] bg-[#0D1118] p-5 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl border border-[#FBBF24]/30 bg-[#FBBF24]/10 flex items-center justify-center">
+                  <Info className="h-5 w-5 text-[#FBBF24]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold font-mono text-[#F1F4F8]">
+                    {providerConfigModal.name || providerConfigModal.provider} OAuth Setup
+                  </h3>
+                  <p className="text-[11px] font-mono text-[#FBBF24]">Configuration Required on Server</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProviderConfigModal(null)}
+                className="text-[#9AA6B7] hover:text-[#F1F4F8] p-1 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs font-mono">
+              <p className="text-[#9AA6B7] leading-relaxed">
+                Official {providerConfigModal.name || providerConfigModal.provider} OAuth authorization requires valid server credentials. No client secrets are ever stored in the browser bundle.
+              </p>
+
+              <div className="p-3 rounded-xl border border-[#283242] bg-[#121822] space-y-2">
+                <div className="text-[11px] font-semibold text-[#42D9F5]">Required Environment Variables:</div>
+                <div className="space-y-1">
+                  {(providerConfigModal.missingEnvVars || []).map((v: string) => (
+                    <div key={v} className="flex items-center gap-2 text-[11px] text-[#F87171]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#F87171]" />
+                      <code>{v}</code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl border border-[#283242] bg-[#121822] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-[#42D9F5]">Authorized Redirect Callback URL:</span>
+                  <button
+                    type="button"
+                    onClick={() => copyCallbackUrl(`${typeof window !== 'undefined' ? window.location.origin : ''}/api/auth/callback/${providerConfigModal.provider}`)}
+                    className="flex items-center gap-1 text-[10px] text-[#9AA6B7] hover:text-[#42D9F5] cursor-pointer"
+                  >
+                    {copiedCallback ? <Check className="h-3 w-3 text-[#34D399]" /> : <Copy className="h-3 w-3" />}
+                    <span>{copiedCallback ? 'Copied' : 'Copy URL'}</span>
+                  </button>
+                </div>
+                <div className="p-2 rounded-lg bg-[#080B10] border border-[#283242] text-[10px] text-[#34D399] break-all select-all">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback/${providerConfigModal.provider}` : `/api/auth/callback/${providerConfigModal.provider}`}
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl border border-[#283242] bg-[#121822] text-[11px] text-[#9AA6B7] leading-relaxed">
+                {providerConfigModal.setupInstructions}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setProviderConfigModal(null)}
+                className="h-9 px-4 rounded-xl bg-[#171F2B] hover:bg-[#283242] border border-[#283242] text-xs font-mono font-medium text-[#F1F4F8] cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer Info */}
       <div className="w-full max-w-md mx-auto text-center space-y-1 text-[11px] font-mono text-[#9AA6B7]">

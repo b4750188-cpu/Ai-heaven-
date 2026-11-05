@@ -88,12 +88,14 @@ test('Authentication & Security Hardening Suite', async (t) => {
     assert.ok(res.body.error?.includes('Invalid credentials'));
   });
 
+  const testAuditorEmail = `security_auditor_${Date.now()}@aiheaven.org`;
+
   await t.test('4. Real Authentication: POST /api/auth/token succeeds with valid credentials', async () => {
     // Register a new test user with real credentials
     const regRes = await request('/api/auth/register', {
       method: 'POST',
       body: {
-        email: 'security_auditor_test@aiheaven.org',
+        email: testAuditorEmail,
         password: 'SecurePassw0rd2026!Strict',
         fullName: 'Security Auditor Test'
       }
@@ -105,7 +107,7 @@ test('Authentication & Security Hardening Suite', async (t) => {
     const tokenRes = await request('/api/auth/token', {
       method: 'POST',
       body: {
-        email: 'security_auditor_test@aiheaven.org',
+        email: testAuditorEmail,
         password: 'SecurePassw0rd2026!Strict'
       }
     });
@@ -119,7 +121,7 @@ test('Authentication & Security Hardening Suite', async (t) => {
     const loginRes = await request('/api/auth/login', {
       method: 'POST',
       body: {
-        email: 'security_auditor_test@aiheaven.org',
+        email: testAuditorEmail,
         password: 'SecurePassw0rd2026!Strict'
       }
     });
@@ -140,7 +142,7 @@ test('Authentication & Security Hardening Suite', async (t) => {
     const loginRes = await request('/api/auth/login', {
       method: 'POST',
       body: {
-        email: 'security_auditor_test@aiheaven.org',
+        email: testAuditorEmail,
         password: 'SecurePassw0rd2026!Strict'
       }
     });
@@ -151,7 +153,7 @@ test('Authentication & Security Hardening Suite', async (t) => {
     });
     assert.strictEqual(usersRes.status, 200);
     assert.strictEqual(usersRes.body.users.length, 1, 'non-admin sees only own account');
-    assert.strictEqual(usersRes.body.users[0].email, 'security_auditor_test@aiheaven.org');
+    assert.strictEqual(usersRes.body.users[0].email, testAuditorEmail);
   });
 
   await t.test('7. JWT Security: Insecure default JWT secrets are rejected or warned', () => {
