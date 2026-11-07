@@ -23,6 +23,20 @@ const STORAGE_FILE = path.join(DATA_DIR, 'droid_families.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'family_messages.json');
 const MAX_DELEGATION_DEPTH = 5;
 
+function getFamilyHmacKey(): string {
+  const secret = process.env.DROID_FAMILY_SECRET || process.env.DROID_MESSAGE_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret.length < 32) {
+      throw new Error('SECURITY FAULT: In production, DROID_FAMILY_SECRET or DROID_MESSAGE_SECRET must be configured (min 32 chars).');
+    }
+    return secret;
+  }
+  if (!(globalThis as any).__AIHEAVEN_FAMILY_HMAC_KEY) {
+    (globalThis as any).__AIHEAVEN_FAMILY_HMAC_KEY = secret || crypto.randomBytes(32).toString('hex');
+  }
+  return (globalThis as any).__AIHEAVEN_FAMILY_HMAC_KEY;
+}
+
 export class DroidFamilyService {
   private families = new Map<string, DroidFamily>(); // familyId -> DroidFamily
   private familyByUserId = new Map<string, string>(); // userId -> familyId
@@ -348,7 +362,7 @@ export class DroidFamilyService {
     const correlationId = params.correlationId || crypto.randomUUID();
 
     const signature = crypto
-      .createHmac('sha256', 'ai-heaven-family-mesh-key')
+      .createHmac('sha256', getFamilyHmacKey())
       .update(`${params.familyId}:${params.fromDroidId}:${params.toDroidId}:${params.subject}:${now}`)
       .digest('hex');
 

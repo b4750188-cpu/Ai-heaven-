@@ -237,6 +237,79 @@ class HackerOneService {
       currentSnapshot: freshSnapshot
     };
   }
+
+  public async submitReport(reportData: {
+    programHandle: string;
+    title: string;
+    vulnerabilityInformation: string;
+    impact: string;
+    severityRating?: 'critical' | 'high' | 'medium' | 'low';
+  }): Promise<{ success: boolean; submissionId?: string; status: 'VERIFIED' | 'CONFIGURATION_REQUIRED' | 'FAILED'; message: string }> {
+    if (!this.apiIdentifier.trim() || !this.apiToken.trim()) {
+      return {
+        success: false,
+        status: 'CONFIGURATION_REQUIRED',
+        message: 'HackerOne API credentials unconfigured / missing. Set HACKERONE_API_IDENTIFIER and HACKERONE_API_TOKEN in environment settings.'
+      };
+    }
+
+    try {
+      const authHeader = `Basic ${Buffer.from(`${this.apiIdentifier}:${this.apiToken}`).toString('base64')}`;
+      const payload = {
+        data: {
+          type: 'report',
+          attributes: {
+            title: reportData.title,
+            vulnerability_information: reportData.vulnerabilityInformation,
+            impact: reportData.impact,
+            severity_rating: reportData.severityRating || 'medium'
+          },
+          relationships: {
+            program: {
+              data: {
+                type: 'program',
+                attributes: {
+                  handle: reportData.programHandle
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const res = await fetch('https://api.hackerone.com/v1/hackers/reports', {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          status: 'FAILED',
+          message: json.errors?.[0]?.detail || `HackerOne API error (${res.status})`
+        };
+      }
+
+      return {
+        success: true,
+        submissionId: json.data?.id,
+        status: 'VERIFIED',
+        message: `Successfully transmitted verified finding to HackerOne program '${reportData.programHandle}' (Report ID: ${json.data?.id}).`
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        status: 'FAILED',
+        message: err.message || 'Network failure communicating with HackerOne API'
+      };
+    }
+  }
 }
 
 export const hackerOneService = new HackerOneService();

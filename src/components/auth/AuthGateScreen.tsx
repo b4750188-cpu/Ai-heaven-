@@ -544,8 +544,10 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                   try {
                     setIsLoading(true);
                     const res = await apiClient.requestPasswordReset(email);
-                    setResetToken(res.resetToken);
-                    setSuccess('Reset token issued! You can set your new password below.');
+                    setSuccess(res.message || 'If an account exists, password recovery instructions have been dispatched.');
+                    if (res.devResetToken) {
+                      setResetToken(res.devResetToken);
+                    }
                   } catch (err: any) {
                     setError(err?.message || 'Failed to request reset token');
                   } finally {
@@ -555,44 +557,56 @@ export const AuthGateScreen: React.FC<AuthGateScreenProps> = ({
                 disabled={isLoading || !email}
                 className="w-full h-10 rounded-xl bg-[#171F2B] hover:bg-[#283242] border border-[#283242] text-xs font-mono font-semibold text-[#42D9F5] transition-colors"
               >
-                Request Reset Token
+                Request Recovery Token
               </button>
 
-              {resetToken && (
-                <div className="space-y-3 pt-2">
-                  <div className="p-2.5 rounded-lg border border-[#283242] bg-[#121822] text-[11px] font-mono text-[#9AA6B7]">
-                    Token: <span className="text-[#34D399]">{resetToken}</span>
-                  </div>
+              <div className="space-y-3 pt-2">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-mono text-[#9AA6B7] uppercase tracking-wider">
+                    Recovery Token
+                  </label>
+                  <input
+                    type="text"
+                    value={resetToken}
+                    onChange={e => setResetToken(e.target.value.trim())}
+                    placeholder="Enter received recovery token (reset_...)"
+                    className="w-full rounded-xl border border-[#283242] bg-[#121822] px-3.5 py-2.5 text-xs text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none font-mono"
+                  />
+                </div>
 
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-mono text-[#9AA6B7] uppercase tracking-wider">
+                    New Password (Min 8 Characters)
+                  </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min 8 characters)"
+                    placeholder="Enter new password"
                     className="w-full rounded-xl border border-[#283242] bg-[#121822] px-3.5 py-2.5 text-xs text-[#F1F4F8] focus:border-[#42D9F5] focus:outline-none"
                   />
-
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        setIsLoading(true);
-                        const res = await apiClient.confirmPasswordReset(resetToken, newPassword);
-                        setSuccess('Password updated! Signing in...');
-                        setTimeout(() => onAuthenticated(res.user), 500);
-                      } catch (err: any) {
-                        setError(err?.message || 'Failed to reset password');
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                    disabled={isLoading || !newPassword}
-                    className="w-full h-10 rounded-xl bg-[#34D399] hover:bg-[#2fb884] text-[#080B10] font-mono font-bold text-xs"
-                  >
-                    Confirm &amp; Sign In
-                  </button>
                 </div>
-              )}
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      const res = await apiClient.confirmPasswordReset(resetToken, newPassword);
+                      setSuccess('Password updated securely! Signing in...');
+                      setTimeout(() => onAuthenticated(res.user), 500);
+                    } catch (err: any) {
+                      setError(err?.message || 'Failed to reset password');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading || !resetToken || !newPassword}
+                  className="w-full h-10 rounded-xl bg-[#34D399] hover:bg-[#2fb884] text-[#080B10] font-mono font-bold text-xs disabled:opacity-50"
+                >
+                  Confirm &amp; Sign In
+                </button>
+              </div>
 
               <button
                 type="button"

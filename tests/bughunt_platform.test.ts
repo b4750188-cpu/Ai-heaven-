@@ -145,10 +145,11 @@ describe('PART 1/6: CORE AUTONOMOUS BUG-HUNTING PLATFORM & AUTHENTICATION', () =
     });
 
     it('supports OAuth login and identity linking without cross-account compromise', () => {
-      const oauthEmail = `oauth_hunter_${Date.now()}@corp.io`;
+      const now = Date.now();
+      const oauthEmail = `oauth_hunter_${now}@corp.io`;
       const oauthSession = authService.loginOrRegisterOAuth(
         'google',
-        'sub_google_123456',
+        `sub_google_${now}`,
         oauthEmail,
         'OAuth Google User'
       );
@@ -161,7 +162,7 @@ describe('PART 1/6: CORE AUTONOMOUS BUG-HUNTING PLATFORM & AUTHENTICATION', () =
       const updatedUser = authService.linkAccount(
         oauthSession.user.id,
         'github',
-        'gh_user_9988',
+        `gh_user_${now}`,
         oauthEmail
       );
 

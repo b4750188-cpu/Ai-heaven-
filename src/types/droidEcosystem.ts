@@ -70,6 +70,8 @@ export interface DroidMessage {
   correlationId: string;
   timestamp: string;
   signature: string;
+  tenantId?: string;
+  nonce?: string;
 }
 
 export interface DroidMemoryEntry {

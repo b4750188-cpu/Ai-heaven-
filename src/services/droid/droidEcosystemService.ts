@@ -17,7 +17,21 @@ import {
   SharedFinding
 } from '../../types/droidEcosystem';
 
-const SECRET_HMAC_KEY = process.env.DROID_MESSAGE_SECRET || 'ai-heaven-droid-mesh-secure-v1';
+function getDroidHmacKey(): string {
+  const envSecret = process.env.DROID_MESSAGE_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!envSecret || envSecret === 'ai-heaven-droid-mesh-secure-v1' || envSecret.length < 32) {
+      throw new Error('SECURITY CONFIGURATION REQUIRED: High-entropy DROID_MESSAGE_SECRET (minimum 32 chars) must be provided in production.');
+    }
+    return envSecret;
+  }
+  // Secure dynamic random key per runtime process in development, never a hardcoded static secret
+  if (!(globalThis as any).__AIHEAVEN_DROID_HMAC_KEY) {
+    (globalThis as any).__AIHEAVEN_DROID_HMAC_KEY = envSecret || crypto.randomBytes(32).toString('hex');
+  }
+  return (globalThis as any).__AIHEAVEN_DROID_HMAC_KEY;
+}
+
 const DATA_DIR = path.resolve(process.cwd(), '.data');
 const STORAGE_FILE = path.join(DATA_DIR, 'droid_ecosystem.json');
 
@@ -27,6 +41,8 @@ export class DroidEcosystemService {
   private memories: Map<string, DroidMemoryEntry> = new Map(); // Key: `${tenantId}:${droidId}:${key}`
   private findings: Map<string, SharedFinding> = new Map();
   private isLoaded = false;
+  private seenMessageIds = new Map<string, number>();
+  private seenSignatures = new Map<string, number>();
 
   constructor() {
     this.initializeDefaultDroids();
@@ -310,14 +326,94 @@ export class DroidEcosystemService {
 
   // --- Inter-Droid Messaging ---
 
-  public signMessage(fromDroidId: string, toDroidId: string, payload: Record<string, unknown>, timestamp: string): string {
-    const serialized = JSON.stringify({ fromDroidId, toDroidId, payload, timestamp });
-    return crypto.createHmac('sha256', SECRET_HMAC_KEY).update(serialized).digest('hex');
+  public signMessage(
+    fromDroidId: string,
+    toDroidId: string,
+    payload: Record<string, unknown>,
+    timestamp: string,
+    nonce?: string,
+    tenantId?: string
+  ): string {
+    const serialized = JSON.stringify({
+      fromDroidId,
+      toDroidId,
+      payload,
+      timestamp,
+      nonce: nonce || '',
+      tenantId: tenantId || ''
+    });
+    return crypto.createHmac('sha256', getDroidHmacKey()).update(serialized).digest('hex');
   }
 
   public verifyMessageSignature(message: DroidMessage): boolean {
-    const expected = this.signMessage(message.fromDroidId, message.toDroidId, message.payload, message.timestamp);
-    return crypto.timingSafeEqual(Buffer.from(message.signature, 'hex'), Buffer.from(expected, 'hex'));
+    const check = this.verifyMessageSecurity(message);
+    return check.valid;
+  }
+
+  public verifyMessageSecurity(message: DroidMessage): { valid: boolean; error?: string } {
+    if (!message || !message.signature || !message.timestamp) {
+      return { valid: false, error: 'Malformed message: Missing signature or timestamp.' };
+    }
+
+    // 1. Freshness window check (5 minutes / 300 seconds)
+    const msgTime = new Date(message.timestamp).getTime();
+    if (isNaN(msgTime)) {
+      return { valid: false, error: 'Malformed timestamp format.' };
+    }
+    const now = Date.now();
+    if (Math.abs(now - msgTime) > 300_000) {
+      return {
+        valid: false,
+        error: `Timestamp expired or outside acceptable window (delta: ${Math.round((now - msgTime) / 1000)}s, limit: 300s).`
+      };
+    }
+
+    // 2. Replay Protection: Check if message ID or signature was already received
+    this.pruneReplayCache();
+    if (this.seenMessageIds.has(message.id)) {
+      return { valid: false, error: `REPLAY ATTACK DETECTED: Message ID '${message.id}' has already been processed.` };
+    }
+    if (this.seenSignatures.has(message.signature)) {
+      return { valid: false, error: 'REPLAY ATTACK DETECTED: Message signature has already been processed.' };
+    }
+
+    // 3. Constant-time HMAC comparison
+    const expected = this.signMessage(
+      message.fromDroidId,
+      message.toDroidId,
+      message.payload,
+      message.timestamp,
+      message.nonce,
+      message.tenantId
+    );
+
+    const sigBuf = Buffer.from(message.signature, 'hex');
+    let expBuf = Buffer.from(expected, 'hex');
+
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      // Check legacy format fallback (without nonce/tenantId)
+      const legacyExpected = this.signMessage(message.fromDroidId, message.toDroidId, message.payload, message.timestamp);
+      expBuf = Buffer.from(legacyExpected, 'hex');
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+        return { valid: false, error: 'Cryptographic signature mismatch: Tampered payload or invalid secret.' };
+      }
+    }
+
+    // Record in replay cache
+    this.seenMessageIds.set(message.id, now);
+    this.seenSignatures.set(message.signature, now);
+
+    return { valid: true };
+  }
+
+  private pruneReplayCache(): void {
+    const threshold = Date.now() - 360_000; // 6 minutes
+    for (const [id, ts] of this.seenMessageIds.entries()) {
+      if (ts < threshold) this.seenMessageIds.delete(id);
+    }
+    for (const [sig, ts] of this.seenSignatures.entries()) {
+      if (ts < threshold) this.seenSignatures.delete(sig);
+    }
   }
 
   public sendMessage(params: {
@@ -330,6 +426,7 @@ export class DroidEcosystemService {
     priority?: DroidMessage['priority'];
     requiresAck?: boolean;
     correlationId?: string;
+    tenantId?: string;
   }): { success: boolean; message?: DroidMessage; error?: string } {
     const sender = this.droids.get(params.fromDroidId);
     if (!sender) {
@@ -349,7 +446,15 @@ export class DroidEcosystemService {
     }
 
     const timestamp = new Date().toISOString();
-    const signature = this.signMessage(params.fromDroidId, params.toDroidId, params.payload, timestamp);
+    const nonce = crypto.randomBytes(16).toString('hex');
+    const signature = this.signMessage(
+      params.fromDroidId,
+      params.toDroidId,
+      params.payload,
+      timestamp,
+      nonce,
+      params.tenantId
+    );
     const messageId = `msg_${crypto.randomUUID().slice(0, 12)}`;
 
     const message: DroidMessage = {
@@ -365,7 +470,9 @@ export class DroidEcosystemService {
       acknowledged: false,
       correlationId: params.correlationId || crypto.randomUUID(),
       timestamp,
-      signature
+      signature,
+      tenantId: params.tenantId,
+      nonce
     };
 
     // Update sender metrics

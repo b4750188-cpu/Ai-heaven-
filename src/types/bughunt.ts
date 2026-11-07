@@ -150,6 +150,7 @@ export interface VulnerabilityFinding {
   remediation: string;
   falsePositiveReviewNotes?: string;
   isDataRedacted: boolean;
+  executionMode?: 'REAL_EXECUTION' | 'SIMULATED / DEMONSTRATION';
   discoveredAt: string;
   verifiedAt?: string;
 }
@@ -187,6 +188,7 @@ export interface BugHuntJob {
   reportMarkdown?: string;
   receiptId?: string;
   scopeSnapshotChecksum?: string;
+  executionMode?: 'REAL_EXECUTION' | 'SIMULATED / DEMONSTRATION' | 'CONFIGURATION_REQUIRED';
   startedAt: string;
   completedAt?: string;
   cancellationReason?: string;

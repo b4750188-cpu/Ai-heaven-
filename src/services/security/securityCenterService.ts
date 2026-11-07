@@ -43,6 +43,20 @@ export interface UnifiedSecurityPosture {
   generatedAt: string;
 }
 
+function getReleaseSigningSecret(): string {
+  const secret = process.env.RELEASE_SIGNING_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret === 'aiheaven_release_key_v1' || secret.length < 32) {
+      throw new Error('SECURITY CONFIGURATION REQUIRED: High-entropy RELEASE_SIGNING_SECRET (min 32 chars) must be provided in production.');
+    }
+    return secret;
+  }
+  if (!(globalThis as any).__AIHEAVEN_RELEASE_SECRET) {
+    (globalThis as any).__AIHEAVEN_RELEASE_SECRET = secret || crypto.randomBytes(32).toString('hex');
+  }
+  return (globalThis as any).__AIHEAVEN_RELEASE_SECRET;
+}
+
 export class SecurityCenterService {
   private draugr: DraugrEngine;
   private dojo: DefectDojoBridge;
@@ -216,7 +230,7 @@ export class SecurityCenterService {
 
     const evaluatedAt = new Date().toISOString();
     const proofRaw = `${decision}:${[...reasons].sort().join(';')}:${scorecard.aggregateScore.toFixed(1)}:${evaluatedAt}`;
-    const cryptographicProof = crypto.createHmac('sha256', process.env.RELEASE_SIGNING_SECRET || 'aiheaven_release_key_v1').update(proofRaw).digest('hex');
+    const cryptographicProof = crypto.createHmac('sha256', getReleaseSigningSecret()).update(proofRaw).digest('hex');
 
     return {
       decision,
@@ -238,7 +252,7 @@ export class SecurityCenterService {
     }
     try {
       const proofRaw = `${gate.decision}:${[...(gate.reasons || [])].sort().join(';')}:${Number(gate.scorecardScore || 0).toFixed(1)}:${gate.evaluatedAt}`;
-      const expectedProof = crypto.createHmac('sha256', process.env.RELEASE_SIGNING_SECRET || 'aiheaven_release_key_v1').update(proofRaw).digest('hex');
+      const expectedProof = crypto.createHmac('sha256', getReleaseSigningSecret()).update(proofRaw).digest('hex');
       const expectedBuf = Buffer.from(expectedProof, 'hex');
       const actualBuf = Buffer.from(gate.cryptographicProof, 'hex');
       if (expectedBuf.length !== actualBuf.length || !crypto.timingSafeEqual(expectedBuf, actualBuf)) {

@@ -550,12 +550,22 @@ class AuthService {
   }
 
   public linkAccount(userId: string, provider: AuthProviderType, providerUserId: string, email: string): AuthenticatedUser {
+    if (!provider || !providerUserId) {
+      throw new Error('Provider and providerUserId are required.');
+    }
     const user = this.users.get(userId);
     if (!user) throw new Error('User not found.');
 
     const alreadyLinked = user.linkedIdentities.some(i => i.provider === provider);
     if (alreadyLinked) {
       throw new Error(`Account already has a linked ${provider} identity.`);
+    }
+
+    // Prevent identity spoofing & cross-account takeover: Check all users
+    for (const otherUser of this.users.values()) {
+      if (otherUser.id !== userId && otherUser.linkedIdentities.some(i => i.provider === provider && i.providerUserId === providerUserId)) {
+        throw new Error(`The specified ${provider} account is already linked to another user account.`);
+      }
     }
 
     user.linkedIdentities.push({
@@ -575,8 +585,18 @@ class AuthService {
     const user = this.users.get(userId);
     if (!user) throw new Error('User not found.');
 
-    if (user.linkedIdentities.length <= 1) {
+    // Prevent account lockout: user must have a password or another linked provider
+    if (!user.passwordHash && user.linkedIdentities.length <= 1) {
+      throw new Error('Cannot disconnect the only linked authentication method without setting a password first.');
+    }
+
+    if (user.linkedIdentities.length <= 1 && !user.passwordHash) {
       throw new Error('Cannot disconnect the only linked authentication method.');
+    }
+
+    const hasProvider = user.linkedIdentities.some(i => i.provider === provider);
+    if (!hasProvider) {
+      throw new Error(`Provider '${provider}' is not linked to this account.`);
     }
 
     user.linkedIdentities = user.linkedIdentities.filter(i => i.provider !== provider);
@@ -891,6 +911,19 @@ class AuthService {
 
     this.persist();
     return { success: true, user: this.toAuthenticatedUser(user) };
+  }
+
+  public verifyResetToken(token: string): boolean {
+    if (!token) return false;
+    const record = this.passwordResetTokens.get(token);
+    if (!record || record.isConsumed || new Date(record.expiresAt) < new Date()) {
+      return false;
+    }
+    return true;
+  }
+
+  public resetPasswordWithToken(token: string, newPassword: string): { success: boolean; user: AuthenticatedUser } {
+    return this.confirmPasswordReset(token, newPassword);
   }
 
   public requestEmailVerification(email: string): { verificationToken: string; expiresAt: string } {

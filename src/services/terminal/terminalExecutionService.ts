@@ -267,42 +267,48 @@ class TerminalExecutionService {
           const text = command.slice(5).replace(/^['"]|['"]$/g, '');
           rawStdout = text + '\n';
         }
-      } else if (command.startsWith('git status')) {
+      } else if (command === 'git status' || command.startsWith('git status ')) {
         const files = await workspaceFilesystem.listFiles(workspaceId, undefined, 'workspace_only');
-        rawStdout = `On branch main\nYour branch is up to date with 'origin/main'.\n\nChanges to be committed:\n  (use "git restore --staged <file>..." to unstage)\n${files.slice(0, 5).map(f => `\tmodified:   ${f.name}`).join('\n')}\n\nUntracked files:\n  (use "git add <file>..." to include in what will be committed)\n\tnode_modules/\n`;
-      } else if (command.startsWith('git log')) {
-        rawStdout = `commit 7f3a81c4e209b552 (HEAD -> main, origin/main)\nAuthor: AI Heaven Developer <dev@aiheaven.org>\nDate:   ${new Date().toISOString()}\n\n    chore: synchronized workspace repository with open-source origin\n\ncommit e9b12d54a102c981\nAuthor: Community Maintainers <core@opensource.org>\nDate:   2026-09-01T00:00:00Z\n\n    feat: initial open-source release\n`;
-      } else if (command.startsWith('git branch')) {
-        rawStdout = `* main\n  feature/sandbox-evaluation\n`;
+        if (files.length === 0) {
+          rawStdout = `On branch main\nNo commits yet\n\nnothing to commit (create files to track)\n`;
+        } else {
+          rawStdout = `On branch main\nUntracked files:\n  (use "git add <file>..." to include in what will be committed)\n${files.map(f => `\t${f.name}`).join('\n')}\n\nnothing added to commit but untracked files present\n`;
+        }
+      } else if (command === 'git log' || command.startsWith('git log ')) {
+        exitCode = 128;
+        rawStderr = `fatal: your current branch 'main' does not have any commits yet in workspace ${workspaceId}\n`;
+      } else if (command === 'git branch' || command.startsWith('git branch ')) {
+        rawStdout = `* main\n`;
       } else if (command.startsWith('git clone ')) {
         const repoUrl = command.slice(10).trim();
-        // Parse repo
         const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\.]+)/i);
         if (match) {
           const owner = match[1];
           const repo = match[2];
-          rawStdout = `Cloning into '${repo}'...\nremote: Enumerating objects: 248, done.\nremote: Counting objects: 100% (248/248), done.\nremote: Compressing objects: 100% (142/142), done.\nremote: Total 248 (delta 106), reused 230 (delta 95), pack-reused 0\nReceiving objects: 100% (248/248), 512.40 KiB | 2.10 MiB/s, done.\nResolving deltas: 100% (106/106), done.\n`;
-          // Import into workspace
+          rawStdout = `Cloning repository '${owner}/${repo}' into workspace '${workspaceId}'...\n`;
           await this.importRepoToWorkspace(owner, repo, workspaceId);
+          rawStdout += `Successfully imported repository assets into /workspace/${workspaceId}.\n`;
         } else {
           rawStdout = `Cloning into repository '${repoUrl}'...\nDone.\n`;
         }
-      } else if (command.startsWith('npm install') || command.startsWith('npm i')) {
-        rawStdout = `added 42 packages, and audited 184 packages in 1.42s\n\n12 packages are looking for funding\n  run \`npm fund\` for details\n\nfound 0 vulnerabilities\n`;
-      } else if (command.startsWith('npm test') || command === 'npm t') {
-        rawStdout = `\n> test\n> vitest run\n\n ✓ tests/core.spec.ts (4 tests) 18ms\n ✓ tests/api.spec.ts (6 tests) 42ms\n ✓ tests/security.spec.ts (8 tests) 31ms\n\n Test Files  3 passed (3)\n      Tests  18 passed (18)\n   Start at  ${new Date().toISOString()}\n   Duration  342ms (transform 48ms, setup 1ms, collect 38ms, tests 91ms, environment 0ms, prepare 32ms)\n`;
-      } else if (command.startsWith('npm run build') || command === 'npm build') {
-        rawStdout = `\n> build\n> tsc && vite build\n\nvite v5.4.0 building for production...\n✓ 124 modules transformed.\ndist/index.html                   0.84 kB │ gzip:  0.42 kB\ndist/assets/index-D7h.css        12.40 kB │ gzip:  3.12 kB\ndist/assets/index-C8k.js        142.10 kB │ gzip: 44.80 kB\n✓ built in 420ms\n`;
-      } else if (command.startsWith('pip install')) {
-        rawStdout = `Collecting packages...\nDownloading wheel (2.4 MB)\nInstalling collected packages...\nSuccessfully installed dependencies.\n`;
-      } else if (command.startsWith('pytest')) {
-        rawStdout = `============================= test session starts ==============================\nplatform linux -- Python 3.11.8, pytest-8.1.1\nrootdir: /workspace/${workspaceId}\ncollected 14 items\n\ntests/test_runtime.py ..........                                         [ 71%]\ntests/test_sandbox.py ....                                               [100%]\n\n============================== 14 passed in 0.62s ==============================\n`;
-      } else if (command.startsWith('cargo build')) {
-        rawStdout = `   Compiling core v0.1.0 (/workspace/${workspaceId})\n    Finished dev [unoptimized + debuginfo] target(s) in 1.84s\n`;
-      } else if (command.startsWith('ai-explain') || command.startsWith('ai-fix')) {
-        rawStdout = `[AI Heaven Code & Diagnostics Assistant]\nAnalyzed workspace tree at /workspace/${workspaceId}.\n- Architecture: Modular TypeScript runtime with sandboxed execution isolation.\n- Health: Zero syntax faults detected.\n- Recommendation: Ensure environment secrets remain in server configurations and never bundle into client artifacts.\n`;
+      } else if (command.startsWith('npm ') || command.startsWith('pip ') || command.startsWith('pytest') || command.startsWith('cargo ')) {
+        const bin = command.split(' ')[0];
+        exitCode = 1;
+        rawStderr = `[CONFIGURATION_REQUIRED] Tool runner '${bin}' requires an external container execution daemon. Workspace '${workspaceId}' is currently operating in isolated VFS mode. Native filesystem commands (ls, cat, touch, echo, rm, mkdir, git status) are operational.\n`;
+      } else if (command === 'help') {
+        rawStdout = `AI Heaven Isolated Workspace Terminal
+Available Commands:
+  Filesystem: ls, cd <dir>, pwd, cat <file>, touch <file>, mkdir <dir>, rm <file>, echo <text> [> file]
+  Git: git status, git log, git branch, git clone <url>
+  Package & Build: npm install, npm test, npm run build, pip install, pytest, cargo build
+  AI Diagnostics: ai-explain, ai-fix
+  System: whoami, uname -a, env, clear, help
+All executions are strictly isolated to the tenant workspace virtual filesystem.
+`;
       } else {
-        rawStdout = `[sandboxed-env /workspace/${workspaceId}] Executed: ${command}\nProcess exited cleanly with status 0.\n`;
+        const bin = command.split(' ')[0];
+        exitCode = 127;
+        rawStderr = `bash: ${bin}: command not found in sandbox environment. Run 'help' to view available workspace commands.\n`;
       }
     } catch (err: any) {
       exitCode = 1;

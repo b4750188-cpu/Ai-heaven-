@@ -1088,6 +1088,8 @@ export function createExpressApp(): express.Express {
     }
 
     if (token) {
+      if (authService.isTokenRevoked(token)) return null;
+
       const verified = authService.verifyToken(token);
       if (verified) return verified;
 
@@ -1098,6 +1100,7 @@ export function createExpressApp(): express.Express {
         decoded = null;
       }
       if (decoded && decoded.sub) {
+        if (authService.isTokenRevoked(token)) return null;
         return {
           id: decoded.sub,
           email: decoded.email,
@@ -1132,6 +1135,22 @@ export function createExpressApp(): express.Express {
   const getSafeUser = (req: Request): AuthenticatedUser => {
     const user = getRequestUser(req);
     if (user) return user;
+    if (process.env.NODE_ENV === 'production') {
+      return {
+        id: 'user_anonymous',
+        email: 'anonymous@aiheaven.local',
+        fullName: 'Anonymous Visitor',
+        role: 'user',
+        isActive: false,
+        isEmailVerified: false,
+        mfaEnabled: false,
+        tenantId: 'tenant_restricted',
+        linkedIdentities: [],
+        activeSessionsCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
     return {
       id: 'user_anonymous',
       email: 'anonymous@aiheaven.local',
@@ -1681,11 +1700,48 @@ export function createExpressApp(): express.Express {
     }
   });
 
-  apiRouter.post('/auth/link', (req: Request, res: Response) => {
+  const authRateLimits = new Map<string, { count: number; firstRequest: number }>();
+  const checkAuthRateLimit = (key: string, limit = 5, windowMs = 15 * 60 * 1000): boolean => {
+    const now = Date.now();
+    const entry = authRateLimits.get(key);
+    if (!entry || now - entry.firstRequest > windowMs) {
+      authRateLimits.set(key, { count: 1, firstRequest: now });
+      return true;
+    }
+    if (entry.count >= limit) {
+      return false;
+    }
+    entry.count++;
+    return true;
+  };
+
+  apiRouter.post('/auth/link', async (req: Request, res: Response) => {
     try {
       const user = getRequiredUser(req, res);
       if (!user) return;
-      const { provider, providerUserId, email } = req.body || {};
+      let { provider, providerUserId, email, code, credential } = req.body || {};
+      if (!provider) return res.status(400).json({ error: 'Provider is required' });
+
+      // Verify Google or GitHub credentials if provided
+      if (provider === 'google' && credential) {
+        const verified = await authService.verifyGoogleCredential(credential);
+        const googleLink = verified.user.linkedIdentities.find(l => l.provider === 'google');
+        providerUserId = googleLink?.providerUserId || verified.user.id;
+        email = verified.user.email;
+      } else if (provider === 'github' && code) {
+        const { state, redirectUri } = req.body || {};
+        const verified = await authService.exchangeGitHubCode(code, state || '', redirectUri || '');
+        const ghLink = verified.user.linkedIdentities.find(l => l.provider === 'github');
+        providerUserId = ghLink?.providerUserId || verified.user.id;
+        email = verified.user.email;
+      } else if (process.env.NODE_ENV === 'production' && !providerUserId) {
+        return res.status(400).json({ error: `Cryptographic authorization proof (credential or code) is required to link ${provider} identity.` });
+      }
+
+      if (!providerUserId) {
+        return res.status(400).json({ error: 'providerUserId or verification credential required' });
+      }
+
       const updated = authService.linkAccount(user.id, provider, providerUserId, email || user.email);
       res.json({ user: updated, success: true });
     } catch (err: any) {
@@ -1725,10 +1781,23 @@ export function createExpressApp(): express.Express {
     try {
       const { email } = req.body || {};
       if (!email) return res.status(400).json({ error: 'Email address is required' });
-      const record = authService.requestEmailVerification(email);
-      res.json(record);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      const rateKey = `verify_${ip}_${email.trim().toLowerCase()}`;
+      if (!checkAuthRateLimit(rateKey, 5, 15 * 60 * 1000)) {
+        return res.status(429).json({ error: 'Too many verification requests. Please wait 15 minutes before retrying.' });
+      }
+
+      authService.requestEmailVerification(email);
+      res.json({
+        success: true,
+        message: 'If an account exists with this email address, a cryptographic verification link has been dispatched.'
+      });
+    } catch {
+      // Never enumerate email existence to unauthenticated callers
+      res.json({
+        success: true,
+        message: 'If an account exists with this email address, a cryptographic verification link has been dispatched.'
+      });
     }
   });
 
@@ -1747,10 +1816,23 @@ export function createExpressApp(): express.Express {
     try {
       const { email } = req.body || {};
       if (!email) return res.status(400).json({ error: 'Email address is required' });
-      const record = authService.requestPasswordReset(email);
-      res.json(record);
-    } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      const rateKey = `reset_${ip}_${email.trim().toLowerCase()}`;
+      if (!checkAuthRateLimit(rateKey, 5, 15 * 60 * 1000)) {
+        return res.status(429).json({ error: 'Too many password reset requests. Please wait 15 minutes before retrying.' });
+      }
+
+      authService.requestPasswordReset(email);
+      res.json({
+        success: true,
+        message: 'If an account exists with this email address, password recovery instructions have been dispatched.'
+      });
+    } catch {
+      // Never enumerate email existence
+      res.json({
+        success: true,
+        message: 'If an account exists with this email address, password recovery instructions have been dispatched.'
+      });
     }
   });
 
@@ -2506,9 +2588,36 @@ export function createExpressApp(): express.Express {
   // =========================================================================
   // TERMINAL & ISOLATED WORKSPACE EXECUTION ROUTES
   // =========================================================================
+  const validateWorkspaceOwnership = (user: AuthenticatedUser, workspaceId: string): boolean => {
+    if (!user || !user.isActive) return false;
+    if (user.role === 'admin') return true;
+    if (!workspaceId) return false;
+    // Cross-tenant workspace prevention
+    if (workspaceId.startsWith('ws_tenant_') && !workspaceId.startsWith(`ws_${user.tenantId}`)) {
+      return false;
+    }
+    if (workspaceId.startsWith('tenant_') && workspaceId !== user.tenantId) {
+      return false;
+    }
+    // Prevent directory traversal or escape characters in workspaceId
+    if (workspaceId.includes('..') || workspaceId.includes('/') || workspaceId.includes('\\')) {
+      return false;
+    }
+    return true;
+  };
+
   apiRouter.post('/terminal/execute', async (req: Request, res: Response) => {
     try {
-      const result = await terminalExecutionService.executeCommand(req.body);
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const workspaceId = req.body?.workspace_id || `ws_${user.tenantId}`;
+      if (!validateWorkspaceOwnership(user, workspaceId)) {
+        return res.status(403).json({ error: `Forbidden: Tenant '${user.tenantId}' is not authorized to access workspace '${workspaceId}'.` });
+      }
+      const result = await terminalExecutionService.executeCommand({
+        ...req.body,
+        workspace_id: workspaceId
+      });
       res.json(result);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -2516,17 +2625,26 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.post('/terminal/cancel', (req: Request, res: Response) => {
+    const user = getRequiredUser(req, res);
+    if (!user) return;
     const success = terminalExecutionService.cancelExecution(req.body?.execution_id);
     res.json({ success });
   });
 
   apiRouter.get('/terminal/history', (req: Request, res: Response) => {
+    const user = getRequiredUser(req, res);
+    if (!user) return;
     res.json({ history: terminalExecutionService.getHistory() });
   });
 
   apiRouter.get('/terminal/workspace/files', async (req: Request, res: Response) => {
     try {
-      const workspaceId = (req.query.workspace_id as string) || 'ws_default_demo';
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const workspaceId = (req.query.workspace_id as string) || `ws_${user.tenantId}`;
+      if (!validateWorkspaceOwnership(user, workspaceId)) {
+        return res.status(403).json({ error: `Forbidden: Tenant '${user.tenantId}' is not authorized to access workspace '${workspaceId}'.` });
+      }
       const files = await workspaceFilesystem.listFiles(workspaceId, undefined, 'workspace_only');
       res.json({ files });
     } catch (err: any) {
@@ -2536,7 +2654,12 @@ export function createExpressApp(): express.Express {
 
   apiRouter.get('/terminal/workspace/file', async (req: Request, res: Response) => {
     try {
-      const workspaceId = (req.query.workspace_id as string) || 'ws_default_demo';
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const workspaceId = (req.query.workspace_id as string) || `ws_${user.tenantId}`;
+      if (!validateWorkspaceOwnership(user, workspaceId)) {
+        return res.status(403).json({ error: `Forbidden: Tenant '${user.tenantId}' is not authorized to access workspace '${workspaceId}'.` });
+      }
       const filePath = req.query.path as string;
       if (!filePath) return res.status(400).json({ error: 'path parameter required' });
       const file = await workspaceFilesystem.readFile(workspaceId, filePath, 'workspace_only');
@@ -2548,7 +2671,12 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/terminal/workspace/file', async (req: Request, res: Response) => {
     try {
-      const workspaceId = req.body?.workspace_id || 'ws_default_demo';
+      const user = getRequiredUser(req, res);
+      if (!user) return;
+      const workspaceId = req.body?.workspace_id || `ws_${user.tenantId}`;
+      if (!validateWorkspaceOwnership(user, workspaceId)) {
+        return res.status(403).json({ error: `Forbidden: Tenant '${user.tenantId}' is not authorized to access workspace '${workspaceId}'.` });
+      }
       const { path: filePath, content } = req.body;
       if (!filePath) return res.status(400).json({ error: 'path required' });
       await workspaceFilesystem.writeFile(workspaceId, filePath, content ?? '', 'workspace_only');
@@ -2560,9 +2688,14 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/terminal/workspace/import-repo', async (req: Request, res: Response) => {
     try {
+      const user = getRequiredUser(req, res);
+      if (!user) return;
       const { owner, repo, workspace_id } = req.body;
       if (!owner || !repo) return res.status(400).json({ error: 'owner and repo required' });
-      const workspaceId = workspace_id || 'ws_default_demo';
+      const workspaceId = workspace_id || `ws_${user.tenantId}`;
+      if (!validateWorkspaceOwnership(user, workspaceId)) {
+        return res.status(403).json({ error: `Forbidden: Tenant '${user.tenantId}' is not authorized to access workspace '${workspaceId}'.` });
+      }
       const result = await terminalExecutionService.importRepoToWorkspace(owner, repo, workspaceId);
       res.json(result);
     } catch (err: any) {
@@ -3129,14 +3262,28 @@ export function createExpressApp(): express.Express {
   // CONTINUITY & INTELLIGENCE ENGINE ROUTES
   // =========================================================================
 
+  // Helper to derive tenant identity from authenticated session and prevent client spoofing
+  const getEnforcedTenantId = (req: Request, res: Response): string | null => {
+    const user = getSafeUser(req);
+    const sessionTenant = user.tenantId;
+    const clientTenant = (req.query.tenant_id as string) || (req.query.tenantId as string) || (req.body?.tenantId as string) || (req.body?.tenant_id as string);
+    if (clientTenant && clientTenant !== sessionTenant && user.role !== 'admin') {
+      res.status(403).json({ error: `Cross-tenant access forbidden: Session tenant '${sessionTenant}' cannot access resources belonging to '${clientTenant}'.` });
+      return null;
+    }
+    return sessionTenant;
+  };
+
   apiRouter.get('/continuity/dashboard', (req: Request, res: Response) => {
-    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const tenantId = getEnforcedTenantId(req, res);
+    if (!tenantId) return;
     const projectId = (req.query.project_id as string) || 'proj_ai_heaven_core';
     res.json(continuityEngine.getDashboardData(tenantId, projectId));
   });
 
   apiRouter.get('/continuity/memories', (req: Request, res: Response) => {
-    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const tenantId = getEnforcedTenantId(req, res);
+    if (!tenantId) return;
     const projectId = req.query.project_id !== undefined ? (req.query.project_id as string) : undefined;
     const domain = req.query.domain as string | undefined;
     const category = req.query.category as any;
@@ -3158,11 +3305,12 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/continuity/memories', async (req: Request, res: Response) => {
     try {
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const body = req.body || {};
       if (!body.title || !body.content || !body.category || !body.sourceType) {
         return res.status(400).json({ error: 'title, content, category, and sourceType are required' });
       }
-      const tenantId = body.tenantId || 'tenant_default';
       const memory = await continuityEngine.storeMemory({
         tenantId,
         projectId: body.projectId,
@@ -3188,7 +3336,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.put('/continuity/memories/:id', (req: Request, res: Response) => {
     try {
-      const tenantId = (req.body?.tenantId as string) || (req.query.tenant_id as string) || 'tenant_default';
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const updated = continuityEngine.updateMemory(req.params.id, tenantId, req.body || {}, req.body?.reason);
       if (!updated) return res.status(404).json({ error: 'Memory not found or unauthorized' });
       res.json(updated);
@@ -3199,7 +3348,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.delete('/continuity/memories/:id', async (req: Request, res: Response) => {
     try {
-      const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const deleted = await continuityEngine.deleteMemory(req.params.id, tenantId);
       if (!deleted) return res.status(404).json({ error: 'Memory not found or unauthorized' });
       res.json({ success: true, id: req.params.id });
@@ -3210,7 +3360,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/continuity/memories/:id/revalidate', (req: Request, res: Response) => {
     try {
-      const tenantId = (req.body?.tenantId as string) || 'tenant_default';
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const { newStatus, reason } = req.body || {};
       if (!newStatus) return res.status(400).json({ error: 'newStatus is required' });
       const revalidated = continuityEngine.revalidateMemory(req.params.id, tenantId, newStatus, reason || 'Operator revalidation');
@@ -3223,7 +3374,8 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/continuity/memories/:id/promote', (req: Request, res: Response) => {
     try {
-      const tenantId = (req.body?.tenantId as string) || 'tenant_default';
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const promoted = continuityEngine.promoteToGlobalApproved(req.params.id, tenantId);
       if (!promoted) return res.status(404).json({ error: 'Memory not found or unauthorized' });
       res.json(promoted);
@@ -3233,7 +3385,8 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.get('/continuity/memories/export', (req: Request, res: Response) => {
-    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const tenantId = getEnforcedTenantId(req, res);
+    if (!tenantId) return;
     const projectId = req.query.project_id as string | undefined;
     const format = (req.query.format as 'json' | 'csv') || 'json';
     const exported = continuityEngine.exportMemories(tenantId, projectId, format);
@@ -3247,7 +3400,8 @@ export function createExpressApp(): express.Express {
   });
 
   apiRouter.get('/continuity/stale-conflicts', (req: Request, res: Response) => {
-    const tenantId = (req.query.tenant_id as string) || 'tenant_default';
+    const tenantId = getEnforcedTenantId(req, res);
+    if (!tenantId) return;
     const projectId = req.query.project_id as string | undefined;
     res.json({ anomalies: continuityEngine.detectStaleOrContradictoryKnowledge(tenantId, projectId) });
   });
@@ -4347,7 +4501,8 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.get('/operations/mission-control/overview', async (req: Request, res: Response) => {
     try {
-      const tenantId = (req.query.tenantId as string) || (req as any).user?.tenant_id;
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const overview = await missionControlAdapter.getOverview(tenantId);
       res.json(overview);
     } catch (err: any) {
@@ -4357,7 +4512,9 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/operations/mission-control/dispatch', async (req: Request, res: Response) => {
     try {
-      const { agentId, goal, tenantId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { agentId, goal } = req.body || {};
       if (!agentId || !goal) {
         return res.status(400).json({ error: 'agentId and goal are required parameters.' });
       }
@@ -4394,7 +4551,9 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.post('/workflow/oma/run', async (req: Request, res: Response) => {
     try {
-      const { goal, tenantId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { goal } = req.body || {};
       if (!goal) {
         return res.status(400).json({ error: 'goal parameter is required.' });
       }
@@ -4463,7 +4622,8 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.get('/observability/agent-lens/flights', (req: Request, res: Response) => {
     try {
-      const tenantId = (req.query.tenantId as string) || (req as any).user?.tenant_id;
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const flights = agentLensService.listFlightRecords(tenantId);
       res.json(flights);
     } catch (err: any) {
@@ -4486,7 +4646,9 @@ export function createExpressApp(): express.Express {
 
   apiRouter.post('/observability/agent-lens/flight', (req: Request, res: Response) => {
     try {
-      const { taskId, goal, tenantId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { taskId, goal } = req.body || {};
       if (!taskId || !goal) {
         return res.status(400).json({ error: 'taskId and goal are required parameters.' });
       }
@@ -4525,7 +4687,9 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.post('/security/agent-gate/evaluate', async (req: Request, res: Response) => {
     try {
-      const { agentId, toolId, commandOrPayload, parameters, tenantId, projectId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { agentId, toolId, commandOrPayload, parameters, projectId } = req.body || {};
       if (!agentId || !toolId || !commandOrPayload) {
         return res.status(400).json({ error: 'agentId, toolId, and commandOrPayload are required parameters.' });
       }
@@ -4645,7 +4809,9 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.post('/swarm/run', async (req: Request, res: Response) => {
     try {
-      const { prompt, initialAgentId, contextVariables, maxHandoffs, tenantId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { prompt, initialAgentId, contextVariables, maxHandoffs } = req.body || {};
       if (!prompt) return res.status(400).json({ error: 'prompt is required.' });
       const result = await agentSwarmEngine.executeSwarmRun({
         prompt,
@@ -4675,7 +4841,9 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.post('/wop/v1/runs', async (req: Request, res: Response) => {
     try {
-      const { workflowName, inputs, tenantId } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { workflowName, inputs } = req.body || {};
       if (!workflowName) return res.status(400).json({ error: 'workflowName is required.' });
       const run = await openwopAdapter.createRun(workflowName, inputs || {}, tenantId);
       res.json(run);
@@ -4741,7 +4909,8 @@ export function createExpressApp(): express.Express {
   // OMA (open-multi-agent) Runs listing
   apiRouter.get('/workflow/oma/runs', async (req: Request, res: Response) => {
     try {
-      const tenantId = (req.query.tenantId as string) || (req as any).user?.tenant_id;
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
       const runs = await omaRuntimeAdapter.listRuns(tenantId);
       res.json(runs);
     } catch (err: any) {
@@ -4782,7 +4951,9 @@ export function createExpressApp(): express.Express {
   // ==========================================
   apiRouter.post('/runtime/polos/session', (req: Request, res: Response) => {
     try {
-      const { agentId, tenantId, maxRetries } = req.body || {};
+      const tenantId = getEnforcedTenantId(req, res);
+      if (!tenantId) return;
+      const { agentId, maxRetries } = req.body || {};
       const session = polosRuntimeAdapter.createSession({ agentId: agentId || 'agent_default', tenantId, maxRetries });
       res.json({
         sessionId: session.sessionId,
